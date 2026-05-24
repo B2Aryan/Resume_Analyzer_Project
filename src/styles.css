@@ -335,123 +335,96 @@
     pointer-events: none;
   }
 
-  /* Final CTA — cinematic, layered, premium */
+  /* Final CTA — ambient, premium (Vercel / Linear feel) */
+  .cta-wrap {
+    position: relative;
+    border-radius: 32px;
+    box-shadow:
+      0 40px 120px -40px rgba(59, 130, 246, 0.08),
+      0 20px 80px -30px rgba(59, 130, 246, 0.06);
+  }
+  .dark .cta-wrap {
+    box-shadow:
+      0 40px 120px -40px rgba(14, 165, 233, 0.18),
+      0 20px 100px -30px rgba(14, 165, 233, 0.12);
+  }
+
   .cta-panel {
+    --mx: 50%;
+    --my: 50%;
+    --rx: 0deg;
+    --ry: 0deg;
+    --spot-opacity: 0;
     position: relative;
     overflow: hidden;
     isolation: isolate;
     border-radius: 32px;
-    padding: 1px; /* hairline gradient edge */
     background:
-      linear-gradient(135deg,
-        color-mix(in oklab, var(--foreground) 8%, transparent),
-        color-mix(in oklab, var(--foreground) 3%, transparent) 45%,
-        color-mix(in oklab, var(--foreground) 6%, transparent));
-    box-shadow:
-      inset 0 1px 0 color-mix(in oklab, white 35%, transparent),
-      0 20px 50px -25px color-mix(in oklab, var(--primary) 18%, transparent),
-      0 14px 40px -18px oklch(0 0 0 / 0.12);
-  }
-  .cta-panel::before {
-    /* base surface */
-    content: "";
-    position: absolute;
-    inset: 1px;
-    z-index: -2;
-    border-radius: 31px;
-    background:
-      radial-gradient(ellipse 55% 70% at 15% 0%,
-        color-mix(in oklab, var(--primary) 16%, transparent), transparent 60%),
-      radial-gradient(ellipse 60% 80% at 100% 110%,
-        color-mix(in oklab, var(--primary-glow) 18%, transparent), transparent 65%),
       radial-gradient(ellipse 80% 60% at 50% 50%,
         color-mix(in oklab, var(--card) 96%, transparent),
         color-mix(in oklab, var(--background) 98%, transparent));
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
+    transform: perspective(1200px) rotateX(var(--rx)) rotateY(var(--ry));
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform-style: preserve-3d;
+    will-change: transform;
   }
-  .cta-panel::after {
-    /* fine grain + inner highlight */
-    content: "";
-    position: absolute;
-    inset: 1px;
-    z-index: -1;
-    border-radius: 31px;
-    background-image:
-      linear-gradient(180deg,
-        color-mix(in oklab, white 8%, transparent),
-        transparent 35%,
-        transparent 70%,
-        color-mix(in oklab, var(--primary) 6%, transparent)),
-      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.45 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");
-    background-size: auto, 160px 160px;
-    mix-blend-mode: overlay;
-    opacity: 0.35;
-    pointer-events: none;
-  }
-
   .dark .cta-panel {
     background:
-      linear-gradient(135deg,
-        rgba(255,255,255,0.08),
-        rgba(255,255,255,0.02) 45%,
-        rgba(255,255,255,0.06));
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.06),
-      0 30px 80px -30px color-mix(in oklab, var(--primary) 28%, transparent),
-      0 24px 60px -24px oklch(0 0 0 / 0.5);
-  }
-  .dark .cta-panel::before {
-    background:
-      radial-gradient(ellipse 60% 70% at 18% -10%,
-        color-mix(in oklab, var(--primary-glow) 28%, transparent), transparent 60%),
-      radial-gradient(ellipse 65% 80% at 100% 110%,
-        color-mix(in oklab, var(--primary) 22%, transparent), transparent 65%),
-      radial-gradient(ellipse 90% 60% at 50% 120%,
-        oklch(0.22 0.05 250 / 0.4), transparent 70%),
       linear-gradient(160deg,
         oklch(0.20 0.035 260),
         oklch(0.13 0.03 260) 55%,
         oklch(0.10 0.025 260));
-  }
-  .dark .cta-panel::after {
-    opacity: 0.18;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
   }
 
-  .cta-shine {
+  .cta-inner { position: relative; z-index: 2; }
+
+  .cta-spotlight {
     position: absolute;
-    inset: 1px;
-    border-radius: 31px;
-    overflow: hidden;
+    inset: 0;
+    border-radius: inherit;
     pointer-events: none;
-    z-index: 0;
+    z-index: 1;
+    opacity: var(--spot-opacity);
+    transition: opacity 0.4s ease;
+    background:
+      radial-gradient(circle at var(--mx) var(--my),
+        rgba(14, 165, 233, 0.12), transparent 45%),
+      radial-gradient(circle at var(--mx) var(--my),
+        rgba(59, 130, 246, 0.06), transparent 70%);
   }
-  .cta-shine::before {
-    content: "";
+
+  .cta-sweep {
     position: absolute;
-    top: 0;
+    top: -50%;
     left: -60%;
-    width: 50%;
-    height: 100%;
+    width: 60%;
+    height: 200%;
+    pointer-events: none;
+    z-index: 1;
     background: linear-gradient(100deg,
-      transparent,
-      color-mix(in oklab, white 12%, transparent),
-      transparent);
+      transparent 30%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 70%);
     transform: skewX(-18deg);
-    animation: cta-sweep 7s ease-in-out 1.5s infinite;
+    animation: cta-sweep 11s linear infinite;
   }
-  .dark .cta-shine::before {
+  .dark .cta-sweep {
     background: linear-gradient(100deg,
-      transparent,
-      color-mix(in oklab, var(--primary-glow) 14%, transparent),
-      transparent);
+      transparent 30%,
+      rgba(255, 255, 255, 0.04) 50%,
+      transparent 70%);
   }
   @keyframes cta-sweep {
-    0%   { left: -60%; opacity: 0; }
-    15%  { opacity: 1; }
-    60%  { left: 120%; opacity: 0; }
-    100% { left: 120%; opacity: 0; }
+    0%   { left: -60%; }
+    100% { left: 160%; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .cta-shine::before { animation: none; }
+    .cta-sweep { animation: none; opacity: 0; }
+    .cta-panel { transform: none; transition: none; }
   }
 
   /* Animated underline accent under hero highlight word */
