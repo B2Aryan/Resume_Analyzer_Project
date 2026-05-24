@@ -257,36 +257,33 @@ function LandingPage() {
       {/* Final CTA */}
       <section className="section-divider py-16 sm:py-24">
         <div className="mx-auto max-w-5xl px-5 sm:px-6">
-          <div className="cta-panel">
-            <div className="relative rounded-[31px] px-6 py-14 text-center sm:px-12 sm:py-20 md:px-16 md:py-24">
-              <span className="cta-shine" aria-hidden="true" />
-              <div className="relative z-10">
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_currentColor]" />
-                  Free to start
-                </span>
-                <h2 className="mt-5 font-display text-3xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
-                  Ready to land
-                  <br className="hidden sm:block" />{" "}
-                  <span className="text-gradient">more interviews?</span>
-                </h2>
-                <p className="mx-auto mt-5 max-w-xl text-sm text-muted-foreground sm:text-base">
-                  Run your first analysis in under a minute. No card, no friction.
-                </p>
-                <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button asChild size="lg" variant="hero" className="group w-full sm:w-auto">
-                    <Link to="/upload">
-                      Analyze My Resume
-                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="ghost" className="w-full sm:w-auto">
-                    <Link to="/how-it-works">See how it works</Link>
-                  </Button>
-                </div>
+          <CTAPanel>
+            <div className="px-6 py-14 text-center sm:px-12 sm:py-20 md:px-16 md:py-24">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_currentColor]" />
+                Free to start
+              </span>
+              <h2 className="mt-5 font-display text-3xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
+                Ready to land
+                <br className="hidden sm:block" />{" "}
+                <span className="text-gradient">more interviews?</span>
+              </h2>
+              <p className="mx-auto mt-5 max-w-xl text-sm text-muted-foreground sm:text-base">
+                Run your first analysis in under a minute. No card, no friction.
+              </p>
+              <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button asChild size="lg" variant="hero" className="group w-full sm:w-auto">
+                  <Link to="/upload">
+                    Analyze My Resume
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="ghost" className="w-full sm:w-auto">
+                  <Link to="/how-it-works">See how it works</Link>
+                </Button>
               </div>
             </div>
-          </div>
+          </CTAPanel>
         </div>
       </section>
     </MarketingLayout>
