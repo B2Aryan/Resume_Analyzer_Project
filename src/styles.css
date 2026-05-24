@@ -360,11 +360,11 @@
     isolation: isolate;
     border-radius: 32px;
     background:
+      radial-gradient(circle at center, rgba(59, 130, 246, 0.05), transparent 70%),
       radial-gradient(ellipse 80% 60% at 50% 50%,
         color-mix(in oklab, var(--card) 96%, transparent),
         color-mix(in oklab, var(--background) 98%, transparent));
     border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
     transform: perspective(1200px) rotateX(var(--rx)) rotateY(var(--ry));
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     transform-style: preserve-3d;
@@ -372,12 +372,12 @@
   }
   .dark .cta-panel {
     background:
+      radial-gradient(circle at center, rgba(14, 165, 233, 0.08), transparent 70%),
       linear-gradient(160deg,
         oklch(0.20 0.035 260),
         oklch(0.13 0.03 260) 55%,
         oklch(0.10 0.025 260));
     border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
   }
 
   .cta-inner { position: relative; z-index: 2; }
@@ -405,18 +405,12 @@
     height: 200%;
     pointer-events: none;
     z-index: 1;
-    background: linear-gradient(100deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.05) 50%,
-      transparent 70%);
+    background: linear-gradient(120deg,
+      transparent,
+      rgba(255, 255, 255, 0.04),
+      transparent);
     transform: skewX(-18deg);
-    animation: cta-sweep 11s linear infinite;
-  }
-  .dark .cta-sweep {
-    background: linear-gradient(100deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.04) 50%,
-      transparent 70%);
+    animation: cta-sweep 10s linear infinite;
   }
   @keyframes cta-sweep {
     0%   { left: -60%; }
