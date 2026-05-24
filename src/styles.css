@@ -352,23 +352,14 @@
   .cta-panel {
     --mx: 50%;
     --my: 50%;
-    --rx: 0deg;
-    --ry: 0deg;
     --spot-opacity: 0;
     position: relative;
     overflow: hidden;
     isolation: isolate;
     border-radius: 32px;
-    background:
-      radial-gradient(circle at center, rgba(59, 130, 246, 0.05), transparent 70%),
-      radial-gradient(ellipse 80% 60% at 50% 50%,
-        color-mix(in oklab, var(--card) 96%, transparent),
-        color-mix(in oklab, var(--background) 98%, transparent));
+    background: linear-gradient(145deg, #ffffff, #f7faff);
     border: 1px solid rgba(0, 0, 0, 0.05);
-    transform: perspective(1200px) rotateX(var(--rx)) rotateY(var(--ry));
-    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    transform-style: preserve-3d;
-    will-change: transform;
+    box-shadow: 0 20px 50px rgba(59, 130, 246, 0.06);
   }
   .dark .cta-panel {
     background:
@@ -378,6 +369,7 @@
         oklch(0.13 0.03 260) 55%,
         oklch(0.10 0.025 260));
     border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: none;
   }
 
   .cta-inner { position: relative; z-index: 2; }
@@ -392,39 +384,19 @@
     transition: opacity 0.5s ease;
     background:
       radial-gradient(circle at var(--mx) var(--my),
-        rgba(59, 130, 246, 0.06), transparent 45%);
+        rgba(59, 130, 246, 0.12),
+        rgba(14, 165, 233, 0.08),
+        transparent 55%);
   }
 
   .dark .cta-spotlight {
     background:
       radial-gradient(circle at var(--mx) var(--my),
-        rgba(14, 165, 233, 0.10), transparent 45%);
+        rgba(14, 165, 233, 0.10),
+        rgba(59, 130, 246, 0.05),
+        transparent 50%);
   }
 
-
-  .cta-sweep {
-    position: absolute;
-    top: -50%;
-    left: -60%;
-    width: 60%;
-    height: 200%;
-    pointer-events: none;
-    z-index: 1;
-    background: linear-gradient(120deg,
-      transparent,
-      rgba(255, 255, 255, 0.04),
-      transparent);
-    transform: skewX(-18deg);
-    animation: cta-sweep 10s linear infinite;
-  }
-  @keyframes cta-sweep {
-    0%   { left: -60%; }
-    100% { left: 160%; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .cta-sweep { animation: none; opacity: 0; }
-    .cta-panel { transform: none; transition: none; }
-  }
 
   /* Animated underline accent under hero highlight word */
   .accent-underline {
