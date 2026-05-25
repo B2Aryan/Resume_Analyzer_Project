@@ -20,6 +20,7 @@ function SiteNavbarImpl() {
   return (
     <header
       className="fixed left-0 right-0 top-0 z-[9999] w-full px-3 py-3 sm:px-4 sm:py-5"
+      style={{ position: "fixed", top: 0, left: 0, right: 0 }}
     >
       <nav className="mx-auto w-full max-w-5xl">
         <div className="relative flex h-14 items-center justify-between rounded-full px-3 sm:px-5 nav-glass">
