@@ -137,8 +137,8 @@
   * {
     border-color: var(--color-border);
   }
-  html, body {
-    overflow-x: hidden;
+  body {
+    overflow-x: clip;
     max-width: 100vw;
   }
   html {
