@@ -104,9 +104,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         {showSiteNavbar && <SiteNavbar />}
-        <div className={showSiteNavbar ? "pt-[80px] sm:pt-[100px] lg:pt-[120px]" : undefined}>
-          <Outlet />
-        </div>
+        <Outlet />
         <Toaster />
       </ThemeProvider>
     </QueryClientProvider>
