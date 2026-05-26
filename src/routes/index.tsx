@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScoreRing, ScoreBar } from "@/components/score-ring";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CTAPanel } from "@/components/marketing/CTAPanel";
+import { SpotlightCard } from "@/components/marketing/SpotlightCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
