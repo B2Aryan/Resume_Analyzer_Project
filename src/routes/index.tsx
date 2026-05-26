@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScoreRing, ScoreBar } from "@/components/score-ring";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CTAPanel } from "@/components/marketing/CTAPanel";
+import { SpotlightCard } from "@/components/marketing/SpotlightCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -102,7 +103,7 @@ function LandingPage() {
           {/* Mockup card */}
           <div className="relative animate-scale-in lg:pl-8">
             <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-primary opacity-20 blur-3xl sm:-inset-6" />
-            <div className="premium-card p-5 sm:p-7">
+            <SpotlightCard className="premium-card p-5 sm:p-7">
               <div className="flex items-start justify-between gap-3 sm:gap-4">
                 <div className="min-w-0 flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Resume report</p>
@@ -125,7 +126,7 @@ function LandingPage() {
                   ))}
                 </div>
               </div>
-            </div>
+            </SpotlightCard>
           </div>
         </div>
       </section>
