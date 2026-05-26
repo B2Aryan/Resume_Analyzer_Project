@@ -63,20 +63,22 @@ function LandingPage() {
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur sm:text-xs">
               <Sparkles className="h-3.5 w-3.5 text-primary" /> Built for students &amp; freshers
             </span>
-            <h1 className="mt-4 font-display text-[2rem] font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-              Check your resume for{" "}
-              <TypingText
-                phrases={[
-                  "ATS issues",
-                  "Missing keywords",
-                  "Formatting problems",
-                  "Weak project bullets",
-                  "Skill gaps",
-                  "Resume mistakes",
-                ]}
-                className="text-gradient font-extrabold tracking-tight"
-              />{" "}
-              in seconds.
+            <h1 className="mt-4 font-display text-[2rem] font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl lg:text-6xl">
+              <span className="block">Check your resume for</span>
+              <span className="block my-1">
+                <TypingText
+                  phrases={[
+                    "ATS issues",
+                    "Missing keywords",
+                    "Formatting problems",
+                    "Weak project bullets",
+                    "Skill gaps",
+                    "Resume mistakes",
+                  ]}
+                  className="text-gradient font-extrabold tracking-tight"
+                />
+              </span>
+              <span className="block">in seconds.</span>
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:mt-5 sm:text-lg lg:mx-0">
               Upload your resume, paste a target role, and instantly get an ATS score, missing keywords, and clear improvement tips. Land more interviews — for free.
