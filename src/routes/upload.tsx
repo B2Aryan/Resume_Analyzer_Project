@@ -38,29 +38,36 @@ function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [pastedText, setPastedText] = useState("");
   const [pastedRole, setPastedRole] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [isPending, startTransition] = useTransition();
   const [activeStepId, setActiveStepId] = useState<AnalysisProgressStepId | null>(null);
   const [completedStepIds, setCompletedStepIds] = useState<Set<AnalysisProgressStepId>>(new Set());
 
   const handleAnalyze = useCallback(() => {
     const role = pastedRole.trim() || "Software Engineer";
+    const jd = jobDescription.trim();
 
     if (uploadMethod === "file") {
       if (!selectedFile) {
         toast.error("Please select a PDF file to analyze.");
         return;
       }
-      startAnalysis(selectedFile, "", role);
+      startAnalysis(selectedFile, "", role, jd);
     } else {
       const trimmed = pastedText.trim();
       if (trimmed.length < 100) {
         toast.error("Please paste at least 100 characters of your resume.");
         return;
       }
-      startAnalysis(null, trimmed, role);
+      startAnalysis(null, trimmed, role, jd);
     }
 
-    async function startAnalysis(file: File | null, text: string, targetRole: string) {
+    async function startAnalysis(
+      file: File | null,
+      text: string,
+      targetRole: string,
+      jdText: string,
+    ) {
       startTransition(async () => {
         try {
           setActiveStepId(null);
@@ -75,6 +82,7 @@ function UploadPage() {
             file,
             pastedText: text,
             role: targetRole,
+            jobDescription: jdText,
             onProgress: progressReporter,
           });
 
@@ -83,7 +91,7 @@ function UploadPage() {
             return;
           }
 
-          setResult(result.data, targetRole, result.fileName, result.resumeText, undefined, {
+          setResult(result.data, targetRole, result.fileName, result.resumeText, jdText || undefined, {
             animateEntry: true,
             usedBackupProvider: result.usedBackupProvider,
           });
@@ -99,6 +107,7 @@ function UploadPage() {
     selectedFile,
     pastedText,
     pastedRole,
+    jobDescription,
     setResult,
     navigate,
   ]);
@@ -109,7 +118,7 @@ function UploadPage() {
         open={isPending}
         phase={isPending ? "progress" : "success"}
         hasPdf={uploadMethod === "file"}
-        hasJobDescription={false}
+        hasJobDescription={jobDescription.trim().length > 0}
         activeStepId={activeStepId}
         completedStepIds={completedStepIds}
       />
@@ -216,6 +225,40 @@ function UploadPage() {
                       className="w-full rounded-xl border border-input bg-background/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring backdrop-blur"
                     />
                   </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-2">
+                      Job Description (Recommended)
+                    </label>
+                    <textarea
+                      placeholder="Example:
+
+Frontend Developer Intern
+
+Requirements:
+• React.js
+• TypeScript
+• Tailwind CSS
+• REST APIs
+• Git
+• Strong problem-solving skills
+
+Responsibilities:
+• Build responsive user interfaces
+• Collaborate with backend developers
+• Write clean and maintainable code"
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      className="min-h-[200px] w-full rounded-xl border border-input bg-background/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring backdrop-blur"
+                    />
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Paste the job description, requirements, skills, or internship posting here to receive a more accurate ATS score, keyword match analysis, and personalized suggestions.
+                    </p>
+                    {!jobDescription.trim() && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Analysis will be performed using the target role only. For better results, paste a job description.
+                      </p>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="mt-4">
@@ -237,6 +280,40 @@ function UploadPage() {
                       onChange={(e) => setPastedRole(e.target.value)}
                       className="w-full rounded-xl border border-input bg-background/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring backdrop-blur"
                     />
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium mb-2">
+                      Job Description (Recommended)
+                    </label>
+                    <textarea
+                      placeholder="Example:
+
+Frontend Developer Intern
+
+Requirements:
+• React.js
+• TypeScript
+• Tailwind CSS
+• REST APIs
+• Git
+• Strong problem-solving skills
+
+Responsibilities:
+• Build responsive user interfaces
+• Collaborate with backend developers
+• Write clean and maintainable code"
+                      value={jobDescription}
+                      onChange={(e) => setJobDescription(e.target.value)}
+                      className="min-h-[200px] w-full rounded-xl border border-input bg-background/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring backdrop-blur"
+                    />
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Paste the job description, requirements, skills, or internship posting here to receive a more accurate ATS score, keyword match analysis, and personalized suggestions.
+                    </p>
+                    {!jobDescription.trim() && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Analysis will be performed using the target role only. For better results, paste a job description.
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
