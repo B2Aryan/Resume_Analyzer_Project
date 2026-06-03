@@ -1,12 +1,17 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { memo, useState } from "react";
-import { FileCheck2, Menu, X } from "lucide-react";
+import { FileCheck2, Menu, X, User, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 function SiteNavbarImpl() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const currentPath = (pathname.replace(/\/+$/, "") || "/").toLowerCase();
 
@@ -16,6 +21,15 @@ function SiteNavbarImpl() {
     { to: "/pricing", label: "Pricing" },
     { to: "/faq", label: "FAQ" },
   ] as const;
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   return (
     <>
@@ -100,12 +114,49 @@ function SiteNavbarImpl() {
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
           <div className="mx-1 h-4 w-px bg-border" />
-          <Link
-            to="/login"
-            className="px-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Log in
-          </Link>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 px-2 text-[13px] font-medium transition-colors hover:bg-foreground/5 rounded-full py-1">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.user_metadata?.avatar_url || ""} alt={user.user_metadata?.full_name || user.email || ""} />
+                    <AvatarFallback>
+                      {getInitials(user.user_metadata?.full_name || user.email || "U")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:inline text-foreground">
+                    {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>{user.user_metadata?.full_name || user.email}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate({ to: "/dashboard" })}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate({ to: "/dashboard/profile" })}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="px-2 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Log in
+              </Link>
+            </>
+          )}
           <Button asChild variant="hero" size="sm" className="rounded-full px-4 text-[13px] font-semibold">
             <Link to="/upload">Analyze Resume</Link>
           </Button>
@@ -142,8 +193,31 @@ function SiteNavbarImpl() {
               );
             })}
             <div className="flex flex-col gap-2 pt-2">
-              <Button asChild variant="outline" size="sm" className="rounded-full"><Link to="/login">Log in</Link></Button>
-              <Button asChild variant="hero" size="sm" className="rounded-full"><Link to="/upload">Analyze Resume</Link></Button>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.user_metadata?.avatar_url || ""} alt={user.user_metadata?.full_name || user.email || ""} />
+                      <AvatarFallback>
+                        {getInitials(user.user_metadata?.full_name || user.email || "U")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-sm">
+                      <div className="font-medium">{user.user_metadata?.full_name || user.email?.split('@')[0]}</div>
+                      <div className="text-xs text-muted-foreground">{user.email}</div>
+                    </div>
+                  </div>
+                  <div className="border-t border-border my-1" />
+                  <Button asChild variant="outline" size="sm" className="rounded-full" onClick={() => setOpen(false)}><Link to="/dashboard">Dashboard</Link></Button>
+                  <Button asChild variant="outline" size="sm" className="rounded-full" onClick={() => setOpen(false)}><Link to="/dashboard/profile">Profile</Link></Button>
+                  <Button variant="outline" size="sm" className="rounded-full" onClick={async () => { await signOut(); setOpen(false); }}>Sign Out</Button>
+                </>
+              ) : (
+                <>
+                  <Button asChild variant="outline" size="sm" className="rounded-full"><Link to="/login">Log in</Link></Button>
+                </>
+              )}
+              <Button asChild variant="hero" size="sm" className="rounded-full" onClick={() => setOpen(false)}><Link to="/upload">Analyze Resume</Link></Button>
             </div>
           </div>
         </div>
