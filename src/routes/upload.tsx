@@ -4,10 +4,8 @@ import { useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { useAnalysisStore } from "@/store/analysisStore";
-import {
-  runResumeAnalysis,
-  type AnalysisProgressStepId,
-} from "@/lib/ats/analysis-progress";
+import { type AnalysisProgressStepId } from "@/lib/ats/analysis-progress";
+import { runResumeAnalysis } from "@/lib/ats/run-resume-analysis";
 
 export const Route = createFileRoute("/upload")({
   head: () => ({
