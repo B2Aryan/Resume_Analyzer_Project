@@ -7,8 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
-      { title: "How it works — ResumeCheck AI" },
-      { name: "description", content: "Upload, analyze, and improve. See exactly how ResumeCheck AI evaluates your resume." },
+      { title: "How it works — ResumePilot" },
+      { name: "description", content: "Upload, analyze, and improve. See exactly how ResumePilot evaluates your resume." },
     ],
   }),
   component: HowItWorks,

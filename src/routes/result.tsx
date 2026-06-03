@@ -27,7 +27,7 @@ import { getPreviousAnalysis } from "@/lib/storage/analysis-versions";
 export const Route = createFileRoute("/result")({
   head: () => ({
     meta: [
-      { title: "Analysis Result — ResumeCheck AI" },
+      { title: "Analysis Result — ResumePilot" },
       {
         name: "description",
         content: "Your ATS resume analysis with score, keywords and improvement suggestions.",

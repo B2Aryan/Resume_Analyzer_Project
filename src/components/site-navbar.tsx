@@ -27,7 +27,7 @@ function SiteNavbarImpl() {
             <FileCheck2 className="h-4 w-4" />
           </span>
           <span className="hidden sm:inline text-foreground">
-            ResumeCheck<span className="text-primary"> AI</span>
+            ResumePilot
           </span>
         </Link>
 

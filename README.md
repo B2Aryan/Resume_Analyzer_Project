@@ -1,6 +1,6 @@
-# ResumeCheck AI 🚀
+# ResumePilot 🚀
 
-ResumeCheck AI is an AI-powered ATS (Applicant Tracking System) Resume Analyzer designed for students, freshers, and job seekers. It helps users analyze resumes, identify ATS issues, detect missing keywords, improve formatting, and receive actionable suggestions to increase interview chances.
+ResumePilot is an AI-powered ATS (Applicant Tracking System) Resume Analyzer designed for students, freshers, and job seekers. It helps users analyze resumes, identify ATS issues, detect missing keywords, improve formatting, and receive actionable suggestions to increase interview chances.
 
 ## ✨ Features
 
@@ -205,4 +205,4 @@ This project is licensed under the MIT License.
 
 Built with ❤️ for students and freshers.
 
-ResumeCheck AI — Beat the ATS and land more interviews.
+ResumePilot — Beat the ATS and land more interviews.

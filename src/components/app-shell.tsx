@@ -20,7 +20,7 @@ export function AppSidebar() {
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground">
           <FileCheck2 className="h-5 w-5" />
         </span>
-        ResumeCheck<span className="text-primary">AI</span>
+        ResumePilot
       </Link>
       <nav className="flex-1 space-y-1 p-3">
         {items.map((item) => {

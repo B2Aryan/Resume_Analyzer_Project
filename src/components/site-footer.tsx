@@ -12,7 +12,7 @@ export function SiteFooter() {
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-glow">
               <FileCheck2 className="h-5 w-5" />
             </span>
-            ResumeCheck<span className="text-primary">AI</span>
+            ResumePilot
           </Link>
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">
             The free-first resume analyzer built for students and freshers. Beat the ATS and land your next interview.
@@ -57,7 +57,7 @@ export function SiteFooter() {
       </div>
       <div>
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:px-6">
-          <p>© {new Date().getFullYear()} ResumeCheck AI. Built for students.</p>
+          <p>© {new Date().getFullYear()} ResumePilot. Built for students.</p>
           <div className="flex items-center gap-1">
             <a href="#" aria-label="Twitter" className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-all hover:scale-110 hover:bg-foreground/5 hover:text-foreground">
               <Twitter className="h-4 w-4" />

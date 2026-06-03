@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const Route = createFileRoute("/dashboard/saved")({
-  head: () => ({ meta: [{ title: "Saved Reports — ResumeCheck AI" }] }),
+  head: () => ({ meta: [{ title: "Saved Reports — ResumePilot" }] }),
   component: () => (
     <AppShell title="Saved reports" subtitle="Pinned analyses you want to revisit.">
       <Card className="border-dashed border-border/60">

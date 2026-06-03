@@ -41,7 +41,7 @@ function drawHeader(doc: jsPDF, role: string): number {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(16);
-  doc.text("ResumeCheck AI — ATS Analysis Report", MARGIN, 14);
+  doc.text("ResumePilot — ATS Analysis Report", MARGIN, 14);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
@@ -182,7 +182,7 @@ function drawFooter(doc: jsPDF) {
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      `ResumeCheck AI · Page ${i} of ${pages}`,
+      `ResumePilot · Page ${i} of ${pages}`,
       PAGE_WIDTH / 2,
       FOOTER_Y,
       { align: "center" },

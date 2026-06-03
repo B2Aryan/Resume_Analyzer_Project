@@ -12,7 +12,7 @@ import { SpotlightCard } from "@/components/marketing/SpotlightCard";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ResumeCheck AI — Beat the ATS, land the interview" },
+      { title: "ResumePilot — Beat the ATS, land the interview" },
       { name: "description", content: "Free ATS resume analyzer for students. Upload, get a score, missing keywords and improvement tips in seconds." },
     ],
   }),
@@ -48,7 +48,7 @@ const testimonials = [
 ];
 
 const faqs = [
-  { q: "Is ResumeCheck AI really free?", a: "Yes. The free plan covers everything you need to analyze and improve your resume. Pro is for power users who want unlimited scans and deeper feedback." },
+  { q: "Is ResumePilot really free?", a: "Yes. The free plan covers everything you need to analyze and improve your resume. Pro is for power users who want unlimited scans and deeper feedback." },
   { q: "Will my resume data be shared?", a: "Never. Your resume is processed for analysis and is never sold or used to train models." },
   { q: "What file formats do you support?", a: "PDF is recommended. You can also paste plain resume text. DOCX support is coming soon." },
   { q: "How accurate is the ATS score?", a: "Our scoring mimics the most common ATS parsers used by Indian and US recruiters. It's a strong proxy, not a guarantee." },
@@ -187,7 +187,7 @@ function LandingPage() {
         <div className="mx-auto max-w-7xl px-5 sm:px-6">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div>
-              <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">Why students choose ResumeCheck AI</h2>
+              <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">Why students choose ResumePilot</h2>
               <p className="mt-3 max-w-lg text-muted-foreground">
                 Generic AI tools throw a wall of text at you. We give you a focused, recruiter-style review you can act on in minutes.
               </p>

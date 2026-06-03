@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const Route = createFileRoute("/dashboard/")({
-  head: () => ({ meta: [{ title: "Dashboard — ResumeCheck AI" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — ResumePilot" }] }),
   component: DashboardHome,
 });
 

@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Log in — ResumeCheck AI" }] }),
+  head: () => ({
+    meta: [{ title: "Log in — ResumePilot" }],
+  }),
   component: LoginPage,
 });
 

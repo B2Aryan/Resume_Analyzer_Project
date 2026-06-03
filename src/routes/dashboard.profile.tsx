@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/dashboard/profile")({
-  head: () => ({ meta: [{ title: "Profile — ResumeCheck AI" }] }),
+  head: () => ({ meta: [{ title: "Profile — ResumePilot" }] }),
   component: () => (
     <AppShell title="Profile" subtitle="Manage your account details.">
       <div className="grid gap-6 lg:grid-cols-3">

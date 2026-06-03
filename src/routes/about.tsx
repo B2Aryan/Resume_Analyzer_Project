@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — ResumeCheck AI" },
+      { title: "About — ResumePilot" },
       { name: "description", content: "We help students beat the ATS and land their first interviews — for free." },
     ],
   }),
@@ -28,7 +28,7 @@ function AboutPage() {
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h1 className="font-display text-4xl font-bold sm:text-5xl">Helping students land interviews</h1>
           <p className="mt-4 text-muted-foreground">
-            ResumeCheck AI started after watching too many great students get filtered out by automated systems before a human ever read their resume. We fix that.
+            ResumePilot started after watching too many great students get filtered out by automated systems before a human ever read their resume. We fix that.
           </p>
         </div>
       </section>

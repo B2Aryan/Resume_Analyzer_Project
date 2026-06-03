@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 export const Route = createFileRoute("/features")({
   head: () => ({
     meta: [
-      { title: "Features — ResumeCheck AI" },
+      { title: "Features — ResumePilot" },
       { name: "description", content: "ATS scoring, keyword detection, project review, summary checks and more." },
     ],
   }),

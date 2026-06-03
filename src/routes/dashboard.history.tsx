@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/dashboard/history")({
-  head: () => ({ meta: [{ title: "History — ResumeCheck AI" }] }),
+  head: () => ({ meta: [{ title: "History — ResumePilot" }] }),
   component: HistoryPage,
 });
 

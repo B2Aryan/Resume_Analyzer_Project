@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "FAQ — ResumeCheck AI" },
+      { title: "FAQ — ResumePilot" },
       { name: "description", content: "Answers to common questions about resume analysis, pricing and privacy." },
     ],
   }),
@@ -51,7 +51,7 @@ function FAQPage() {
       <section className="hero-ambient py-16">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <h1 className="font-display text-4xl font-bold sm:text-5xl">Frequently asked questions</h1>
-          <p className="mt-3 text-muted-foreground">Everything you need to know about ResumeCheck AI.</p>
+          <p className="mt-3 text-muted-foreground">Everything you need to know about ResumePilot.</p>
         </div>
       </section>
 
