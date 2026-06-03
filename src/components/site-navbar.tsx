@@ -18,9 +18,56 @@ function SiteNavbarImpl() {
   ] as const;
 
   return (
-    <header
-      className="nav-bar fixed top-0 left-0 right-0 z-[9999] w-full"
-    >
+    <>
+      <style>{`
+        .nav-bar {
+          overflow: hidden;
+          background: color-mix(in oklab, var(--background) 70%, transparent);
+          backdrop-filter: blur(14px) saturate(160%);
+          -webkit-backdrop-filter: blur(14px) saturate(160%);
+          border-bottom: 1px solid color-mix(in oklab, var(--foreground) 7%, transparent);
+        }
+        .dark .nav-bar {
+          background: rgba(2, 6, 23, 0.15);
+          backdrop-filter: blur(20px) saturate(140%);
+          -webkit-backdrop-filter: blur(20px) saturate(140%);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .dark .nav-bar::before {
+          content: "";
+          position: absolute;
+          left: -25%;
+          top: -120px;
+          width: 900px;
+          height: 360px;
+          background:
+            radial-gradient(circle at 30% 40%, rgba(37, 99, 235, 0.14), transparent 75%);
+          filter: blur(70px);
+          z-index: 0;
+          pointer-events: none;
+        }
+        .dark .nav-bar::after {
+          content: "";
+          position: absolute;
+          right: -35%;
+          top: -160px;
+          width: 1100px;
+          height: 420px;
+          background:
+            radial-gradient(circle at 60% 45%, rgba(14, 165, 233, 0.32), transparent 68%),
+            radial-gradient(circle at 80% 55%, rgba(56, 189, 248, 0.22), transparent 75%);
+          filter: blur(80px);
+          z-index: 0;
+          pointer-events: none;
+        }
+        .dark .nav-bar > * {
+          position: relative;
+          z-index: 1;
+        }
+      `}</style>
+      <header
+        className="nav-bar fixed top-0 left-0 right-0 z-[9999] w-full"
+      >
       <nav className="mx-auto flex h-[60px] w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link to="/" className="flex shrink-0 items-center gap-2 font-display text-[15px] font-semibold tracking-tight">
           <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-glow">
@@ -102,6 +149,7 @@ function SiteNavbarImpl() {
         </div>
       )}
     </header>
+    </>
   );
 }
 

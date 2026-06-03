@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Upload, Sparkles, Target, CheckCircle2, FileSearch, KeyRound, FolderKanban, FileText, LayoutGrid, Zap, GraduationCap, Heart, Quote, Star, TrendingUp } from "lucide-react";
 import { TypingText } from "@/components/typing-text";
 import { MarketingLayout } from "@/components/marketing-layout";
@@ -8,6 +8,7 @@ import { ScoreRing, ScoreBar } from "@/components/score-ring";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { CTAPanel } from "@/components/marketing/CTAPanel";
 import { SpotlightCard } from "@/components/marketing/SpotlightCard";
+import { useAnalysisStore } from "@/store/analysisStore";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -55,6 +56,80 @@ const faqs = [
 ];
 
 function LandingPage() {
+  const navigate = useNavigate();
+  const setResult = useAnalysisStore((state) => state.setResult);
+
+  const handleSeeSampleReport = () => {
+    const sampleResult = {
+      score: 82,
+      atsCompatibility: 88,
+      keywordMatch: 74,
+      skillsScore: 80,
+      projectScore: 86,
+      presentKeywords: [
+        "React",
+        "TypeScript",
+        "Tailwind CSS",
+        "Node.js",
+        "Git",
+        "REST API",
+        "Jest",
+      ],
+      missingKeywords: [
+        "Next.js",
+        "GraphQL",
+        "Docker",
+        "AWS",
+        "CI/CD",
+        "Redux",
+      ],
+      strengths: [
+        "Clear, chronological work history",
+        "Action verbs used effectively in project descriptions",
+        "Technical skills section is well-organized",
+        "Resume is ATS-friendly with standard section headers",
+      ],
+      suggestions: [
+        "Add quantifiable metrics to your project outcomes",
+        "Include more modern frontend technologies like Next.js",
+        "Add a brief professional summary at the top",
+      ],
+      summary:
+        "Your resume is strong and ATS-friendly! Focus on adding measurable achievements and modern tech skills to stand out.",
+      improvementSuggestions: [
+        {
+          keyword: "Next.js",
+          whyItMatters:
+            "Next.js is the most popular React framework for production apps",
+          suggestion:
+            "Add a Next.js project to your portfolio or mention experience with SSR/SSG",
+        },
+        {
+          keyword: "GraphQL",
+          whyItMatters: "Many modern APIs use GraphQL instead of REST",
+          suggestion:
+            "Add GraphQL to your skills or include a project that uses it",
+        },
+        {
+          keyword: "Docker",
+          whyItMatters:
+            "Containerization is essential for DevOps and deployment",
+          suggestion:
+            "Mention Docker in your skills or add a Dockerfile to your projects",
+        },
+      ],
+    };
+
+    setResult(
+      sampleResult,
+      "Frontend Developer Intern",
+      "Aanya_Sharma_Resume.pdf",
+      "Sample resume text...",
+      undefined,
+      { animateEntry: true }
+    );
+    navigate({ to: "/result" });
+  };
   return (
     <MarketingLayout>
       {/* Hero */}
@@ -88,8 +163,13 @@ function LandingPage() {
               <Button asChild variant="hero" size="lg" className="w-full sm:w-auto">
                 <Link to="/upload">Upload Resume <ArrowRight className="h-4 w-4" /></Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                <Link to="/result">See Sample Report</Link>
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto"
+                onClick={handleSeeSampleReport}
+              >
+                See Sample Report
               </Button>
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground sm:text-sm lg:justify-start">
