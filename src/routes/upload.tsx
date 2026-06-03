@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Upload, Loader2, Sparkles, ShieldCheck, FileText, Zap } from "lucide-react";
+import { ArrowRight, Upload, Loader2, Sparkles, ShieldCheck, FileText, Zap } from "lucide-react";
 import { useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { MarketingLayout } from "@/components/marketing-layout";
