@@ -132,7 +132,7 @@ function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section id="how" className="ambient-spot section-divider py-14 sm:py-20">
+      <section id="how" className="py-14 sm:py-20">
         <div className="mx-auto max-w-7xl px-5 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">How it works</h2>
@@ -159,7 +159,7 @@ function LandingPage() {
       </section>
 
       {/* Features */}
-      <section id="features" className="section-divider section-soft py-14 sm:py-20">
+      <section id="features" className="py-14 sm:py-20">
         <div className="mx-auto max-w-7xl px-5 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">Everything you need to beat the ATS</h2>
@@ -183,7 +183,7 @@ function LandingPage() {
       </section>
 
       {/* Why us */}
-      <section className="section-divider py-14 sm:py-20">
+      <section className="py-14 sm:py-20">
         <div className="mx-auto max-w-7xl px-5 sm:px-6">
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
             <div>
@@ -212,7 +212,7 @@ function LandingPage() {
       </section>
 
       {/* Testimonials */}
-      <section className="section-divider section-soft py-14 sm:py-20">
+      <section className="py-14 sm:py-20">
         <div className="mx-auto max-w-7xl px-5 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">Loved by students across campuses</h2>
@@ -242,7 +242,7 @@ function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="section-divider py-14 sm:py-20">
+      <section className="py-14 sm:py-20">
         <div className="mx-auto max-w-3xl px-5 sm:px-6">
           <div className="text-center">
             <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">Frequently asked questions</h2>
@@ -259,10 +259,10 @@ function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="section-divider py-16 sm:py-24">
+      <section className="py-12 sm:py-16 section-cta">
         <div className="mx-auto max-w-5xl px-5 sm:px-6">
           <CTAPanel>
-            <div className="px-6 py-14 text-center sm:px-12 sm:py-20 md:px-16 md:py-24">
+            <div className="px-6 py-8 text-center sm:px-12 sm:py-12 md:px-16 md:py-16">
               <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_currentColor]" />
                 Free to start

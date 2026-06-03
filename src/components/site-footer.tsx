@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-muted/30">
+    <footer className="site-footer">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-1">
           <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold">
@@ -55,7 +55,7 @@ export function SiteFooter() {
           </form>
         </div>
       </div>
-      <div className="border-t border-border">
+      <div>
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:px-6">
           <p>© {new Date().getFullYear()} ResumeCheck AI. Built for students.</p>
           <div className="flex items-center gap-1">
