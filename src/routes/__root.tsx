@@ -11,6 +11,7 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteNavbar } from "@/components/site-navbar";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 import appCss from "../styles.css?url";
 
@@ -103,9 +104,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        {showSiteNavbar && <SiteNavbar />}
-        <Outlet />
-        <Toaster />
+        <AuthProvider>
+          {showSiteNavbar && <SiteNavbar />}
+          <Outlet />
+          <Toaster />
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

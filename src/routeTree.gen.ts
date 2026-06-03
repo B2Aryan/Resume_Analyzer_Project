@@ -16,12 +16,14 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardSavedRouteImport } from './routes/dashboard.saved'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -58,6 +60,11 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -69,29 +76,35 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSavedRoute = DashboardSavedRouteImport.update({
-  id: '/dashboard/saved',
-  path: '/dashboard/saved',
-  getParentRoute: () => rootRouteImport,
+  id: '/saved',
+  path: '/saved',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardProfileRoute = DashboardProfileRouteImport.update({
-  id: '/dashboard/profile',
-  path: '/dashboard/profile',
-  getParentRoute: () => rootRouteImport,
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardHistoryRoute = DashboardHistoryRouteImport.update({
-  id: '/dashboard/history',
-  path: '/dashboard/history',
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -99,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
@@ -114,6 +128,7 @@ export interface FileRoutesByTo {
   '/pricing': typeof PricingRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
@@ -123,6 +138,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/dashboard': typeof DashboardRouteWithChildren
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -130,6 +146,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
@@ -140,6 +157,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/dashboard'
     | '/faq'
     | '/features'
     | '/how-it-works'
@@ -147,6 +165,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/result'
     | '/upload'
+    | '/auth/callback'
     | '/dashboard/history'
     | '/dashboard/profile'
     | '/dashboard/saved'
@@ -162,6 +181,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/result'
     | '/upload'
+    | '/auth/callback'
     | '/dashboard/history'
     | '/dashboard/profile'
     | '/dashboard/saved'
@@ -170,6 +190,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/dashboard'
     | '/faq'
     | '/features'
     | '/how-it-works'
@@ -177,6 +198,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/result'
     | '/upload'
+    | '/auth/callback'
     | '/dashboard/history'
     | '/dashboard/profile'
     | '/dashboard/saved'
@@ -186,6 +208,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
   HowItWorksRoute: typeof HowItWorksRoute
@@ -193,10 +216,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   ResultRoute: typeof ResultRoute
   UploadRoute: typeof UploadRoute
-  DashboardHistoryRoute: typeof DashboardHistoryRoute
-  DashboardProfileRoute: typeof DashboardProfileRoute
-  DashboardSavedRoute: typeof DashboardSavedRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -250,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -266,38 +293,64 @@ declare module '@tanstack/react-router' {
     }
     '/dashboard/': {
       id: '/dashboard/'
-      path: '/dashboard'
+      path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/saved': {
       id: '/dashboard/saved'
-      path: '/dashboard/saved'
+      path: '/saved'
       fullPath: '/dashboard/saved'
       preLoaderRoute: typeof DashboardSavedRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/profile': {
       id: '/dashboard/profile'
-      path: '/dashboard/profile'
+      path: '/profile'
       fullPath: '/dashboard/profile'
       preLoaderRoute: typeof DashboardProfileRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/history': {
       id: '/dashboard/history'
-      path: '/dashboard/history'
+      path: '/history'
       fullPath: '/dashboard/history'
       preLoaderRoute: typeof DashboardHistoryRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardHistoryRoute: typeof DashboardHistoryRoute
+  DashboardProfileRoute: typeof DashboardProfileRoute
+  DashboardSavedRoute: typeof DashboardSavedRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardHistoryRoute: DashboardHistoryRoute,
+  DashboardProfileRoute: DashboardProfileRoute,
+  DashboardSavedRoute: DashboardSavedRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  DashboardRoute: DashboardRouteWithChildren,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
   HowItWorksRoute: HowItWorksRoute,
@@ -305,10 +358,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   ResultRoute: ResultRoute,
   UploadRoute: UploadRoute,
-  DashboardHistoryRoute: DashboardHistoryRoute,
-  DashboardProfileRoute: DashboardProfileRoute,
-  DashboardSavedRoute: DashboardSavedRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
