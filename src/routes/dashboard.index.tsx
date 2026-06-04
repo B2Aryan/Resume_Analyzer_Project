@@ -224,7 +224,8 @@ function DashboardHome() {
                           { 
                             animateEntry: false, 
                             analysisId: analysis.id, 
-                            isSaved: analysis.is_saved 
+                            isSaved: analysis.is_saved, 
+                            interviewQuestions: analysis.interview_questions || undefined 
                           }
                         );
                         navigate({ to: "/result" });
@@ -235,9 +236,16 @@ function DashboardHome() {
                           <FileText className="h-5 w-5" />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">
-                            {analysis.file_name}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-semibold">
+                              {analysis.file_name}
+                            </p>
+                            {analysis.interview_questions && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                                🎤 Interview Ready
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {analysis.role}
                           </p>

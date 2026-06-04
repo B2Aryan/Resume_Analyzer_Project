@@ -1,7 +1,7 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Download, ArrowRight, Copy, Wand2, Loader2, FileText, Save, Bookmark, BookmarkCheck } from "lucide-react";
+import { Download, ArrowRight, Copy, Wand2, Loader2, FileText, Bookmark, BookmarkCheck, MessageSquare, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,9 @@ import {
 } from "@/lib/ats/bullet-rewriter";
 import { generateCoverLetter } from "@/lib/ats/cover-letter";
 import { downloadCoverLetterPdf } from "@/lib/pdf/cover-letter-pdf";
-import { toggleSaveAnalysis } from "@/lib/supabase/analysis-db";
+import { generateInterviewQuestions, type InterviewQuestionsResponse } from "@/lib/ats/interview-questions";
+import { downloadInterviewQuestionsPdf } from "@/lib/pdf/interview-questions-pdf";
+import { toggleSaveAnalysis, updateInterviewQuestionsToDB } from "@/lib/supabase/analysis-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalysisStore } from "@/store/analysisStore";
 
@@ -56,8 +58,19 @@ export const ResultTools = memo(function ResultTools({
   const [generatedCoverLetterOpen, setGeneratedCoverLetterOpen] = useState(false);
   const [generatedCoverLetter, setGeneratedCoverLetter] = useState("");
 
+  const interviewQuestionsFromStore = useAnalysisStore(s => s.interviewQuestions);
+  const setInterviewQuestions = useAnalysisStore(s => s.setInterviewQuestions);
+
+  const [interviewQuestionsOpen, setInterviewQuestionsOpen] = useState(false);
+  const [interviewQuestionsJd, setInterviewQuestionsJd] = useState("");
+  const [interviewQuestionsGenerating, setInterviewQuestionsGenerating] = useState(false);
+
   const handleSaveToggle = useCallback(async () => {
-    if (!user || !analysisId) return;
+    console.log("handleSaveToggle: user:", user, "analysisId:", analysisId, "isSaved:", isSaved);
+    if (!user || !analysisId) {
+      console.error("handleSaveToggle: Missing user or analysisId");
+      return;
+    }
     setSaveLoading(true);
     try {
       await toggleSaveAnalysis(analysisId, !isSaved);
@@ -65,7 +78,8 @@ export const ResultTools = memo(function ResultTools({
       queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
       queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
       toast.success(isSaved ? "Removed from saved reports" : "Saved to dashboard!");
-    } catch {
+    } catch (error) {
+      console.error("handleSaveToggle error:", error);
       toast.error("Failed to update saved status");
     } finally {
       setSaveLoading(false);
@@ -127,6 +141,57 @@ export const ResultTools = memo(function ResultTools({
               <Button variant="outline" className="w-full" onClick={() => setCoverLetterOpen(true)}>
                 <FileText className="h-4 w-4" aria-hidden /> Generate Cover Letter
               </Button>
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => {
+                  setInterviewQuestionsJd(jobDescription || "");
+                  setInterviewQuestionsOpen(true);
+                }}
+              >
+                <MessageSquare className="h-4 w-4" aria-hidden /> 
+                {interviewQuestionsFromStore ? "View Interview Questions" : "Generate Interview Questions"}
+              </Button>
+              {interviewQuestionsFromStore && (
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={async () => {
+                    setInterviewQuestionsGenerating(true);
+                    try {
+                      const result = await generateInterviewQuestions({
+                        resumeText,
+                        targetRole: role,
+                        jobDescription: jobDescription || undefined,
+                      });
+                      if (result.success) {
+                        setInterviewQuestions(result.data);
+                        if (analysisId) {
+                          await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
+                        }
+                        toast.success("Interview questions regenerated!");
+                      } else {
+                        toast.error(result.error);
+                      }
+                    } catch {
+                      toast.error("Could not regenerate interview questions.");
+                    } finally {
+                      setInterviewQuestionsGenerating(false);
+                    }
+                  }}
+                  disabled={interviewQuestionsGenerating || !analysisId}
+                >
+                  {interviewQuestionsGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" /> Regenerating...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" /> Regenerate Questions
+                    </>
+                  )}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 className="w-full"
@@ -252,6 +317,19 @@ export const ResultTools = memo(function ResultTools({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <InterviewQuestionsDialog
+          open={interviewQuestionsOpen}
+          onOpenChange={setInterviewQuestionsOpen}
+          existingQuestions={interviewQuestionsFromStore}
+          onQuestionsGenerated={(questions) => {
+            setInterviewQuestions(questions);
+          }}
+          role={role}
+          resumeText={resumeText}
+          jobDescriptionFromStore={jobDescription}
+          analysisId={analysisId}
+        />
       </>
     );
   }
@@ -350,3 +428,232 @@ export const ResultTools = memo(function ResultTools({
     </Card>
   );
 });
+
+interface InterviewQuestionsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  existingQuestions: InterviewQuestionsResponse | null;
+  onQuestionsGenerated: (questions: InterviewQuestionsResponse) => void;
+  role: string;
+  resumeText: string;
+  jobDescriptionFromStore: string;
+  analysisId: string | null;
+}
+
+function InterviewQuestionsDialog({
+  open,
+  onOpenChange,
+  existingQuestions,
+  onQuestionsGenerated,
+  role,
+  resumeText,
+  jobDescriptionFromStore,
+  analysisId,
+}: InterviewQuestionsDialogProps) {
+  const [jobDescription, setJobDescription] = useState(jobDescriptionFromStore);
+  const [generating, setGenerating] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [questions, setQuestions] = useState<InterviewQuestionsResponse | null>(existingQuestions);
+
+  // Reset questions when dialog opens with new existing questions
+  useEffect(() => {
+    if (open) {
+      setQuestions(existingQuestions);
+      setJobDescription(jobDescriptionFromStore);
+    }
+  }, [open, existingQuestions, jobDescriptionFromStore]);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const result = await generateInterviewQuestions({
+        resumeText,
+        targetRole: role,
+        jobDescription: jobDescription || undefined,
+      });
+      if (result.success) {
+        setQuestions(result.data);
+        onQuestionsGenerated(result.data);
+        if (analysisId) {
+          await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
+        }
+        toast.success("Interview questions saved!");
+      } else {
+        toast.error(result.error);
+      }
+    } catch (error) {
+      console.error("Interview questions generation error:", error);
+      toast.error("Could not generate interview questions. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!questions) return;
+    const text = [
+      "Technical Questions",
+      ...questions.technical.map((q, i) => `${i + 1}. ${q}`),
+      "",
+      "Project Questions",
+      ...questions.project.map((q, i) => `${i + 1}. ${q}`),
+      "",
+      "Behavioral Questions",
+      ...questions.behavioral.map((q, i) => `${i + 1}. ${q}`),
+      "",
+      "HR Questions",
+      ...questions.hr.map((q, i) => `${i + 1}. ${q}`),
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Interview questions copied to clipboard!");
+    } catch {
+      toast.error("Failed to copy questions.");
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!questions) return;
+    setDownloading(true);
+    try {
+      downloadInterviewQuestionsPdf(questions, role);
+      toast.success("Interview questions downloaded!");
+    } catch {
+      toast.error("Failed to generate PDF.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  return (
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>
+              {questions ? "Interview Questions" : "Generate Interview Questions"}
+            </DialogTitle>
+            {!questions && (
+              <DialogDescription>
+                Paste a job description to generate more tailored interview questions.
+              </DialogDescription>
+            )}
+          </DialogHeader>
+
+          {!questions ? (
+            <>
+              <div className="space-y-4 py-4">
+                <Label htmlFor="interview-questions-jd">Job Description</Label>
+                <Textarea
+                  id="interview-questions-jd"
+                  placeholder="Paste the job description here (optional)..."
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  className="min-h-[120px] resize-y"
+                  disabled={generating}
+                />
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline" disabled={generating}>Cancel</Button>
+                </DialogClose>
+                <Button
+                  variant="hero"
+                  disabled={generating}
+                  onClick={handleGenerate}
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Generating...
+                    </>
+                  ) : "Generate"}
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div className="mt-2 space-y-6 max-h-[60vh] overflow-y-auto">
+                {[
+                  { key: "technical" as const, label: "Technical Questions" },
+                  { key: "project" as const, label: "Project Questions" },
+                  { key: "behavioral" as const, label: "Behavioral Questions" },
+                  { key: "hr" as const, label: "HR Questions" },
+                ].map((section) => (
+                  <div key={section.key} className="space-y-3">
+                    <h4 className="font-display text-sm font-semibold text-foreground">{section.label}</h4>
+                    <ul className="space-y-2">
+                      {questions[section.key].map((question, i) => (
+                        <li
+                          key={i}
+                          className="rounded-lg border border-border bg-muted/20 px-3 py-2.5 text-sm text-muted-foreground"
+                        >
+                          {i + 1}. {question}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={handleCopy}>
+                  <Copy className="h-4 w-4 mr-2" /> Copy Questions
+                </Button>
+                <Button variant="outline" onClick={handleDownloadPdf} disabled={downloading}>
+                  {downloading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" /> Preparing Interview Kit...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="h-4 w-4 mr-2" /> Download PDF
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    setGenerating(true);
+                    try {
+                      const result = await generateInterviewQuestions({
+                        resumeText,
+                        targetRole: role,
+                        jobDescription: jobDescription || undefined,
+                      });
+                      if (result.success) {
+                        setQuestions(result.data);
+                        onQuestionsGenerated(result.data);
+                        if (analysisId) {
+                          await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
+                        }
+                        toast.success("Interview questions regenerated!");
+                      } else {
+                        toast.error(result.error);
+                      }
+                    } catch {
+                      toast.error("Could not regenerate interview questions.");
+                    } finally {
+                      setGenerating(false);
+                    }
+                  }}
+                  disabled={generating}
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" /> Regenerating...
+                    </>
+                  ) : (
+                    "Regenerate Questions"
+                  )}
+                </Button>
+                <DialogClose asChild>
+                  <Button variant="hero">Close</Button>
+                </DialogClose>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

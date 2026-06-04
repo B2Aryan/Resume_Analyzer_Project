@@ -4,6 +4,7 @@ import {
   ImprovementSuggestion,
   JDMatchResult,
 } from "@/lib/ats/types";
+import type { InterviewQuestionsResponse } from "@/lib/ats/interview-questions";
 
 interface AnalysisState {
   role: string;
@@ -32,6 +33,7 @@ interface AnalysisState {
   
   analysisId: string | null;
   isSaved: boolean;
+  interviewQuestions: InterviewQuestionsResponse | null;
 
   setResult: (
     result: ATSAnalysisResult,
@@ -39,8 +41,9 @@ interface AnalysisState {
     fileName: string,
     resumeText: string,
     jobDescription?: string,
-    options?: { animateEntry?: boolean; usedBackupProvider?: boolean; analysisId?: string; isSaved?: boolean },
+    options?: { animateEntry?: boolean; usedBackupProvider?: boolean; analysisId?: string; isSaved?: boolean; interviewQuestions?: InterviewQuestionsResponse },
   ) => void;
+  setInterviewQuestions: (questions: InterviewQuestionsResponse | null) => void;
   setSaved: (isSaved: boolean) => void;
   acknowledgeReportReveal: () => void;
   clearResult: () => void;
@@ -73,6 +76,7 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   
   analysisId: null,
   isSaved: false,
+  interviewQuestions: null,
 
   setResult: (result, role, fileName, resumeText, jobDescription, options) => {
     const jd = jobDescription?.trim() ?? "";
@@ -100,7 +104,12 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
       usedBackupProvider: options?.usedBackupProvider ?? false,
       analysisId: options?.analysisId ?? null,
       isSaved: options?.isSaved ?? false,
+      interviewQuestions: options?.interviewQuestions ?? null,
     });
+  },
+  
+  setInterviewQuestions: (questions) => {
+    set({ interviewQuestions: questions });
   },
   
   setSaved: (isSaved) => {
@@ -135,6 +144,7 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
       usedBackupProvider: false,
       analysisId: null,
       isSaved: false,
+      interviewQuestions: null,
     });
   },
 }));

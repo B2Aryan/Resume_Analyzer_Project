@@ -50,7 +50,12 @@ function SavedReportsPage() {
       analysis.file_name,
       analysis.resume_text || "",
       analysis.job_description ?? undefined,
-      { animateEntry: false, analysisId: analysis.id, isSaved: true }
+      { 
+        animateEntry: false, 
+        analysisId: analysis.id, 
+        isSaved: true, 
+        interviewQuestions: analysis.interview_questions || undefined 
+      }
     );
     navigate({ to: "/result" });
   };
@@ -77,32 +82,39 @@ function SavedReportsPage() {
       ) : (
         <div className="grid gap-3">
           {savedReports.map((analysis) => (
-            <Card key={analysis.id} className="border-border/60 transition-shadow hover:shadow-soft">
-              <CardContent className="grid items-center gap-3 p-4 sm:grid-cols-[auto,1fr,auto,auto,auto]">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-primary">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div className="min-w-0 cursor-pointer" onClick={() => handleViewReport(analysis)}>
-                  <p className="truncate font-semibold">{analysis.file_name}</p>
-                  <p className="text-xs text-muted-foreground">{analysis.role}</p>
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
-                </span>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(analysis.analysis_result.score)}`}>
-                  {analysis.analysis_result.score}/100
-                </span>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => handleViewReport(analysis)}>
-                    View
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleUnsave(analysis.id)}>
-                    <BookmarkCheck className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+              <Card key={analysis.id} className="border-border/60 transition-shadow hover:shadow-soft">
+                <CardContent className="grid items-center gap-3 p-4 sm:grid-cols-[auto,1fr,auto,auto,auto]">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-primary">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 cursor-pointer" onClick={() => handleViewReport(analysis)}>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate font-semibold">{analysis.file_name}</p>
+                      {analysis.interview_questions && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                          🎤 Interview Ready
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">{analysis.role}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
+                  </span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(analysis.analysis_result.score)}`}>
+                    {analysis.analysis_result.score}
+                  </span>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleViewReport(analysis)}>
+                      View
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => handleUnsave(analysis.id)}>
+                      <BookmarkCheck className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
         </div>
       )}
     </AppShell>

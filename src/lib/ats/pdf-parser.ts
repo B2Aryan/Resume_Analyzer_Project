@@ -34,7 +34,9 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     }
 
     if (!fullText.trim()) {
-      throw new Error("PDF contains no readable text");
+      const error = new Error("SCANNED_PDF_DETECTED");
+      error.name = "SCANNED_PDF_DETECTED";
+      throw error;
     }
 
     return fullText;

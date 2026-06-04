@@ -1,5 +1,6 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import type { ATSAnalysisResult } from "@/lib/ats/types";
+import type { InterviewQuestionsResponse } from "@/lib/ats/interview-questions";
 import type { User } from "@supabase/supabase-js";
 
 // Type for the database analyses table
@@ -13,6 +14,7 @@ export interface DBAnalysis {
   job_description: string | null;
   analysis_result: ATSAnalysisResult;
   is_saved: boolean;
+  interview_questions: InterviewQuestionsResponse | null;
 }
 
 // Save a new analysis to Supabase
@@ -23,6 +25,7 @@ export async function saveAnalysisToDB({
   resumeText,
   jobDescription,
   analysisResult,
+  interviewQuestions,
 }: {
   user: User;
   role: string;
@@ -30,11 +33,13 @@ export async function saveAnalysisToDB({
   resumeText?: string;
   jobDescription?: string;
   analysisResult: ATSAnalysisResult;
+  interviewQuestions?: InterviewQuestionsResponse;
 }): Promise<DBAnalysis | null> {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
 
-  const { data, error } = await supabase
+  // First try inserting with interview_questions
+  let { data, error } = await supabase
     .from("analyses")
     .insert({
       user_id: user.id,
@@ -43,16 +48,56 @@ export async function saveAnalysisToDB({
       resume_text: resumeText || null,
       job_description: jobDescription || null,
       analysis_result: analysisResult,
+      interview_questions: interviewQuestions || null,
       is_saved: false,
     })
     .select()
     .single();
+
+  // If that fails, try inserting without interview_questions (for existing tables without the column)
+  if (error) {
+    console.warn("Failed to save with interview_questions, trying without:", error);
+    ({ data, error } = await supabase
+      .from("analyses")
+      .insert({
+        user_id: user.id,
+        role,
+        file_name: fileName,
+        resume_text: resumeText || null,
+        job_description: jobDescription || null,
+        analysis_result: analysisResult,
+        is_saved: false,
+      })
+      .select()
+      .single());
+  }
 
   if (error) {
     console.error("Failed to save analysis:", error);
     return null;
   }
   return data as DBAnalysis;
+}
+
+// Update interview questions for an existing analysis
+export async function updateInterviewQuestionsToDB({
+  analysisId,
+  interviewQuestions,
+}: {
+  analysisId: string;
+  interviewQuestions: InterviewQuestionsResponse;
+}): Promise<void> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from("analyses")
+    .update({ interview_questions: interviewQuestions })
+    .eq("id", analysisId);
+
+  if (error) {
+    console.warn("Failed to update interview questions (column may not exist yet):", error);
+  }
 }
 
 // Fetch all analyses for a user

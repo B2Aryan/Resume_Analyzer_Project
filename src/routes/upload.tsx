@@ -117,7 +117,6 @@ function UploadPage() {
 
           // Persist new analysis to localStorage version history
           persistNewAnalysis(snapshotFromResult(result.data, targetRole, result.fileName));
-
           setResult(result.data, targetRole, result.fileName, result.resumeText, jdText || undefined, {
             animateEntry: true,
             usedBackupProvider: result.usedBackupProvider,
@@ -127,7 +126,17 @@ function UploadPage() {
           navigate({ to: "/result" });
         } catch (error) {
           console.error(error);
-          toast.error("Analysis failed. Please try again.");
+          if (
+            error instanceof Error &&
+            error.name === "SCANNED_PDF_DETECTED"
+          ) {
+            toast.error(
+              "This looks like a scanned/image-only PDF. Please paste your resume text directly or upload a text-based PDF.",
+              { duration: 6000 }
+            );
+          } else {
+            toast.error("Analysis failed. Please try again.");
+          }
         }
       });
     }
@@ -139,6 +148,8 @@ function UploadPage() {
     jobDescription,
     setResult,
     navigate,
+    user,
+    queryClient,
   ]);
 
   return (
@@ -191,7 +202,32 @@ function UploadPage() {
 
               {uploadMethod === "file" ? (
                 <div className="mt-4">
-                  <label className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-border bg-background/20 px-8 py-12 text-center hover:border-primary/60 transition-colors cursor-pointer">
+                  <label 
+                    className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-border bg-background/20 px-8 py-12 text-center hover:border-primary/60 transition-colors cursor-pointer"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.add('border-primary');
+                    }}
+                    onDragLeave={(e) => {
+                      e.currentTarget.classList.remove('border-primary');
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-primary');
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        if (!file.name.toLowerCase().endsWith(".pdf")) {
+                          toast.error("Please select a PDF file.");
+                          return;
+                        }
+                        if (file.size > 10 * 1024 * 1024) {
+                          toast.error("File is too large (max 10MB).");
+                          return;
+                        }
+                        setSelectedFile(file);
+                      }
+                    }}
+                  >
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
                       <Upload className="h-6 w-6" />
                     </div>

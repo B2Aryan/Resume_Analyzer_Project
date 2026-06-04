@@ -22,8 +22,21 @@ CREATE TABLE IF NOT EXISTS public.analyses (
   resume_text TEXT,
   job_description TEXT,
   analysis_result JSONB NOT NULL,
-  is_saved BOOLEAN DEFAULT FALSE
+  is_saved BOOLEAN DEFAULT FALSE,
+  interview_questions JSONB
 );
+
+-- Add interview_questions column if it doesn't exist (for existing tables)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'analyses' 
+    AND column_name = 'interview_questions'
+  ) THEN
+    ALTER TABLE public.analyses ADD COLUMN interview_questions JSONB;
+  END IF;
+END $$;
 
 -- Enable RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;

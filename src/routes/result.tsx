@@ -88,7 +88,10 @@ function ResultPage() {
     isRevealingReport,
     usedBackupProvider,
     acknowledgeReportReveal,
+    analysisId,
   } = useAnalysisStore();
+
+
 
   useEffect(() => {
     if (!hasResult) {
