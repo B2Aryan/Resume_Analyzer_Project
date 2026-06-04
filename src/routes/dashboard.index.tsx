@@ -221,7 +221,11 @@ function DashboardHome() {
                           analysis.file_name,
                           analysis.resume_text || "",
                           analysis.job_description ?? undefined,
-                          { animateEntry: false }
+                          { 
+                            animateEntry: false, 
+                            analysisId: analysis.id, 
+                            isSaved: analysis.is_saved 
+                          }
                         );
                         navigate({ to: "/result" });
                       }}

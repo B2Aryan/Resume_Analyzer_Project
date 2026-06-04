@@ -1,12 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bookmark, FileText, FileX, Loader2 } from "lucide-react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Bookmark, FileText, FileX, Loader2, BookmarkCheck } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchSavedReportsFromDB } from "@/lib/supabase/analysis-db";
+import { fetchSavedReportsFromDB, toggleSaveAnalysis } from "@/lib/supabase/analysis-db";
 import { formatDistanceToNow } from "date-fns";
+import { useAnalysisStore } from "@/store/analysisStore";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/saved")({
   head: () => ({ meta: [{ title: "Saved Reports — ResumePilot" }] }),
@@ -19,12 +22,38 @@ function tone(score: number) {
 
 function SavedReportsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const setResult = useAnalysisStore((state) => state.setResult);
 
   const { data: savedReports = [], isLoading } = useQuery({
     queryKey: ["saved-reports", user?.id],
     queryFn: () => user ? fetchSavedReportsFromDB(user) : [],
     enabled: !!user,
   });
+
+  const handleUnsave = async (analysisId: string) => {
+    try {
+      await toggleSaveAnalysis(analysisId, false);
+      queryClient.invalidateQueries({ queryKey: ["saved-reports", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["analyses", user?.id] });
+      toast.success("Removed from saved reports");
+    } catch {
+      toast.error("Failed to remove report");
+    }
+  };
+
+  const handleViewReport = (analysis: any) => {
+    setResult(
+      analysis.analysis_result,
+      analysis.role,
+      analysis.file_name,
+      analysis.resume_text || "",
+      analysis.job_description ?? undefined,
+      { animateEntry: false, analysisId: analysis.id, isSaved: true }
+    );
+    navigate({ to: "/result" });
+  };
 
   return (
     <AppShell title="Saved reports" subtitle="Pinned analyses you want to revisit.">
@@ -40,7 +69,9 @@ function SavedReportsPage() {
             </div>
             <p className="mt-4 font-display text-lg font-semibold">No saved reports yet</p>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">Bookmark important analyses to access them quickly here.</p>
-            <Button asChild className="mt-6" variant="hero"><Link to="/upload">Run a new scan</Link></Button>
+            <Button asChild className="mt-6" variant="hero">
+              <Link to="/upload">Run a new scan</Link>
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -51,7 +82,7 @@ function SavedReportsPage() {
                 <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-primary">
                   <FileText className="h-5 w-5" />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 cursor-pointer" onClick={() => handleViewReport(analysis)}>
                   <p className="truncate font-semibold">{analysis.file_name}</p>
                   <p className="text-xs text-muted-foreground">{analysis.role}</p>
                 </div>
@@ -61,8 +92,14 @@ function SavedReportsPage() {
                 <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(analysis.analysis_result.score)}`}>
                   {analysis.analysis_result.score}/100
                 </span>
-                {/* TODO: Link to result page with analysis data */}
-                <Button size="sm" variant="outline">View</Button>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => handleViewReport(analysis)}>
+                    View
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleUnsave(analysis.id)}>
+                    <BookmarkCheck className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

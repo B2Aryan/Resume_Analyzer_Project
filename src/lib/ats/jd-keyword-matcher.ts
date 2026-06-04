@@ -276,18 +276,12 @@ export function computeJDKeywordMatch(
   resumeText: string,
   jobDescription: string,
 ): JDKeywordMatchResult {
-  console.log("computeJDKeywordMatch: jobDescription length", jobDescription.length);
-  console.log("computeJDKeywordMatch: jobDescription", jobDescription);
   const jdKeywords = extractKeywordsFromText(jobDescription);
-  console.log("computeJDKeywordMatch: extracted JD keywords", jdKeywords);
   const isSufficientJD = jdKeywords.length >= 3;
-  console.log("computeJDKeywordMatch: isSufficientJD", isSufficientJD);
   const resumeKeywords = extractKeywordsFromText(resumeText);
-  console.log("computeJDKeywordMatch: extracted resume keywords", resumeKeywords);
   const resumeKeywordSet = new Set(
     resumeKeywords.map((k) => normalizeToken(k)),
   );
-  console.log("computeJDKeywordMatch: resume keyword set", Array.from(resumeKeywordSet));
 
   const matchedKeywords: string[] = [];
   const missingKeywords: string[] = [];
@@ -300,15 +294,12 @@ export function computeJDKeywordMatch(
       missingKeywords.push(kw);
     }
   }
-  console.log("computeJDKeywordMatch: matchedKeywords", matchedKeywords);
-  console.log("computeJDKeywordMatch: missingKeywords", missingKeywords);
 
   const totalJDKeywords = jdKeywords.length;
   const jdMatchScore =
     totalJDKeywords === 0
       ? 0
       : Math.round((matchedKeywords.length / totalJDKeywords) * 100);
-  console.log("computeJDKeywordMatch: jdMatchScore", jdMatchScore);
 
   return {
     matchedKeywords,
@@ -324,7 +315,6 @@ export function buildJDMatchResult(
   jdSummary: string,
 ): JDMatchResult {
   const scores = computeJDKeywordMatch(resumeText, jobDescription);
-  console.log("buildJDMatchResult: scores received", scores);
   return {
     ...scores,
     jdSummary,

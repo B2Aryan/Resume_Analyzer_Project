@@ -1,6 +1,7 @@
 import { memo, useCallback, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Download, ArrowRight, Copy, Wand2, Loader2, FileText, Save } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Download, ArrowRight, Copy, Wand2, Loader2, FileText, Save, Bookmark, BookmarkCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -21,7 +22,9 @@ import {
 } from "@/lib/ats/bullet-rewriter";
 import { generateCoverLetter } from "@/lib/ats/cover-letter";
 import { downloadCoverLetterPdf } from "@/lib/pdf/cover-letter-pdf";
+import { toggleSaveAnalysis } from "@/lib/supabase/analysis-db";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAnalysisStore } from "@/store/analysisStore";
 
 export interface ResultToolsProps {
   part: "rewriter" | "actions";
@@ -39,14 +42,35 @@ export const ResultTools = memo(function ResultTools({
   onDownloadPdf,
 }: ResultToolsProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const analysisId = useAnalysisStore(s => s.analysisId);
+  const isSaved = useAnalysisStore(s => s.isSaved);
+  const setSaved = useAnalysisStore(s => s.setSaved);
   const [bulletInput, setBulletInput] = useState("");
   const [bulletLoading, setBulletLoading] = useState(false);
   const [bulletRewrite, setBulletRewrite] = useState<BulletRewriteResult | null>(null);
+  const [saveLoading, setSaveLoading] = useState(false);
   const [coverLetterOpen, setCoverLetterOpen] = useState(false);
   const [coverLetterJd, setCoverLetterJd] = useState("");
   const [coverLetterGenerating, setCoverLetterGenerating] = useState(false);
   const [generatedCoverLetterOpen, setGeneratedCoverLetterOpen] = useState(false);
   const [generatedCoverLetter, setGeneratedCoverLetter] = useState("");
+
+  const handleSaveToggle = useCallback(async () => {
+    if (!user || !analysisId) return;
+    setSaveLoading(true);
+    try {
+      await toggleSaveAnalysis(analysisId, !isSaved);
+      setSaved(!isSaved);
+      queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
+      toast.success(isSaved ? "Removed from saved reports" : "Saved to dashboard!");
+    } catch {
+      toast.error("Failed to update saved status");
+    } finally {
+      setSaveLoading(false);
+    }
+  }, [user, analysisId, isSaved, setSaved, queryClient]);
 
   const copyToClipboard = useCallback(async (text: string, label: string) => {
     try {
@@ -103,10 +127,20 @@ export const ResultTools = memo(function ResultTools({
               <Button variant="outline" className="w-full" onClick={() => setCoverLetterOpen(true)}>
                 <FileText className="h-4 w-4" aria-hidden /> Generate Cover Letter
               </Button>
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/dashboard">
-                  <Save className="h-4 w-4" aria-hidden /> Save to Dashboard
-                </Link>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleSaveToggle}
+                disabled={saveLoading || !user || !analysisId}
+              >
+                {saveLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : isSaved ? (
+                  <BookmarkCheck className="h-4 w-4" />
+                ) : (
+                  <Bookmark className="h-4 w-4" />
+                )}
+                {isSaved ? "Saved to Dashboard" : "Save to Dashboard"}
               </Button>
             </div>
           </CardContent>
@@ -139,7 +173,6 @@ export const ResultTools = memo(function ResultTools({
                 variant="hero"
                 disabled={coverLetterGenerating}
                 onClick={async () => {
-                  console.log("Job Description for Cover Letter:", coverLetterJd);
                   setCoverLetterGenerating(true);
                   try {
                     const candidateName = user?.user_metadata?.full_name ?? user?.email?.split('@')[0];
@@ -151,7 +184,6 @@ export const ResultTools = memo(function ResultTools({
                     });
 
                     if (result.success) {
-                      console.log("Raw generated cover letter string:", JSON.stringify(result.data.coverLetter, null, 2));
                       setGeneratedCoverLetter(result.data.coverLetter);
                       setCoverLetterOpen(false);
                       setGeneratedCoverLetterOpen(true);

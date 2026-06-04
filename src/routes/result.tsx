@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { GitCompare } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { downloadATSReportPdf } from "@/lib/pdf/ats-report-pdf";
@@ -20,9 +21,35 @@ import {
   ResultReportBody,
   ResultReportHybridBand,
 } from "@/components/result/result-report-layout";
+import { Card, CardContent } from "@/components/ui/card";
 import type { ATSAnalysisResult } from "@/lib/ats/types";
 import { compareAnalysisVersions } from "@/lib/ats/compare-versions";
 import { getPreviousAnalysis } from "@/lib/storage/analysis-versions";
+import {
+  canCompareResumes,
+  type ResumeSimilarityScores,
+} from "@/lib/ats/resume-similarity";
+
+function NotComparableCard({ similarity }: { similarity: ResumeSimilarityScores }) {
+  return (
+    <Card className="border-border/60 bg-muted/30">
+      <CardContent className="p-6 sm:p-8">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <GitCompare className="h-4 w-4" aria-hidden />
+          <span className="text-xs font-semibold uppercase tracking-wider">Version history</span>
+        </div>
+        <h3 className="mt-2 font-display text-lg font-semibold">This appears to be a different resume</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Version comparison is unavailable.
+        </p>
+        <div className="mt-4 rounded-xl border border-border bg-card p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Similarity Score</p>
+          <p className="mt-2 font-display text-3xl font-bold">{similarity.total}/100</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export const Route = createFileRoute("/result")({
   head: () => ({
@@ -150,12 +177,33 @@ function ResultPage() {
   const versionComparison = useMemo(() => {
     const previous = getPreviousAnalysis();
     if (!previous) return null;
-    return compareAnalysisVersions(previous.result, currentResult, {
-      savedAt: previous.savedAt,
-      role: previous.role,
-      fileName: previous.fileName,
+
+    const { canCompare, similarity } = canCompareResumes({
+      current: { role, fileName, analysisResult: currentResult },
+      previous: {
+        role: previous.role,
+        fileName: previous.fileName,
+        analysisResult: previous.result,
+      },
     });
-  }, [currentResult]);
+
+    if (!canCompare) {
+      return {
+        type: "not_comparable",
+        similarity,
+        previous,
+      } as const;
+    }
+
+    return {
+      type: "comparable",
+      comparison: compareAnalysisVersions(previous.result, currentResult, {
+        savedAt: previous.savedAt,
+        role: previous.role,
+        fileName: previous.fileName,
+      }),
+    } as const;
+  }, [currentResult, role, fileName]);
 
   const actionPlan = useMemo(
     () =>
@@ -296,7 +344,11 @@ function ResultPage() {
 
             {versionComparison && (
               <div className="lg:hidden">
-                <ResultComparison comparison={versionComparison} />
+                {versionComparison.type === "comparable" ? (
+                  <ResultComparison comparison={versionComparison.comparison} />
+                ) : (
+                  <NotComparableCard similarity={versionComparison.similarity} />
+                )}
               </div>
             )}
 
@@ -327,7 +379,11 @@ function ResultPage() {
 
             {versionComparison && (
               <div className="hidden lg:block">
-                <ResultComparison comparison={versionComparison} />
+                {versionComparison.type === "comparable" ? (
+                  <ResultComparison comparison={versionComparison.comparison} />
+                ) : (
+                  <NotComparableCard similarity={versionComparison.similarity} />
+                )}
               </div>
             )}
           </ResultReportBody>

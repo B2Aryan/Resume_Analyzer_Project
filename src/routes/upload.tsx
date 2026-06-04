@@ -12,6 +12,7 @@ import {
 } from "@/lib/ats/analysis-progress";
 import { runResumeAnalysis } from "@/lib/ats/run-resume-analysis";
 import { saveAnalysisToDB } from "@/lib/supabase/analysis-db";
+import { persistNewAnalysis, snapshotFromResult } from "@/lib/storage/analysis-versions";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleAutocomplete } from "@/components/role-autocomplete";
 
@@ -97,9 +98,10 @@ function UploadPage() {
             return;
           }
 
+          let savedAnalysisId: string | null = null;
           // Save analysis to Supabase if user is authenticated
           if (user) {
-            await saveAnalysisToDB({
+            const dbResult = await saveAnalysisToDB({
               user,
               role: targetRole,
               fileName: result.fileName,
@@ -107,14 +109,20 @@ function UploadPage() {
               jobDescription: jdText,
               analysisResult: result.data,
             });
+            savedAnalysisId = dbResult?.id ?? null;
             
             // Invalidate queries to refresh dashboard data
             queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
           }
 
+          // Persist new analysis to localStorage version history
+          persistNewAnalysis(snapshotFromResult(result.data, targetRole, result.fileName));
+
           setResult(result.data, targetRole, result.fileName, result.resumeText, jdText || undefined, {
             animateEntry: true,
             usedBackupProvider: result.usedBackupProvider,
+            analysisId: savedAnalysisId ?? undefined,
+            isSaved: false, // default to unsaved
           });
           navigate({ to: "/result" });
         } catch (error) {

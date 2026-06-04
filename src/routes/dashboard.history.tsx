@@ -90,14 +90,13 @@ function HistoryPage() {
                   size="sm" 
                   variant="outline" 
                   onClick={() => {
-                    console.log("View clicked", analysis.id);
                     setResult(
-                      analysis.analysis_result, 
-                      analysis.role, 
-                      analysis.file_name, 
-                      analysis.resume_text || "", 
-                      analysis.job_description,
-                      { animateEntry: false }
+                      analysis.analysis_result,
+                      analysis.role,
+                      analysis.file_name,
+                      analysis.resume_text || "",
+                      analysis.job_description ?? undefined,
+                      { animateEntry: false, analysisId: analysis.id, isSaved: analysis.is_saved }
                     );
                     navigate({ to: "/result" });
                   }}

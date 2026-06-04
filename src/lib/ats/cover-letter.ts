@@ -146,7 +146,6 @@ async function tryGroqCoverLetter(
       temperature: 0.4,
     });
     const raw = response.choices[0]?.message?.content ?? "";
-    console.log("Raw Groq AI response (Groq):", JSON.stringify(raw, null, 2));
     return parseCoverLetterJson(raw);
   } catch {
     return null;
@@ -163,7 +162,6 @@ async function tryGeminiCoverLetter(
       contents: prompt,
     });
     const raw = response.text ?? "";
-    console.log("Raw Gemini AI response (Gemini):", JSON.stringify(raw, null, 2));
     return parseCoverLetterJson(raw);
   } catch {
     return null;

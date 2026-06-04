@@ -4,10 +4,6 @@ import {
   ImprovementSuggestion,
   JDMatchResult,
 } from "@/lib/ats/types";
-import {
-  persistNewAnalysis,
-  snapshotFromResult,
-} from "@/lib/storage/analysis-versions";
 
 interface AnalysisState {
   role: string;
@@ -33,6 +29,9 @@ interface AnalysisState {
   hasResult: boolean;
   isRevealingReport: boolean;
   usedBackupProvider: boolean;
+  
+  analysisId: string | null;
+  isSaved: boolean;
 
   setResult: (
     result: ATSAnalysisResult,
@@ -40,8 +39,9 @@ interface AnalysisState {
     fileName: string,
     resumeText: string,
     jobDescription?: string,
-    options?: { animateEntry?: boolean; usedBackupProvider?: boolean },
+    options?: { animateEntry?: boolean; usedBackupProvider?: boolean; analysisId?: string; isSaved?: boolean },
   ) => void;
+  setSaved: (isSaved: boolean) => void;
   acknowledgeReportReveal: () => void;
   clearResult: () => void;
 }
@@ -70,11 +70,13 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   hasResult: false,
   isRevealingReport: false,
   usedBackupProvider: false,
+  
+  analysisId: null,
+  isSaved: false,
 
   setResult: (result, role, fileName, resumeText, jobDescription, options) => {
     const jd = jobDescription?.trim() ?? "";
     const animateEntry = options?.animateEntry ?? false;
-    persistNewAnalysis(snapshotFromResult(result, role, fileName));
     set({
       role,
       fileName,
@@ -96,12 +98,20 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
       hasResult: true,
       isRevealingReport: animateEntry,
       usedBackupProvider: options?.usedBackupProvider ?? false,
+      analysisId: options?.analysisId ?? null,
+      isSaved: options?.isSaved ?? false,
     });
   },
+  
+  setSaved: (isSaved) => {
+    set({ isSaved });
+  },
 
-  acknowledgeReportReveal: () => set({ isRevealingReport: false }),
+  acknowledgeReportReveal: () => {
+    set({ isRevealingReport: false });
+  },
 
-  clearResult: () =>
+  clearResult: () => {
     set({
       role: "",
       fileName: "Resume.pdf",
@@ -123,5 +133,8 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
       hasResult: false,
       isRevealingReport: false,
       usedBackupProvider: false,
-    }),
+      analysisId: null,
+      isSaved: false,
+    });
+  },
 }));
