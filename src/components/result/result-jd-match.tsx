@@ -45,6 +45,25 @@ export const ResultJDMatch = memo(function ResultJDMatch({
 
   if (!jdMatch) return null;
 
+  // Check if JD is insufficient (<3 keywords)
+  if (!jdMatch.isSufficientJD) {
+    return (
+      <Card className="border-border/60 border-dashed">
+        <CardContent className="p-6 sm:p-8">
+          <EmptyState
+            icon={Briefcase}
+            title="Provide a detailed job description"
+            description="Provide a detailed job description for accurate keyword matching."
+          >
+            <Button asChild variant="outline" size="sm" className="w-full">
+              <Link to="/upload">Update job description on next scan</Link>
+            </Button>
+          </EmptyState>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-border/60 border-primary/30 shadow-soft">
       <CardContent className="p-6 sm:p-8">

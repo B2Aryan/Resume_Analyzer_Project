@@ -1,15 +1,27 @@
 import { memo, useCallback, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Download, ArrowRight, Copy, Wand2, Loader2 } from "lucide-react";
+import { Download, ArrowRight, Copy, Wand2, Loader2, FileText, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   rewriteResumeBullet,
   type BulletRewriteResult,
 } from "@/lib/ats/bullet-rewriter";
+import { generateCoverLetter } from "@/lib/ats/cover-letter";
+import { downloadCoverLetterPdf } from "@/lib/pdf/cover-letter-pdf";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface ResultToolsProps {
   part: "rewriter" | "actions";
@@ -26,9 +38,15 @@ export const ResultTools = memo(function ResultTools({
   jobDescription,
   onDownloadPdf,
 }: ResultToolsProps) {
+  const { user } = useAuth();
   const [bulletInput, setBulletInput] = useState("");
   const [bulletLoading, setBulletLoading] = useState(false);
   const [bulletRewrite, setBulletRewrite] = useState<BulletRewriteResult | null>(null);
+  const [coverLetterOpen, setCoverLetterOpen] = useState(false);
+  const [coverLetterJd, setCoverLetterJd] = useState("");
+  const [coverLetterGenerating, setCoverLetterGenerating] = useState(false);
+  const [generatedCoverLetterOpen, setGeneratedCoverLetterOpen] = useState(false);
+  const [generatedCoverLetter, setGeneratedCoverLetter] = useState("");
 
   const copyToClipboard = useCallback(async (text: string, label: string) => {
     try {
@@ -69,24 +87,140 @@ export const ResultTools = memo(function ResultTools({
 
   if (part === "actions") {
     return (
-      <Card className="border-border/60">
-        <CardContent className="p-6">
-          <h3 className="font-display text-base font-semibold">Next actions</h3>
-          <div className="mt-4 space-y-2">
-            <Button asChild variant="hero" className="w-full">
-              <Link to="/upload">
-                Re-scan after edits <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full" onClick={onDownloadPdf}>
-              <Download className="h-4 w-4" aria-hidden /> Download PDF Report
-            </Button>
-            <Button asChild variant="ghost" className="w-full">
-              <Link to="/dashboard">Save to dashboard</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <>
+        <Card className="border-border/60">
+          <CardContent className="p-6">
+            <h3 className="font-display text-base font-semibold">Next actions</h3>
+            <div className="mt-4 space-y-2">
+              <Button asChild variant="hero" className="w-full">
+                <Link to="/upload">
+                  Re-scan after edits <ArrowRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full" onClick={onDownloadPdf}>
+                <Download className="h-4 w-4" aria-hidden /> Download PDF Report
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => setCoverLetterOpen(true)}>
+                <FileText className="h-4 w-4" aria-hidden /> Generate Cover Letter
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/dashboard">
+                  <Save className="h-4 w-4" aria-hidden /> Save to Dashboard
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Dialog open={coverLetterOpen} onOpenChange={setCoverLetterOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Generate Cover Letter</DialogTitle>
+              <DialogDescription>
+                Paste a job description to generate a more tailored cover letter.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <Label htmlFor="cover-letter-jd">Job Description</Label>
+              <Textarea
+                id="cover-letter-jd"
+                placeholder="Paste the job description here (optional)..."
+                value={coverLetterJd}
+                onChange={(e) => setCoverLetterJd(e.target.value)}
+                className="min-h-[120px] resize-y"
+                disabled={coverLetterGenerating}
+              />
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" disabled={coverLetterGenerating}>Cancel</Button>
+              </DialogClose>
+              <Button
+                variant="hero"
+                disabled={coverLetterGenerating}
+                onClick={async () => {
+                  console.log("Job Description for Cover Letter:", coverLetterJd);
+                  setCoverLetterGenerating(true);
+                  try {
+                    const candidateName = user?.user_metadata?.full_name ?? user?.email?.split('@')[0];
+                    const result = await generateCoverLetter({
+                      resumeText,
+                      targetRole: role,
+                      jobDescription: coverLetterJd || undefined,
+                      candidateName,
+                    });
+
+                    if (result.success) {
+                      console.log("Raw generated cover letter string:", JSON.stringify(result.data.coverLetter, null, 2));
+                      setGeneratedCoverLetter(result.data.coverLetter);
+                      setCoverLetterOpen(false);
+                      setGeneratedCoverLetterOpen(true);
+                    } else {
+                      toast.error(result.error);
+                    }
+                  } catch (error) {
+                    console.error("Cover letter generation error:", error);
+                    toast.error("Could not generate cover letter. Please try again.");
+                  } finally {
+                    setCoverLetterGenerating(false);
+                  }
+                }}
+              >
+                {coverLetterGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Generating...
+                  </>
+                ) : ("Generate")}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={generatedCoverLetterOpen} onOpenChange={setGeneratedCoverLetterOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Generated Cover Letter</DialogTitle>
+            </DialogHeader>
+            <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="rounded-xl border border-border bg-muted/20 p-4 sm:p-5 whitespace-pre-wrap">
+                {generatedCoverLetter}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(generatedCoverLetter);
+                    toast.success("Cover letter copied to clipboard!");
+                  } catch {
+                    toast.error("Failed to copy cover letter.");
+                  }
+                }}
+              >
+                <Copy className="h-4 w-4 mr-2" /> Copy Cover Letter
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!generatedCoverLetter}
+                onClick={() => {
+                  try {
+                    downloadCoverLetterPdf(generatedCoverLetter, role);
+                    toast.success("Cover letter downloaded!");
+                  } catch {
+                    toast.error("Failed to generate PDF.");
+                  }
+                }}
+              >
+                <Download className="h-4 w-4 mr-2" /> Download PDF
+              </Button>
+              <DialogClose asChild>
+                <Button variant="hero">Close</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 

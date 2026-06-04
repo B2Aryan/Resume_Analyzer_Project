@@ -13,6 +13,7 @@ export interface JDMatchResult {
   matchedKeywords: string[];
   missingKeywords: string[];
   jdSummary: string;
+  isSufficientJD: boolean;
 }
 
 export interface ATSAnalysisResult {

@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Upload, Loader2, Sparkles, ShieldCheck, FileText, Zap } from "lucide-react";
 import { useCallback, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -36,6 +37,7 @@ const checks = [
 
 function UploadPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const setResult = useAnalysisStore((state) => state.setResult);
   const [uploadMethod, setUploadMethod] = useState<"file" | "paste">("file");
@@ -105,6 +107,9 @@ function UploadPage() {
               jobDescription: jdText,
               analysisResult: result.data,
             });
+            
+            // Invalidate queries to refresh dashboard data
+            queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
           }
 
           setResult(result.data, targetRole, result.fileName, result.resumeText, jdText || undefined, {

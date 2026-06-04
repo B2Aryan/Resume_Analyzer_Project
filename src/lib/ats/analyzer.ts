@@ -1,7 +1,7 @@
 import { ATSAnalysisResult } from "@/lib/ats/types";
 import { getGeminiClient } from "@/lib/ai/gemini";
 import { getGroqClient, GROQ_ANALYSIS_MODEL } from "@/lib/ai/groq";
-import { buildJDMatchResult } from "@/lib/ats/jd-keyword-matcher";
+import { buildJDMatchResult, extractKeywordsFromText } from "@/lib/ats/jd-keyword-matcher";
 import { generateImprovementSuggestions } from "@/lib/ats/improvement-suggestions";
 import type { AnalysisProgressReporter } from "@/lib/ats/analysis-progress";
 
@@ -623,12 +623,16 @@ function applyDeterministicJDMatch(
   resumeText: string,
   jobDescription: string,
 ): ATSAnalysisResult {
+  console.log("applyDeterministicJDMatch: called with jobDescription length", jobDescription.length);
+  console.log("applyDeterministicJDMatch: jobDescription", jobDescription);
   const aiSummary =
     (result as ATSAnalysisResult & { jdSummary?: string }).jdSummary?.trim() ||
     result.jdMatch?.jdSummary?.trim() ||
     "";
+  console.log("applyDeterministicJDMatch: aiSummary", aiSummary);
 
   const jdMatch = buildJDMatchResult(resumeText, jobDescription, aiSummary);
+  console.log("applyDeterministicJDMatch: jdMatch result", jdMatch);
 
   const keywordMatch = jdMatch.jdMatchScore;
   const score = Math.round(
@@ -637,6 +641,7 @@ function applyDeterministicJDMatch(
       result.skillsScore * 0.2 +
       result.projectScore * 0.2,
   );
+  console.log("applyDeterministicJDMatch: computed final score", score, "keywordMatch", keywordMatch);
 
   return {
     ...result,
@@ -684,26 +689,6 @@ type ProviderAttempt =
   | { success: true; data: ATSAnalysisResult; provider: AnalysisProvider }
   | { success: false; isQuotaError: boolean };
 
-async function tryGeminiAnalysis(prompt: string): Promise<ProviderAttempt> {
-  try {
-    const ai = getGeminiClient();
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
-
-    const raw = response.text ?? "";
-    const parsed = parseAnalysisJson(raw);
-    if (!parsed) {
-      return { success: false, isQuotaError: false };
-    }
-
-    return { success: true, data: parsed, provider: "gemini" };
-  } catch (error) {
-    return { success: false, isQuotaError: isQuotaOrRateLimitError(error) };
-  }
-}
-
 async function tryGroqAnalysis(prompt: string): Promise<ProviderAttempt> {
   try {
     const client = getGroqClient();
@@ -714,13 +699,39 @@ async function tryGroqAnalysis(prompt: string): Promise<ProviderAttempt> {
     });
 
     const raw = response.choices[0]?.message?.content ?? "";
+    console.log("RAW GROQ RESPONSE:", raw);
     const parsed = parseAnalysisJson(raw);
+    console.log("PARSED GROQ ANALYSIS:", parsed);
     if (!parsed) {
       return { success: false, isQuotaError: false };
     }
 
     return { success: true, data: parsed, provider: "groq" };
   } catch (error) {
+    console.error("GROQ ERROR:", error);
+    return { success: false, isQuotaError: isQuotaOrRateLimitError(error) };
+  }
+}
+
+async function tryGeminiAnalysis(prompt: string): Promise<ProviderAttempt> {
+  try {
+    const ai = getGeminiClient();
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    const raw = response.text ?? "";
+    console.log("RAW GEMINI RESPONSE:", raw);
+    const parsed = parseAnalysisJson(raw);
+    console.log("PARSED GEMINI ANALYSIS:", parsed);
+    if (!parsed) {
+      return { success: false, isQuotaError: false };
+    }
+
+    return { success: true, data: parsed, provider: "gemini" };
+  } catch (error) {
+    console.error("GEMINI ERROR:", error);
     return { success: false, isQuotaError: isQuotaOrRateLimitError(error) };
   }
 }
@@ -762,9 +773,22 @@ export async function analyzeResumeWithGemini(
   const progress = options?.onProgress;
   const hasJd = options?.hasJobDescription ?? Boolean(jobDescription?.trim());
   const jd = jobDescription?.trim();
-  const prompt = jd
+  console.log("analyzeResumeWithGemini: jobDescription provided?", !!jd);
+  console.log("analyzeResumeWithGemini: hasJd?", hasJd);
+
+  // Check if we have enough keywords from JD to treat it as a real JD
+  let hasSufficientJDKeywords = false;
+  if (jd) {
+    const jdKeywords = extractKeywordsFromText(jd);
+    hasSufficientJDKeywords = jdKeywords.length >=3;
+    console.log("analyzeResumeWithGemini: extracted JD keywords for prompt check", jdKeywords);
+    console.log("analyzeResumeWithGemini: hasSufficientJDKeywords", hasSufficientJDKeywords);
+  }
+
+  const prompt = jd && hasSufficientJDKeywords
     ? buildJDAnalysisPrompt(resumeText, targetRole, jd)
     : buildAnalysisPrompt(resumeText, targetRole);
+  console.log("ANALYSIS PROMPT:", prompt);
 
   progress?.("ats", "start");
   const chainResult = await runAnalysisProviderChain(prompt);
@@ -775,6 +799,7 @@ export async function analyzeResumeWithGemini(
   }
 
   let data = chainResult.data;
+  console.log("analyzeResumeWithGemini: About to call applyDeterministicJDMatch with jd:", !!jd, "value:", jd);
   if (jd) {
     progress?.("jd-match", "start");
     data = applyDeterministicJDMatch(data, resumeText, jd);

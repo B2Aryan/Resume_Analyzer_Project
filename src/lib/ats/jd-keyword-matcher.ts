@@ -263,43 +263,58 @@ export interface JDKeywordMatchResult {
   matchedKeywords: string[];
   missingKeywords: string[];
   jdMatchScore: number;
+  isSufficientJD: boolean;
 }
 
 /**
  * Deterministic JD ↔ resume keyword comparison (technical terms only).
  *
  * jdMatchScore = round(matchedKeywords.length / totalJDKeywords × 100)
+ * isSufficientJD = true if ≥3 technical keywords extracted from JD
  */
 export function computeJDKeywordMatch(
   resumeText: string,
   jobDescription: string,
 ): JDKeywordMatchResult {
+  console.log("computeJDKeywordMatch: jobDescription length", jobDescription.length);
+  console.log("computeJDKeywordMatch: jobDescription", jobDescription);
   const jdKeywords = extractKeywordsFromText(jobDescription);
+  console.log("computeJDKeywordMatch: extracted JD keywords", jdKeywords);
+  const isSufficientJD = jdKeywords.length >= 3;
+  console.log("computeJDKeywordMatch: isSufficientJD", isSufficientJD);
+  const resumeKeywords = extractKeywordsFromText(resumeText);
+  console.log("computeJDKeywordMatch: extracted resume keywords", resumeKeywords);
   const resumeKeywordSet = new Set(
-    extractKeywordsFromText(resumeText).map((k) => normalizeToken(k)),
+    resumeKeywords.map((k) => normalizeToken(k)),
   );
+  console.log("computeJDKeywordMatch: resume keyword set", Array.from(resumeKeywordSet));
 
   const matchedKeywords: string[] = [];
   const missingKeywords: string[] = [];
 
   for (const kw of jdKeywords) {
-    if (resumeKeywordSet.has(normalizeToken(kw))) {
+    const normalizedKw = normalizeToken(kw);
+    if (resumeKeywordSet.has(normalizedKw)) {
       matchedKeywords.push(kw);
     } else {
       missingKeywords.push(kw);
     }
   }
+  console.log("computeJDKeywordMatch: matchedKeywords", matchedKeywords);
+  console.log("computeJDKeywordMatch: missingKeywords", missingKeywords);
 
   const totalJDKeywords = jdKeywords.length;
   const jdMatchScore =
     totalJDKeywords === 0
       ? 0
       : Math.round((matchedKeywords.length / totalJDKeywords) * 100);
+  console.log("computeJDKeywordMatch: jdMatchScore", jdMatchScore);
 
   return {
     matchedKeywords,
     missingKeywords,
     jdMatchScore,
+    isSufficientJD,
   };
 }
 
@@ -309,6 +324,7 @@ export function buildJDMatchResult(
   jdSummary: string,
 ): JDMatchResult {
   const scores = computeJDKeywordMatch(resumeText, jobDescription);
+  console.log("buildJDMatchResult: scores received", scores);
   return {
     ...scores,
     jdSummary,
