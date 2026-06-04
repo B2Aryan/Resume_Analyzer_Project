@@ -135,11 +135,8 @@ function LandingPage() {
       {/* Hero */}
       <section className="relative overflow-hidden hero-ambient">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 pt-28 pb-12 sm:px-6 sm:pt-36 sm:pb-16 md:pt-40 md:pb-24 lg:grid-cols-2 lg:items-center lg:gap-12">
-          <div className="animate-fade-up text-center lg:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3 py-1 text-[11px] font-medium text-muted-foreground backdrop-blur sm:text-xs">
-              <Sparkles className="h-3.5 w-3.5 text-primary" /> Built for students &amp; freshers
-            </span>
-            <h1 className="mt-4 font-display text-[2rem] font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl lg:text-6xl">
+          <div className="animate-fade-up text-center lg:text-left mt-10 sm:mt-12">
+            <h1 className="font-display text-[2rem] font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl lg:text-6xl">
               <span className="block">Check your resume for</span>
               <span className="block my-1">
                 <TypingText
@@ -173,10 +170,13 @@ function LandingPage() {
               </Button>
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground sm:text-sm lg:justify-start">
-              <div className="flex -space-x-2">
-                {[1,2,3,4].map(i => <div key={i} className="h-6 w-6 rounded-full border-2 border-background bg-gradient-primary sm:h-7 sm:w-7" />)}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>ATS score</span>
+                <span>•</span>
+                <span>Keyword analysis</span>
+                <span>•</span>
+                <span>Actionable improvements</span>
               </div>
-              <span>Trusted by 12,000+ students this semester</span>
             </div>
           </div>
 

@@ -10,6 +10,9 @@ import {
   createProgressTracker,
 } from "@/lib/ats/analysis-progress";
 import { runResumeAnalysis } from "@/lib/ats/run-resume-analysis";
+import { saveAnalysisToDB } from "@/lib/supabase/analysis-db";
+import { useAuth } from "@/contexts/AuthContext";
+import { RoleAutocomplete } from "@/components/role-autocomplete";
 
 export const Route = createFileRoute("/upload")({
   head: () => ({
@@ -33,6 +36,7 @@ const checks = [
 
 function UploadPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const setResult = useAnalysisStore((state) => state.setResult);
   const [uploadMethod, setUploadMethod] = useState<"file" | "paste">("file");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -91,6 +95,18 @@ function UploadPage() {
             return;
           }
 
+          // Save analysis to Supabase if user is authenticated
+          if (user) {
+            await saveAnalysisToDB({
+              user,
+              role: targetRole,
+              fileName: result.fileName,
+              resumeText: result.resumeText,
+              jobDescription: jdText,
+              analysisResult: result.data,
+            });
+          }
+
           setResult(result.data, targetRole, result.fileName, result.resumeText, jdText || undefined, {
             animateEntry: true,
             usedBackupProvider: result.usedBackupProvider,
@@ -126,11 +142,7 @@ function UploadPage() {
         <section className="relative overflow-hidden hero-ambient">
           <div className="mx-auto max-w-7xl overflow-x-hidden px-4 py-16 sm:px-6">
             <div className="mx-auto max-w-3xl text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background/40 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5 text-primary" />
-                No signup needed
-              </span>
-              <h1 className="mt-4 font-display text-[2rem] font-bold leading-[1.1] tracking-tight sm:text-5xl">
+              <h1 className="font-display text-[2rem] font-bold leading-[1.1] tracking-tight sm:text-5xl">
                 Upload your resume
                 <span className="block text-gradient">for ATS analysis</span>
               </h1>
@@ -217,12 +229,10 @@ function UploadPage() {
                   )}
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-2">Target role</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Frontend Developer Intern"
+                    <RoleAutocomplete 
                       value={pastedRole}
-                      onChange={(e) => setPastedRole(e.target.value)}
-                      className="w-full rounded-xl border border-input bg-background/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring backdrop-blur"
+                      onChange={setPastedRole}
+                      placeholder="e.g. Frontend Developer Intern"
                     />
                   </div>
                   <div className="mt-4">
@@ -273,12 +283,10 @@ Responsibilities:
                   </div>
                   <div className="mt-4">
                     <label className="block text-sm font-medium mb-2">Target role</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Product Manager"
+                    <RoleAutocomplete 
                       value={pastedRole}
-                      onChange={(e) => setPastedRole(e.target.value)}
-                      className="w-full rounded-xl border border-input bg-background/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring backdrop-blur"
+                      onChange={setPastedRole}
+                      placeholder="e.g. Product Manager"
                     />
                   </div>
                   <div className="mt-4">

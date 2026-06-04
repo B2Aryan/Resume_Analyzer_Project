@@ -61,6 +61,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "theme-color", content: "#DFF0FE", media: "(prefers-color-scheme: light)" },
+      { name: "theme-color", content: "#0D609C", media: "(prefers-color-scheme: dark)" },
       { title: "ResumePilot — Instant ATS Resume Analyzer for Students" },
       { name: "description", content: "Upload your resume, get an instant ATS score, missing keywords, and improvement tips. Built for students and freshers." },
       { property: "og:title", content: "ResumePilot — Instant ATS Resume Analyzer for Students" },
