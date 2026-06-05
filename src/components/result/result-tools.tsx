@@ -27,6 +27,7 @@ import { downloadInterviewQuestionsPdf } from "@/lib/pdf/interview-questions-pdf
 import { toggleSaveAnalysis, updateInterviewQuestionsToDB } from "@/lib/supabase/analysis-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalysisStore } from "@/store/analysisStore";
+import { CoverLetterProgressOverlay } from "@/components/cover-letter-progress-overlay";
 
 export interface ResultToolsProps {
   part: "rewriter" | "actions";
@@ -57,6 +58,8 @@ export const ResultTools = memo(function ResultTools({
   const [coverLetterGenerating, setCoverLetterGenerating] = useState(false);
   const [generatedCoverLetterOpen, setGeneratedCoverLetterOpen] = useState(false);
   const [generatedCoverLetter, setGeneratedCoverLetter] = useState("");
+  const [showProgressOverlay, setShowProgressOverlay] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const interviewQuestionsFromStore = useAnalysisStore(s => s.interviewQuestions);
   const setInterviewQuestions = useAnalysisStore(s => s.setInterviewQuestions);
@@ -64,6 +67,21 @@ export const ResultTools = memo(function ResultTools({
   const [interviewQuestionsOpen, setInterviewQuestionsOpen] = useState(false);
   const [interviewQuestionsJd, setInterviewQuestionsJd] = useState("");
   const [interviewQuestionsGenerating, setInterviewQuestionsGenerating] = useState(false);
+
+  const handleCancelGeneration = useCallback(() => {
+    console.log("handleCancelGeneration called!");
+    if (abortController) {
+      abortController.abort();
+    }
+    setShowProgressOverlay(false);
+    setCoverLetterGenerating(false);
+    setAbortController(null);
+  }, [abortController]);
+
+  const handleCloseGeneratedCoverLetter = useCallback(() => {
+    console.log("handleCloseGeneratedCoverLetter called!");
+    setGeneratedCoverLetterOpen(false);
+  }, []);
 
   const handleSaveToggle = useCallback(async () => {
     console.log("handleSaveToggle: user:", user, "analysisId:", analysisId, "isSaved:", isSaved);
@@ -245,7 +263,12 @@ export const ResultTools = memo(function ResultTools({
                 variant="hero"
                 disabled={coverLetterGenerating}
                 onClick={async () => {
+                  console.log("Generate button clicked!");
+                  const controller = new AbortController();
+                  setAbortController(controller);
                   setCoverLetterGenerating(true);
+                  setCoverLetterOpen(false);
+                  setShowProgressOverlay(true);
                   try {
                     const candidateName = user?.user_metadata?.full_name ?? user?.email?.split('@')[0];
                     const result = await generateCoverLetter({
@@ -257,16 +280,23 @@ export const ResultTools = memo(function ResultTools({
 
                     if (result.success) {
                       setGeneratedCoverLetter(result.data.coverLetter);
-                      setCoverLetterOpen(false);
+                      setShowProgressOverlay(false);
                       setGeneratedCoverLetterOpen(true);
                     } else {
                       toast.error(result.error);
+                      setShowProgressOverlay(false);
                     }
                   } catch (error) {
-                    console.error("Cover letter generation error:", error);
-                    toast.error("Could not generate cover letter. Please try again.");
+                    if (error instanceof Error && error.name === "AbortError") {
+                      console.log("Generation canceled by user");
+                    } else {
+                      console.error("Cover letter generation error:", error);
+                      toast.error("Could not generate cover letter. Please try again.");
+                      setShowProgressOverlay(false);
+                    }
                   } finally {
                     setCoverLetterGenerating(false);
+                    setAbortController(null);
                   }
                 }}
               >
@@ -280,7 +310,18 @@ export const ResultTools = memo(function ResultTools({
           </DialogContent>
         </Dialog>
 
-        <Dialog open={generatedCoverLetterOpen} onOpenChange={setGeneratedCoverLetterOpen}>
+        <CoverLetterProgressOverlay
+          open={showProgressOverlay}
+          onCancel={handleCancelGeneration}
+        />
+
+        <Dialog open={generatedCoverLetterOpen} onOpenChange={(open) => {
+          if (!open) {
+            handleCloseGeneratedCoverLetter();
+          } else {
+            setGeneratedCoverLetterOpen(true);
+          }
+        }}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Generated Cover Letter</DialogTitle>
