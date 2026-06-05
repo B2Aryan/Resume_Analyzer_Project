@@ -153,44 +153,51 @@ export const ResultTools = memo(function ResultTools({
                 {interviewQuestionsFromStore ? "View Interview Questions" : "Generate Interview Questions"}
               </Button>
               {interviewQuestionsFromStore && (
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  onClick={async () => {
-                    setInterviewQuestionsGenerating(true);
-                    try {
-                      const result = await generateInterviewQuestions({
-                        resumeText,
-                        targetRole: role,
-                        jobDescription: jobDescription || undefined,
-                      });
-                      if (result.success) {
-                        setInterviewQuestions(result.data);
-                        if (analysisId) {
-                          await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
+                <>
+                  <Button asChild variant="hero" className="w-full">
+                    <Link to="/mock-interview">
+                      <MessageSquare className="h-4 w-4 mr-2" aria-hidden /> Start Mock Interview
+                    </Link>
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={async () => {
+                      setInterviewQuestionsGenerating(true);
+                      try {
+                        const result = await generateInterviewQuestions({
+                          resumeText,
+                          targetRole: role,
+                          jobDescription: jobDescription || undefined,
+                        });
+                        if (result.success) {
+                          setInterviewQuestions(result.data);
+                          if (analysisId) {
+                            await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
+                          }
+                          toast.success("Interview questions regenerated!");
+                        } else {
+                          toast.error(result.error);
                         }
-                        toast.success("Interview questions regenerated!");
-                      } else {
-                        toast.error(result.error);
+                      } catch {
+                        toast.error("Could not regenerate interview questions.");
+                      } finally {
+                        setInterviewQuestionsGenerating(false);
                       }
-                    } catch {
-                      toast.error("Could not regenerate interview questions.");
-                    } finally {
-                      setInterviewQuestionsGenerating(false);
-                    }
-                  }}
-                  disabled={interviewQuestionsGenerating || !analysisId}
-                >
-                  {interviewQuestionsGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" /> Regenerating...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" /> Regenerate Questions
-                    </>
-                  )}
-                </Button>
+                    }}
+                    disabled={interviewQuestionsGenerating || !analysisId}
+                  >
+                    {interviewQuestionsGenerating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" /> Regenerating...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" /> Regenerate Questions
+                      </>
+                    )}
+                  </Button>
+                </>
               )}
               <Button
                 variant="outline"

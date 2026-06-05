@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as ResultRouteImport } from './routes/result'
 import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as MockInterviewRouteImport } from './routes/mock-interview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturesRouteImport } from './routes/features'
@@ -20,8 +21,10 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as InterviewReportIdRouteImport } from './routes/interview-report.$id'
 import { Route as DashboardSavedRouteImport } from './routes/dashboard.saved'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
+import { Route as DashboardInterviewsRouteImport } from './routes/dashboard.interviews'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 
@@ -38,6 +41,11 @@ const ResultRoute = ResultRouteImport.update({
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MockInterviewRoute = MockInterviewRouteImport.update({
+  id: '/mock-interview',
+  path: '/mock-interview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -80,6 +88,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const InterviewReportIdRoute = InterviewReportIdRouteImport.update({
+  id: '/interview-report/$id',
+  path: '/interview-report/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardSavedRoute = DashboardSavedRouteImport.update({
   id: '/saved',
   path: '/saved',
@@ -88,6 +101,11 @@ const DashboardSavedRoute = DashboardSavedRouteImport.update({
 const DashboardProfileRoute = DashboardProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardInterviewsRoute = DashboardInterviewsRouteImport.update({
+  id: '/interviews',
+  path: '/interviews',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardHistoryRoute = DashboardHistoryRouteImport.update({
@@ -109,13 +127,16 @@ export interface FileRoutesByFullPath {
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
+  '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
+  '/dashboard/interviews': typeof DashboardInterviewsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
+  '/interview-report/$id': typeof InterviewReportIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -125,13 +146,16 @@ export interface FileRoutesByTo {
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
+  '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
+  '/dashboard/interviews': typeof DashboardInterviewsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
+  '/interview-report/$id': typeof InterviewReportIdRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -143,13 +167,16 @@ export interface FileRoutesById {
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
+  '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
+  '/dashboard/interviews': typeof DashboardInterviewsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
+  '/interview-report/$id': typeof InterviewReportIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -162,13 +189,16 @@ export interface FileRouteTypes {
     | '/features'
     | '/how-it-works'
     | '/login'
+    | '/mock-interview'
     | '/pricing'
     | '/result'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
+    | '/dashboard/interviews'
     | '/dashboard/profile'
     | '/dashboard/saved'
+    | '/interview-report/$id'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -178,13 +208,16 @@ export interface FileRouteTypes {
     | '/features'
     | '/how-it-works'
     | '/login'
+    | '/mock-interview'
     | '/pricing'
     | '/result'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
+    | '/dashboard/interviews'
     | '/dashboard/profile'
     | '/dashboard/saved'
+    | '/interview-report/$id'
     | '/dashboard'
   id:
     | '__root__'
@@ -195,13 +228,16 @@ export interface FileRouteTypes {
     | '/features'
     | '/how-it-works'
     | '/login'
+    | '/mock-interview'
     | '/pricing'
     | '/result'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
+    | '/dashboard/interviews'
     | '/dashboard/profile'
     | '/dashboard/saved'
+    | '/interview-report/$id'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -213,10 +249,12 @@ export interface RootRouteChildren {
   FeaturesRoute: typeof FeaturesRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
+  MockInterviewRoute: typeof MockInterviewRoute
   PricingRoute: typeof PricingRoute
   ResultRoute: typeof ResultRoute
   UploadRoute: typeof UploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  InterviewReportIdRoute: typeof InterviewReportIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -240,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/pricing'
       fullPath: '/pricing'
       preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mock-interview': {
+      id: '/mock-interview'
+      path: '/mock-interview'
+      fullPath: '/mock-interview'
+      preLoaderRoute: typeof MockInterviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -298,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/interview-report/$id': {
+      id: '/interview-report/$id'
+      path: '/interview-report/$id'
+      fullPath: '/interview-report/$id'
+      preLoaderRoute: typeof InterviewReportIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard/saved': {
       id: '/dashboard/saved'
       path: '/saved'
@@ -310,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/dashboard/profile'
       preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/interviews': {
+      id: '/dashboard/interviews'
+      path: '/interviews'
+      fullPath: '/dashboard/interviews'
+      preLoaderRoute: typeof DashboardInterviewsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/history': {
@@ -331,6 +390,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardHistoryRoute: typeof DashboardHistoryRoute
+  DashboardInterviewsRoute: typeof DashboardInterviewsRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardSavedRoute: typeof DashboardSavedRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -338,6 +398,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHistoryRoute: DashboardHistoryRoute,
+  DashboardInterviewsRoute: DashboardInterviewsRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardSavedRoute: DashboardSavedRoute,
   DashboardIndexRoute: DashboardIndexRoute,
@@ -355,10 +416,12 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturesRoute: FeaturesRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
+  MockInterviewRoute: MockInterviewRoute,
   PricingRoute: PricingRoute,
   ResultRoute: ResultRoute,
   UploadRoute: UploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  InterviewReportIdRoute: InterviewReportIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

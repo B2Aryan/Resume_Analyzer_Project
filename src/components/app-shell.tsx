@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Upload, History, Bookmark, CreditCard, User, FileCheck2, LogOut, Loader2 } from "lucide-react";
+import { LayoutDashboard, Upload, History, Bookmark, MessageSquare, CreditCard, User, FileCheck2, LogOut, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +10,7 @@ const items = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/upload", label: "Upload", icon: Upload },
   { to: "/dashboard/history", label: "History", icon: History },
+  { to: "/dashboard/interviews", label: "Mock Interviews", icon: MessageSquare },
   { to: "/dashboard/saved", label: "Saved Reports", icon: Bookmark },
   { to: "/pricing", label: "Pricing", icon: CreditCard },
   { to: "/dashboard/profile", label: "Profile", icon: User },

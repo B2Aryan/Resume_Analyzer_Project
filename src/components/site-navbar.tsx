@@ -1,11 +1,11 @@
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { memo, useState } from "react";
-import { FileCheck2, Menu, X, User, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { FileCheck2, Menu, X, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 function SiteNavbarImpl() {
   const [open, setOpen] = useState(false);
@@ -35,7 +35,6 @@ function SiteNavbarImpl() {
     <>
       <style>{`
         .nav-bar {
-          overflow: hidden;
           background: color-mix(in oklab, var(--background) 70%, transparent);
           backdrop-filter: blur(14px) saturate(160%);
           -webkit-backdrop-filter: blur(14px) saturate(160%);
@@ -129,21 +128,37 @@ function SiteNavbarImpl() {
                   </span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>{user.user_metadata?.full_name || user.email}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate({ to: "/dashboard" })}>
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate({ to: "/dashboard/profile" })}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+              <DropdownMenuContent align="end" className="w-72 p-2 rounded-2xl border-border/60 bg-background/80 backdrop-blur-xl shadow-soft z-[10000]" sideOffset={8}>
+                {/* Header Section */}
+                <div className="flex items-center gap-3 px-3 py-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={user.user_metadata?.avatar_url || ""} alt={user.user_metadata?.full_name || user.email || ""} />
+                    <AvatarFallback className="text-lg">
+                      {getInitials(user.user_metadata?.full_name || user.email || "U")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate">{user.user_metadata?.full_name || user.email?.split('@')[0]}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator className="my-1" />
+                {/* Menu Items */}
+                <div className="space-y-1 py-1">
+                  <DropdownMenuItem onClick={() => navigate({ to: "/dashboard" })} className="rounded-xl px-3 py-2 cursor-pointer gap-3">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span className="text-sm font-medium">Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate({ to: "/dashboard/profile" })} className="rounded-xl px-3 py-2 cursor-pointer gap-3">
+                    <Settings className="h-4 w-4" />
+                    <span className="text-sm font-medium">Profile</span>
+                  </DropdownMenuItem>
+                </div>
+                <DropdownMenuSeparator className="my-1" />
+                {/* Sign Out */}
+                <DropdownMenuItem onClick={signOut} className="rounded-xl px-3 py-2 cursor-pointer gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive">
+                  <LogOut className="h-4 w-4" />
+                  <span className="text-sm font-medium">Sign Out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

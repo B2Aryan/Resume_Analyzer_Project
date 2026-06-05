@@ -108,13 +108,13 @@ export function ScoreBar({
         </span>
       </div>
       <div
-        className="h-2 w-full overflow-hidden rounded-full"
-        style={{ background: fixedColors?.barBg ?? undefined }}
+        className="h-2.5 w-full overflow-hidden rounded-full border border-border bg-muted"
+        style={{ background: fixedColors?.barBg ?? "var(--muted)" }}
       >
         <div
           className={cn("h-full rounded-full transition-all duration-1000", !fixedColors?.barFill ? tone : "")}
           style={{
-            width: `${value}%`,
+            width: `${Math.max(value, 0.5)}%`,
             background: fixedColors?.barFill ?? undefined,
           }}
         />
