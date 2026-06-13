@@ -110,38 +110,83 @@ export function downloadInterviewQuestionsPdf(
   questions: InterviewQuestionsResponse,
   role: string,
 ): void {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  let y = drawHeader(doc, role);
+  console.log("[downloadInterviewQuestionsPdf] Starting PDF generation...");
+  console.log("[downloadInterviewQuestionsPdf] Questions data:", JSON.stringify(questions, null, 2));
+  try {
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    let y = drawHeader(doc, role);
 
-  // Technical Questions
-  y = drawSectionTitle(doc, y, "Technical Questions");
-  y = drawNumberedList(doc, y, questions.technical);
+    // Project Questions
+    if (questions.project_questions.length > 0) {
+      y = drawSectionTitle(doc, y, "Project Questions");
+      y = drawNumberedList(doc, y, questions.project_questions);
+    }
 
-  // Project Questions
-  y = drawSectionTitle(doc, y, "Project Questions");
-  y = drawNumberedList(doc, y, questions.project);
+    // Technical Questions
+    if (questions.technical_questions.length > 0) {
+      y = drawSectionTitle(doc, y, "Technical Questions");
+      const technicalQuestionTexts = questions.technical_questions.map(q => q.question);
+      y = drawNumberedList(doc, y, technicalQuestionTexts);
+      
+      // Add expected answer points for each technical question
+      for (let i = 0; i < questions.technical_questions.length; i++) {
+        const techQ = questions.technical_questions[i];
+        if (techQ.expectedAnswerPoints.length > 0) {
+          const lines = doc.splitTextToSize(`   Expected Points: ${techQ.expectedAnswerPoints.join(", ")}`, CONTENT_WIDTH - 4);
+          const blockHeight = lines.length * 4.2 + 2;
+          y = ensureSpace(doc, y, blockHeight);
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(8);
+          doc.setTextColor(75, 85, 99);
+          doc.text(lines, MARGIN + 2, y);
+          y += blockHeight;
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(9);
+          doc.setTextColor(51, 65, 85);
+        }
+      }
+    }
 
-  // Behavioral Questions
-  y = drawSectionTitle(doc, y, "Behavioral Questions");
-  y = drawNumberedList(doc, y, questions.behavioral);
+    // Behavioral Questions
+    if (questions.behavioral_questions.length > 0) {
+      y = drawSectionTitle(doc, y, "Behavioral Questions");
+      y = drawNumberedList(doc, y, questions.behavioral_questions);
+    }
 
-  // HR Questions
-  y = drawSectionTitle(doc, y, "HR Questions");
-  y = drawNumberedList(doc, y, questions.hr);
+    // System Design Questions
+    if (questions.system_design_questions.length > 0) {
+      y = drawSectionTitle(doc, y, "System Design Questions");
+      y = drawNumberedList(doc, y, questions.system_design_questions);
+    }
 
-  // Interview Tips
-  y = drawSectionTitle(doc, y, "Interview Tips");
-  y = drawBulletList(doc, y, [
-    "Review your projects before answering.",
-    "Use the STAR method for behavioral questions.",
-    "Be ready to explain technical decisions from your resume.",
-    "Prepare examples of challenges, failures, and lessons learned.",
-    "Be able to justify the technologies used in your projects.",
-    "Practice explaining your projects in under 2 minutes.",
-  ]);
+    // Follow-up Questions
+    if (questions.follow_up_questions.length > 0) {
+      y = drawSectionTitle(doc, y, "Follow-Up Questions");
+      y = drawNumberedList(doc, y, questions.follow_up_questions);
+    }
 
-  drawFooter(doc);
-  const roleSlug = sanitizeFileName(role);
-  doc.save(`Interview_Questions_${roleSlug}.pdf`);
+    // Interview Tips
+    y = drawSectionTitle(doc, y, "Interview Tips");
+    y = drawBulletList(doc, y, [
+      "Review your projects before answering.",
+      "Use the STAR method for behavioral questions.",
+      "Be ready to explain technical decisions from your resume.",
+      "Prepare examples of challenges, failures, and lessons learned.",
+      "Be able to justify the technologies used in your projects.",
+      "Practice explaining your projects in under 2 minutes.",
+    ]);
+
+    drawFooter(doc);
+    const roleSlug = sanitizeFileName(role);
+    doc.save(`Interview_Questions_${roleSlug}.pdf`);
+    console.log("[downloadInterviewQuestionsPdf] PDF generated successfully!");
+  } catch (error) {
+    console.error("[downloadInterviewQuestionsPdf] Error generating PDF:", error);
+    if (error instanceof Error) {
+      console.error("[downloadInterviewQuestionsPdf] Error message:", error.message);
+      console.error("[downloadInterviewQuestionsPdf] Error stack:", error.stack);
+    }
+    throw error;
+  }
 }
 

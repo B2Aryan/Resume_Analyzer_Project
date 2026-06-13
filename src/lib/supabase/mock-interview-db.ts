@@ -1,3 +1,4 @@
+
 import { getSupabaseClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import type { InterviewFeedback } from "@/lib/ats/interview-evaluator";
@@ -6,7 +7,7 @@ import type { InterviewFeedback } from "@/lib/ats/interview-evaluator";
 interface InterviewResponseItem {
   questionId: string;
   question: string;
-  category: "technical" | "project" | "behavioral" | "hr";
+  category: "technical" | "project" | "behavioral" | "system_design" | "follow_up";
   answer: string;
   feedback: InterviewFeedback;
 }
@@ -107,3 +108,4 @@ export async function fetchMockInterviewResultById(
   }
   return data as DBMockInterview;
 }
+

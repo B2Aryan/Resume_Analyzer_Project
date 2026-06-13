@@ -391,7 +391,7 @@ export const ResultTools = memo(function ResultTools({
         </div>
         <h3 className="mt-2 font-display text-lg font-semibold">Improve Resume Bullet</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Paste a weak bullet from your resume. We&apos;ll suggest stronger, ATS-friendly, and
+          Paste a weak bullet from your resume. We'll suggest stronger, ATS-friendly, and
           impact-focused versions using your analysis context — without inventing metrics or fake
           experience.
         </p>
@@ -539,21 +539,46 @@ function InterviewQuestionsDialog({
 
   const handleCopy = async () => {
     if (!questions) return;
-    const text = [
-      "Technical Questions",
-      ...questions.technical.map((q, i) => `${i + 1}. ${q}`),
-      "",
-      "Project Questions",
-      ...questions.project.map((q, i) => `${i + 1}. ${q}`),
-      "",
-      "Behavioral Questions",
-      ...questions.behavioral.map((q, i) => `${i + 1}. ${q}`),
-      "",
-      "HR Questions",
-      ...questions.hr.map((q, i) => `${i + 1}. ${q}`),
-    ].join("\n");
+    
+    const textParts: string[] = [];
+    
+    if (questions.project_questions.length > 0) {
+      textParts.push("Project Questions");
+      questions.project_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      textParts.push("");
+    }
+    
+    if (questions.technical_questions.length > 0) {
+      textParts.push("Technical Questions");
+      questions.technical_questions.forEach((q, i) => {
+        textParts.push(`${i + 1}. ${q.question} [${q.difficulty}]`);
+        if (q.expectedAnswerPoints.length > 0) {
+          textParts.push("   Expected Points:");
+          q.expectedAnswerPoints.forEach(p => textParts.push(`   - ${p}`));
+        }
+      });
+      textParts.push("");
+    }
+    
+    if (questions.behavioral_questions.length > 0) {
+      textParts.push("Behavioral Questions");
+      questions.behavioral_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      textParts.push("");
+    }
+    
+    if (questions.system_design_questions.length > 0) {
+      textParts.push("System Design Questions");
+      questions.system_design_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      textParts.push("");
+    }
+    
+    if (questions.follow_up_questions.length > 0) {
+      textParts.push("Follow-Up Questions");
+      questions.follow_up_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+    }
+
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(textParts.join("\n"));
       toast.success("Interview questions copied to clipboard!");
     } catch {
       toast.error("Failed to copy questions.");
@@ -564,7 +589,8 @@ function InterviewQuestionsDialog({
     if (!questions) return;
     setDownloading(true);
     try {
-      downloadInterviewQuestionsPdf(questions, role);
+      // We can keep the existing download for now, we'll update the PDF function later if needed
+      downloadInterviewQuestionsPdf(questions as any, role);
       toast.success("Interview questions downloaded!");
     } catch {
       toast.error("Failed to generate PDF.");
@@ -573,10 +599,20 @@ function InterviewQuestionsDialog({
     }
   };
 
+  // Helper for difficulty badges
+  const getDifficultyColor = (diff: string) => {
+    switch (diff) {
+      case "Easy": return "bg-green-500/10 text-green-400 border-green-500/30";
+      case "Medium": return "bg-yellow-500/10 text-yellow-400 border-yellow-500/30";
+      case "Hard": return "bg-red-500/10 text-red-400 border-red-500/30";
+      default: return "";
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>
               {questions ? "Interview Questions" : "Generate Interview Questions"}
@@ -612,7 +648,7 @@ function InterviewQuestionsDialog({
                 >
                   {generating ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Generating...
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" /> Generating...
                     </>
                   ) : "Generate"}
                 </Button>
@@ -620,27 +656,112 @@ function InterviewQuestionsDialog({
             </>
           ) : (
             <>
-              <div className="mt-2 space-y-6 max-h-[60vh] overflow-y-auto">
-                {[
-                  { key: "technical" as const, label: "Technical Questions" },
-                  { key: "project" as const, label: "Project Questions" },
-                  { key: "behavioral" as const, label: "Behavioral Questions" },
-                  { key: "hr" as const, label: "HR Questions" },
-                ].map((section) => (
-                  <div key={section.key} className="space-y-3">
-                    <h4 className="font-display text-sm font-semibold text-foreground">{section.label}</h4>
+              <div className="mt-2 space-y-8 max-h-[70vh] overflow-y-auto">
+                
+                {/* Project Questions */}
+                {questions.project_questions.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-display text-lg font-semibold text-foreground">Project Questions</h4>
                     <ul className="space-y-2">
-                      {questions[section.key].map((question, i) => (
+                      {questions.project_questions.map((question, i) => (
                         <li
                           key={i}
-                          className="rounded-lg border border-border bg-muted/20 px-3 py-2.5 text-sm text-muted-foreground"
+                          className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-foreground"
                         >
                           {i + 1}. {question}
                         </li>
                       ))}
                     </ul>
                   </div>
-                ))}
+                )}
+                
+                {/* Technical Questions */}
+                {questions.technical_questions.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="font-display text-lg font-semibold text-foreground">Technical Questions</h4>
+                    <div className="space-y-3">
+                      {questions.technical_questions.map((q, i) => (
+                        <div
+                          key={i}
+                          className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-foreground">
+                              {i + 1}. {q.question}
+                            </p>
+                            <span className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium border ${getDifficultyColor(q.difficulty)}`}>
+                              {q.difficulty}
+                            </span>
+                          </div>
+                          {q.expectedAnswerPoints.length > 0 && (
+                            <div className="mt-3 space-y-1">
+                              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                Expected Points:
+                              </p>
+                              <ul className="list-disc list-inside text-xs text-muted-foreground">
+                                {q.expectedAnswerPoints.map((point, j) => (
+                                  <li key={j}>{point}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Behavioral Questions */}
+                {questions.behavioral_questions.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-display text-lg font-semibold text-foreground">Behavioral Questions</h4>
+                    <ul className="space-y-2">
+                      {questions.behavioral_questions.map((question, i) => (
+                        <li
+                          key={i}
+                          className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-foreground"
+                        >
+                          {i + 1}. {question}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* System Design Questions */}
+                {questions.system_design_questions.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-display text-lg font-semibold text-foreground">System Design Questions</h4>
+                    <ul className="space-y-2">
+                      {questions.system_design_questions.map((question, i) => (
+                        <li
+                          key={i}
+                          className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-foreground"
+                        >
+                          {i + 1}. {question}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Follow-Up Questions */}
+                {questions.follow_up_questions.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-display text-lg font-semibold text-foreground">Follow-Up Questions</h4>
+                    <ul className="space-y-2">
+                      {questions.follow_up_questions.map((question, i) => (
+                        <li
+                          key={i}
+                          className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-foreground"
+                        >
+                          {i + 1}. {question}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
               </div>
 
               <DialogFooter>

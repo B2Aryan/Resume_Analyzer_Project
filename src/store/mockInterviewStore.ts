@@ -1,3 +1,4 @@
+
 import { create } from "zustand";
 import type { InterviewFeedback } from "@/lib/ats/interview-evaluator";
 import type { InterviewQuestionItem } from "@/lib/ats/interview-session";
@@ -5,7 +6,7 @@ import type { InterviewQuestionItem } from "@/lib/ats/interview-session";
 interface InterviewResponse {
   questionId: string;
   question: string;
-  category: "technical" | "project" | "behavioral" | "hr";
+  category: "technical" | "project" | "behavioral" | "system_design" | "follow_up";
   answer: string;
   feedback?: InterviewFeedback;
 }
@@ -148,3 +149,4 @@ export const useMockInterviewStore = create<MockInterviewState>((set) => ({
     });
   },
 }));
+

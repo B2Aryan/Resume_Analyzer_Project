@@ -8,13 +8,20 @@ export interface GenerateInterviewQuestionsInput {
   jobDescription?: string;
 }
 
+export interface TechnicalQuestion {
+  question: string;
+  expectedAnswerPoints: string[];
+  difficulty: "Easy" | "Medium" | "Hard";
+}
+
 export interface InterviewQuestionsResponse {
   generated_at: string;
   role: string;
-  technical: string[];
-  project: string[];
-  behavioral: string[];
-  hr: string[];
+  project_questions: string[];
+  technical_questions: TechnicalQuestion[];
+  behavioral_questions: string[];
+  system_design_questions: string[];
+  follow_up_questions: string[];
 }
 
 export type InterviewQuestionsResult =
@@ -36,17 +43,56 @@ function buildInterviewQuestionsPrompt(input: GenerateInterviewQuestionsInput): 
 
 OUTPUT SCHEMA:
 {
-  "technical": ["question 1", "question 2", ...],
-  "project": ["question 1", "question 2", ...],
-  "behavioral": ["question 1", "question 2", ...],
-  "hr": ["question 1", "question 2", ...]
+  "project_questions": ["question 1", "question 2", ...],
+  "technical_questions": [
+    {
+      "question": "question text",
+      "expectedAnswerPoints": ["point 1", "point 2", ...],
+      "difficulty": "Easy" | "Medium" | "Hard"
+    }
+  ],
+  "behavioral_questions": ["question 1", "question 2", ...],
+  "system_design_questions": ["question 1", "question 2", ...],
+  "follow_up_questions": ["question 1", "question 2", ...]
 }
 
-Generate 5 questions for each category:
-1. Technical: Questions about the skills and technologies from the resume
-2. Project: Questions about the projects mentioned in the resume
-3. Behavioral: STAR format (Situation, Task, Action, Result) questions
-4. HR: Questions about motivation, company fit, etc.
+DIFFICULTY DISTRIBUTION:
+30% Easy, 40% Medium, 30% Hard across all questions.
+
+PROJECT QUESTIONS REQUIREMENTS:
+- For EVERY project mentioned in the resume, generate at least:
+  1. Architecture question
+  2. Tradeoff question
+  3. Optimization question
+- Directly reference project names, technologies, and achievements
+- Total: 6-8 questions
+
+TECHNICAL QUESTIONS REQUIREMENTS:
+- Must directly reference skills, technologies, and experience from resume
+- Include expectedAnswerPoints (key points the candidate should mention)
+- Include difficulty level (Easy/Medium/Hard)
+- 30% Easy, 40% Medium, 30% Hard
+- Total: 8-10 questions
+
+BEHAVIORAL QUESTIONS REQUIREMENTS:
+- STAR format (Situation, Task, Action, Result)
+- Reference specific experiences from the resume
+- Total: 5-7 questions
+
+SYSTEM DESIGN QUESTIONS REQUIREMENTS:
+- Relevant to target role and resume experience
+- Directly reference technologies from resume
+- Total: 3-5 questions
+
+FOLLOW UP QUESTIONS REQUIREMENTS:
+- Questions that dig deeper into answers to the above questions
+- For example: "Can you tell me more about X decision you made on project Y?"
+- Total: 4-6 questions
+
+GENERAL REQUIREMENTS:
+- Prioritize questions that directly reference project names, technologies, achievements, and experience from the resume
+- Avoid generic questions unless resume content is truly insufficient
+- Make questions specific and tailored to the candidate's background
 
 TARGET ROLE:
 ${input.targetRole}${jdBlock}
@@ -56,25 +102,33 @@ ${input.resumeText}
 }
 
 function parseInterviewQuestionsJson(raw: string): {
-  technical: string[];
-  project: string[];
-  behavioral: string[];
-  hr: string[];
+  project_questions: string[];
+  technical_questions: TechnicalQuestion[];
+  behavioral_questions: string[];
+  system_design_questions: string[];
+  follow_up_questions: string[];
 } | null {
   const cleaned = cleanJsonResponse(raw);
   try {
     const parsed = JSON.parse(cleaned) as any;
     if (
-      Array.isArray(parsed.technical) &&
-      Array.isArray(parsed.project) &&
-      Array.isArray(parsed.behavioral) &&
-      Array.isArray(parsed.hr)
+      Array.isArray(parsed.project_questions) &&
+      Array.isArray(parsed.technical_questions) &&
+      Array.isArray(parsed.behavioral_questions) &&
+      Array.isArray(parsed.system_design_questions) &&
+      Array.isArray(parsed.follow_up_questions)
     ) {
+      const validateTechnical = (q: any) => 
+        typeof q.question === "string" &&
+        Array.isArray(q.expectedAnswerPoints) &&
+        (q.difficulty === "Easy" || q.difficulty === "Medium" || q.difficulty === "Hard");
+      
       return {
-        technical: parsed.technical,
-        project: parsed.project,
-        behavioral: parsed.behavioral,
-        hr: parsed.hr,
+        project_questions: parsed.project_questions,
+        technical_questions: parsed.technical_questions.filter(validateTechnical),
+        behavioral_questions: parsed.behavioral_questions,
+        system_design_questions: parsed.system_design_questions,
+        follow_up_questions: parsed.follow_up_questions,
       };
     }
     return null;
@@ -101,7 +155,13 @@ function isQuotaOrRateLimitError(error: unknown): boolean {
 
 async function tryGroqInterviewQuestions(
   prompt: string,
-): Promise<InterviewQuestionsResponse | null> {
+): Promise<{
+  project_questions: string[];
+  technical_questions: TechnicalQuestion[];
+  behavioral_questions: string[];
+  system_design_questions: string[];
+  follow_up_questions: string[];
+} | null> {
   try {
     const client = getGroqClient();
     const response = await client.chat.completions.create({
@@ -118,7 +178,13 @@ async function tryGroqInterviewQuestions(
 
 async function tryGeminiInterviewQuestions(
   prompt: string,
-): Promise<InterviewQuestionsResponse | null> {
+): Promise<{
+  project_questions: string[];
+  technical_questions: TechnicalQuestion[];
+  behavioral_questions: string[];
+  system_design_questions: string[];
+  follow_up_questions: string[];
+} | null> {
   try {
     const ai = getGeminiClient();
     const response = await ai.models.generateContent({
@@ -138,10 +204,11 @@ export async function generateInterviewQuestions(
   const prompt = buildInterviewQuestionsPrompt(input);
 
   let questions: {
-    technical: string[];
-    project: string[];
-    behavioral: string[];
-    hr: string[];
+    project_questions: string[];
+    technical_questions: TechnicalQuestion[];
+    behavioral_questions: string[];
+    system_design_questions: string[];
+    follow_up_questions: string[];
   } | null = null;
 
   try {
