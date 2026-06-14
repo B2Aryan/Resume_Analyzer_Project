@@ -5,6 +5,7 @@ import { useAnalysisStore } from "@/store/analysisStore";
 import { useMockInterviewStore } from "@/store/mockInterviewStore";
 import { flattenInterviewQuestions } from "@/lib/ats/interview-session";
 import { evaluateInterviewAnswer } from "@/lib/ats/interview-evaluator";
+import { generateFollowUpQuestion } from "@/lib/ats/interview-followup";
 import { saveMockInterviewResult } from "@/lib/supabase/mock-interview-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/app-shell";
@@ -44,10 +45,12 @@ function MockInterviewPage() {
     currentIndex,
     responses,
     isComplete,
+    followUpCount,
     startInterview,
     saveAnswer,
     saveFeedback,
     saveSkippedQuestion,
+    insertFollowUpQuestion,
     nextQuestion,
     finishInterview,
     resetInterview,
@@ -203,8 +206,42 @@ function MockInterviewPage() {
       
       if (evaluationResult.success && evaluationResult.data) {
         saveFeedback(currentQuestion.id, evaluationResult.data);
-        setAnswer("");
-        nextQuestion();
+        
+        // Check if we should generate a follow-up question (and not already in follow-up)
+        if (
+          currentQuestion.category !== "follow_up" && 
+          evaluationResult.data.score >= 6 &&
+          followUpCount < 5
+        ) {
+          const followUpResult = await generateFollowUpQuestion({
+            originalQuestion: currentQuestion.question,
+            candidateAnswer: answer,
+            score: evaluationResult.data.score,
+            strengths: evaluationResult.data.strengths,
+            missingPoints: evaluationResult.data.missingPoints,
+            role: interviewQuestions.role,
+          });
+          
+          if (followUpResult.success && followUpResult.data?.shouldAskFollowUp && followUpResult.data.followUpQuestion) {
+            // Insert follow-up question
+            const followUpQuestionItem = {
+              id: `followup-${Date.now()}`,
+              category: "follow_up" as const,
+              question: followUpResult.data.followUpQuestion,
+            };
+            insertFollowUpQuestion(followUpQuestionItem, currentQuestion.id);
+            setAnswer("");
+            nextQuestion();
+          } else {
+            // No follow-up, just move on
+            setAnswer("");
+            nextQuestion();
+          }
+        } else {
+          // Not eligible for follow-up, just move on
+          setAnswer("");
+          nextQuestion();
+        }
       } else {
         toast.error(evaluationResult.error || "Failed to evaluate answer. Please try again.");
       }

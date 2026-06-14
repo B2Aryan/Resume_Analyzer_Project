@@ -39,7 +39,7 @@ function buildInterviewQuestionsPrompt(input: GenerateInterviewQuestionsInput): 
   const jdBlock = input.jobDescription?.trim()
     ? `\nJOB DESCRIPTION:\n${input.jobDescription}\n`
     : "";
-  return `You are an expert career coach and interviewer. Return ONLY valid JSON. No markdown, no explanations, no text outside JSON.
+  return `You are an expert SDE internship interviewer at a product company. Return ONLY valid JSON. No markdown, no explanations, no text outside JSON.
 
 OUTPUT SCHEMA:
 {
@@ -56,43 +56,72 @@ OUTPUT SCHEMA:
   "follow_up_questions": ["question 1", "question 2", ...]
 }
 
-DIFFICULTY DISTRIBUTION:
-30% Easy, 40% Medium, 30% Hard across all questions.
+STRICT QUESTION QUALITY FILTER:
+REJECT ANY QUESTION THAT COULD BE ASKED TO A CANDIDATE WHO HAS NEVER SEEN THIS RESUME.
+
+BEFORE RETURNING ANY QUESTION, VERIFY:
+1. The question references AT LEAST ONE OF:
+   - a specific project,
+   - a specific implementation,
+   - a specific architectural decision,
+   - a specific bug,
+   - a specific optimization,
+   - a specific deployment choice.
+2. If the project name is removed from the question and it still makes sense, REWRITE IT TO BE MORE SPECIFIC.
+
+BAD EXAMPLES:
+- "What is MongoDB?"
+- "How does React work?"
+- "What is Git?"
+- "In the K A Gupta project, what is MongoDB?"
+
+GOOD EXAMPLES:
+- "In the K A Gupta website, how did you design the MongoDB schema for consultation requests and what indexes would you add if traffic increased 100x?"
+- "Why did you choose MongoDB instead of PostgreSQL for the K A Gupta website and what tradeoffs did you accept?"
+
+STRICT RULES:
+1. NO TEXTBOOK QUESTIONS: Never ask "What is X?" for any technology, framework, or tool
+2. ALL QUESTIONS MUST BE TIED TO RESUME CONTENT
+3. FEWER, DEEPER QUESTIONS: Focus on depth over quantity
+4. EXPECTED ANSWER POINTS: Focus on architecture, tradeoffs, scalability, performance, security, debugging, deployment
+
+DIFFICULTY: SDE internship interview level at a product company
 
 PROJECT QUESTIONS REQUIREMENTS:
-- For EVERY project mentioned in the resume, generate at least:
-  1. Architecture question
-  2. Tradeoff question
-  3. Optimization question
+- For EVERY project mentioned in the resume, generate questions about:
+  - Architecture decisions and why they were made
+  - Tradeoffs considered and choices made
+  - Performance optimizations implemented
+  - Bugs encountered and debugging process
+  - Deployment strategies
 - Directly reference project names, technologies, and achievements
-- Total: 6-8 questions
+- Total: 4-6 questions
 
 TECHNICAL QUESTIONS REQUIREMENTS:
-- Must directly reference skills, technologies, and experience from resume
-- Include expectedAnswerPoints (key points the candidate should mention)
+- EVERY QUESTION MUST BE TIED TO A SPECIFIC PROJECT, FEATURE, OR EXPERIENCE FROM THE RESUME
+- NO TEXTBOOK QUESTIONS
+- Include expectedAnswerPoints focusing on: architecture, tradeoffs, scalability, performance, security, debugging, deployment
 - Include difficulty level (Easy/Medium/Hard)
-- 30% Easy, 40% Medium, 30% Hard
-- Total: 8-10 questions
+- Total: 5-7 questions
 
 BEHAVIORAL QUESTIONS REQUIREMENTS:
 - STAR format (Situation, Task, Action, Result)
 - Reference specific experiences from the resume
-- Total: 5-7 questions
+- Total: 3-5 questions
 
 SYSTEM DESIGN QUESTIONS REQUIREMENTS:
-- Relevant to target role and resume experience
-- Directly reference technologies from resume
-- Total: 3-5 questions
+- MUST BE DERIVED DIRECTLY FROM THE CANDIDATE'S PROJECTS (NO GENERIC INDUSTRY SYSTEMS)
+- For example, if they built a chat app, ask them to redesign/scale that specific chat app
+- Total: 2-3 questions
 
 FOLLOW UP QUESTIONS REQUIREMENTS:
 - Questions that dig deeper into answers to the above questions
-- For example: "Can you tell me more about X decision you made on project Y?"
-- Total: 4-6 questions
+- Total: 3-4 questions
 
 GENERAL REQUIREMENTS:
+- All questions must feel like a real SDE internship interview
 - Prioritize questions that directly reference project names, technologies, achievements, and experience from the resume
-- Avoid generic questions unless resume content is truly insufficient
-- Make questions specific and tailored to the candidate's background
+- If resume content is insufficient, state that clearly in the JSON but still make best effort
 
 TARGET ROLE:
 ${input.targetRole}${jdBlock}
