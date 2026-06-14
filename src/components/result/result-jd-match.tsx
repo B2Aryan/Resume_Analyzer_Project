@@ -27,7 +27,7 @@ export const ResultJDMatch = memo(function ResultJDMatch({
 
   if (!hasJobDescription) {
     return (
-      <Card className="border-border/60 border-dashed">
+      <Card className="border-border/60 border-dashed transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
         <CardContent className="p-6 sm:p-8">
           <EmptyState
             icon={Briefcase}
@@ -48,7 +48,7 @@ export const ResultJDMatch = memo(function ResultJDMatch({
   // Check if JD is insufficient (<3 keywords)
   if (!jdMatch.isSufficientJD) {
     return (
-      <Card className="border-border/60 border-dashed">
+      <Card className="border-border/60 border-dashed transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
         <CardContent className="p-6 sm:p-8">
           <EmptyState
             icon={Briefcase}
@@ -65,7 +65,7 @@ export const ResultJDMatch = memo(function ResultJDMatch({
   }
 
   return (
-    <Card className="border-border/60 border-primary/30 shadow-soft">
+    <Card className="border-border/60 border-primary/30 shadow-soft transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
       <CardContent className="p-6 sm:p-8">
         <div className="flex items-center gap-2 text-primary">
           <Briefcase className="h-4 w-4" aria-hidden />

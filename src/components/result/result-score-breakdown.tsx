@@ -16,7 +16,7 @@ export const ResultScoreBreakdown = memo(function ResultScoreBreakdown({
   breakdown,
 }: ResultScoreBreakdownProps) {
   return (
-    <Card className="border-border/60">
+    <Card className="border-border/60 transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
       <CardContent className="p-6 sm:p-8">
         <h3 className="font-display text-lg font-semibold">Score breakdown</h3>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">

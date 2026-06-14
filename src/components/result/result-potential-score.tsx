@@ -21,7 +21,7 @@ export function PotentialATSScore({ currentScore, actionPlan }: PotentialATSScor
   const actualImprovement = potentialScore - currentScore;
 
   return (
-    <Card className="border-border/60 border-primary/20">
+    <Card className="border-border/60 border-primary/20 transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
       <CardContent className="p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

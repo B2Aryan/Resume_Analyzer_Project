@@ -33,7 +33,7 @@ import {
 
 function NotComparableCard({ similarity }: { similarity: ResumeSimilarityScores }) {
   return (
-    <Card className="border-border/60 bg-muted/30">
+    <Card className="border-border/60 bg-muted/30 transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
       <CardContent className="p-6 sm:p-8">
         <div className="flex items-center gap-2 text-muted-foreground">
           <GitCompare className="h-4 w-4" aria-hidden />

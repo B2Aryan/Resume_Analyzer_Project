@@ -15,7 +15,7 @@ export const ResultStrengths = memo(function ResultStrengths({
 }: ResultStrengthsProps) {
   if (part === "summary") {
     return (
-      <Card className="border-border/60">
+      <Card className="border-border/60 transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
         <CardContent className="p-6">
           <div className="flex items-center gap-2 text-primary">
             <Sparkles className="h-4 w-4" aria-hidden />
@@ -30,7 +30,7 @@ export const ResultStrengths = memo(function ResultStrengths({
   }
 
   return (
-    <Card className="border-border/60">
+    <Card className="border-border/60 transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
       <CardContent className="p-6">
         <h3 className="font-display text-base font-semibold">What&apos;s working</h3>
         <ul className="mt-3 space-y-2.5">

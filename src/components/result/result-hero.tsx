@@ -150,7 +150,7 @@ export const ResultHero = memo(function ResultHero({
 
   return (
     <>
-      <Card className="border-border/60 shadow-soft">
+      <Card className="border-border/60 shadow-soft transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
         <CardContent className="grid grid-cols-1 md:grid-cols-[55%_1px_45%] gap-0 p-5 sm:p-6">
         {/* Left Section (55%) */}
         <div className="flex flex-col justify-center items-center py-4 md:py-0">
