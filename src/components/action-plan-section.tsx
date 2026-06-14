@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { ListChecks, CheckCircle2 } from "lucide-react";
+import { ListChecks, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/empty-state";
 import type { ActionPlan, ActionPlanItem } from "@/lib/ats/action-plan";
 import {
@@ -10,41 +10,37 @@ import {
   saveCompletedActionIds,
 } from "@/lib/storage/action-plan-progress";
 
-const PRIORITY_LABELS = {
-  high: "High Impact",
-  medium: "Medium Impact",
-  low: "Low Impact",
-} as const;
-
-const PRIORITY_STYLES = {
-  high: "bg-destructive/10 text-destructive border-destructive/20",
-  medium: "bg-warning/10 text-warning border-warning/20",
-  low: "bg-muted text-muted-foreground border-border",
-} as const;
-
-function ActionRow({
+function RecommendationCard({
   item,
+  rank,
   checked,
   onToggle,
 }: {
   item: ActionPlanItem;
+  rank: number;
   checked: boolean;
   onToggle: (id: string, value: boolean) => void;
 }) {
+  // Calculate impact display: +X ATS where X is impactScore * 2 (to make it look nice)
+  const impactDisplay = `+${item.impactScore * 2} ATS`;
+  
   return (
     <label
-      className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-colors focus-within:ring-2 focus-within:ring-ring ${
-        checked ? "border-success/40 bg-success/5" : "border-border bg-card"
+      className={`flex cursor-pointer gap-3 rounded-xl border p-4 transition-all focus-within:ring-2 focus-within:ring-ring ${
+        checked ? "border-success/40 bg-success/5" : "border-border bg-card hover:border-border/80"
       }`}
     >
       <Checkbox
         checked={checked}
         onCheckedChange={(v) => onToggle(item.id, v === true)}
-        className="mt-0.5 shrink-0"
+        className="mt-1 shrink-0"
         aria-label={`Mark complete: ${item.title}`}
       />
-      <div className="min-w-0 flex-1 space-y-1.5">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="min-w-0 flex-1 space-y-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+            #{rank}
+          </span>
           <p
             className={`text-sm font-semibold leading-snug ${
               checked ? "text-muted-foreground line-through" : "text-foreground"
@@ -52,54 +48,26 @@ function ActionRow({
           >
             {item.title}
           </p>
-          <span className="shrink-0 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-            ATS impact: {item.expectedAtsImpact}
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="shrink-0 rounded-full border border-border bg-accent/30 px-2.5 py-0.5 text-[11px] font-medium text-accent-foreground">
+            Impact: {impactDisplay}
+          </span>
+          <span className="shrink-0 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+            Effort: {item.effort}
           </span>
         </div>
-        <p className="text-xs leading-relaxed text-muted-foreground">{item.whyItMatters}</p>
+        
+        <p className="text-xs leading-relaxed text-muted-foreground mt-1.5">{item.whyItMatters}</p>
       </div>
     </label>
   );
 }
 
-function PriorityGroup({
-  priority,
-  items,
-  completed,
-  onToggle,
-}: {
-  priority: keyof typeof PRIORITY_LABELS;
-  items: ActionPlanItem[];
-  completed: Set<string>;
-  onToggle: (id: string, value: boolean) => void;
-}) {
-  if (items.length === 0) return null;
-
-  return (
-    <div>
-      <div className="mb-3 flex items-center gap-2">
-        <span
-          className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${PRIORITY_STYLES[priority]}`}
-        >
-          {PRIORITY_LABELS[priority]}
-        </span>
-      </div>
-      <div className="space-y-2">
-        {items.map((item) => (
-          <ActionRow
-            key={item.id}
-            item={item}
-            checked={completed.has(item.id)}
-            onToggle={onToggle}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function ActionPlanSection({ plan }: { plan: ActionPlan }) {
   const [completed, setCompleted] = useState<Set<string>>(() => new Set());
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     setCompleted(new Set(loadCompletedActionIds(plan.planKey)));
@@ -121,6 +89,8 @@ export function ActionPlanSection({ plan }: { plan: ActionPlan }) {
   const total = plan.items.length;
   const done = plan.items.filter((i) => completed.has(i.id)).length;
   const progressPct = total > 0 ? Math.round((done / total) * 100) : 0;
+  
+  const displayItems = showAll ? plan.items : plan.items.slice(0, 3);
 
   return (
     <Card className="border-border/60 border-primary/20">
@@ -161,34 +131,40 @@ export function ActionPlanSection({ plan }: { plan: ActionPlan }) {
           </div>
         ) : (
           <>
-        <div className="mt-4">
-          <Progress
-            value={progressPct}
-            className="h-2"
-            aria-label={`Action plan progress: ${done} of ${total} completed`}
-          />
-        </div>
-
-        <div className="mt-6 space-y-6">
-          <PriorityGroup
-            priority="high"
-            items={plan.high}
-            completed={completed}
-            onToggle={onToggle}
-          />
-          <PriorityGroup
-            priority="medium"
-            items={plan.medium}
-            completed={completed}
-            onToggle={onToggle}
-          />
-          <PriorityGroup
-            priority="low"
-            items={plan.low}
-            completed={completed}
-            onToggle={onToggle}
-          />
-        </div>
+            <div className="mt-6 space-y-3">
+              {displayItems.map((item, index) => (
+                <RecommendationCard
+                  key={item.id}
+                  item={item}
+                  rank={index + 1}
+                  checked={completed.has(item.id)}
+                  onToggle={onToggle}
+                />
+              ))}
+            </div>
+            
+            {total > 3 && (
+              <div className="mt-4 flex justify-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAll(!showAll)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  {showAll ? (
+                    <>
+                      <ChevronUp className="h-4 w-4 mr-1" />
+                      Show Less
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Show All {total} Recommendations
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </>
         )}
       </CardContent>

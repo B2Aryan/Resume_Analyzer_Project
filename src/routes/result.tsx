@@ -17,6 +17,7 @@ import { ResultKeywords } from "@/components/result/result-keywords";
 import { ResultStrengths } from "@/components/result/result-strengths";
 import { ResultTools } from "@/components/result/result-tools";
 import { ResultScoreBreakdown } from "@/components/result/result-score-breakdown";
+import { PotentialATSScore } from "@/components/result/result-potential-score";
 import {
   ResultReportBody,
   ResultReportHybridBand,
@@ -291,6 +292,8 @@ function ResultPage() {
       sidebarMissingKeywords,
       quickWinCount: suggestions.length,
       onDownloadPdf: handleDownloadPdf,
+      resumeText,
+      jobDescription,
     }),
     [
       fileName,
@@ -302,6 +305,8 @@ function ResultPage() {
       sidebarMissingKeywords,
       suggestions.length,
       handleDownloadPdf,
+      resumeText,
+      jobDescription,
     ],
   );
 
@@ -341,6 +346,8 @@ function ResultPage() {
 
             <ResultHero part="score" {...heroProps} />
 
+            <PotentialATSScore currentScore={score} actionPlan={actionPlan} />
+
             <ResultJDMatch hasJobDescription={hasJobDescription} jdMatch={jdMatch} />
 
             <ResultActionPlan plan={actionPlan} />
@@ -374,7 +381,6 @@ function ResultPage() {
                   <ResultScoreBreakdown breakdown={breakdown} />
                   <ResultStrengths part="strengths" strengths={strengths} summary={summary} />
                 </div>
-                <ResultTools part="actions" {...toolsProps} />
               </aside>
             </ResultReportHybridBand>
 
