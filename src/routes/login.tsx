@@ -22,11 +22,16 @@ import {
   Save,
   Settings,
   Home,
-  Bell
+  Bell,
+  Mail,
+  Github,
+  Facebook
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/contexts/AuthContext";
 import Lottie from "lottie-react";
 import profileAvatar from "@/assets/lottie/profile-avatar.json";
@@ -41,9 +46,16 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { user, isLoading, signInWithGoogle } = useAuth();
+  const { user, isLoading, signInWithGoogle, signInWithGithub, signInWithFacebook, signInWithEmailOtp, verifyEmailOtp } = useAuth();
   const navigate = useNavigate();
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isSigningInGithub, setIsSigningInGithub] = useState(false);
+  const [isSigningInFacebook, setIsSigningInFacebook] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
 
   // If user is already authenticated, redirect to dashboard
   useEffect(() => {
@@ -63,6 +75,71 @@ function LoginPage() {
       toast.error("Failed to sign in with Google");
     } finally {
       setIsSigningIn(false);
+    }
+  };
+
+  const handleGithubLogin = async () => {
+    console.log("Button clicked");
+    console.log("handleGithubLogin called");
+    try {
+      setIsSigningInGithub(true);
+      await signInWithGithub();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to sign in with GitHub");
+    } finally {
+      setIsSigningInGithub(false);
+    }
+  };
+
+  const handleFacebookLogin = async () => {
+    console.log("Button clicked");
+    console.log("handleFacebookLogin called");
+    try {
+      setIsSigningInFacebook(true);
+      await signInWithFacebook();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to sign in with Facebook");
+    } finally {
+      setIsSigningInFacebook(false);
+    }
+  };
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Please enter your email");
+      return;
+    }
+    try {
+      setIsSendingOtp(true);
+      await signInWithEmailOtp(email);
+      toast.success("OTP sent to your email");
+      setOtpSent(true);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to send OTP");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp || otp.length !== 6) {
+      toast.error("Please enter a valid 6-digit OTP");
+      return;
+    }
+    try {
+      setIsVerifyingOtp(true);
+      await verifyEmailOtp(email, otp);
+      toast.success("Successfully logged in");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to verify OTP");
+    } finally {
+      setIsVerifyingOtp(false);
     }
   };
 
@@ -322,7 +399,7 @@ function LoginPage() {
                   {/* Google Sign-In Button */}
                   <Button
                     variant="hero"
-                    className="w-full mb-6 group"
+                    className="w-full mb-2 group"
                     size="lg"
                     onClick={handleGoogleLogin}
                     disabled={isSigningIn}
@@ -351,6 +428,131 @@ function LoginPage() {
                     )}
                     Continue with Google
                   </Button>
+
+                  {/* GitHub Sign-In Button */}
+                  <Button
+                    variant="hero"
+                    className="w-full mb-2 group"
+                    size="lg"
+                    onClick={handleGithubLogin}
+                    disabled={isSigningInGithub}
+                  >
+                    {isSigningInGithub ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Github className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                    )}
+                    Continue with GitHub
+                  </Button>
+
+                  {/* Facebook Sign-In Button */}
+                  <Button
+                    variant="hero"
+                    className="w-full mb-4 group"
+                    size="lg"
+                    onClick={handleFacebookLogin}
+                    disabled={isSigningInFacebook}
+                  >
+                    {isSigningInFacebook ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Facebook className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                    )}
+                    Continue with Facebook
+                  </Button>
+
+                  {/* Separator */}
+                  <div className="relative mb-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Or
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Email OTP Form */}
+                  <div className="space-y-4 mb-6">
+                    {!otpSent ? (
+                      <form onSubmit={handleSendOtp} className="space-y-3">
+                        <div className="space-y-1.5">
+                          <label htmlFor="email" className="text-sm text-muted-foreground">Email Address</label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              id="email"
+                              type="email"
+                              placeholder="you@example.com"
+                              className="pl-10"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              disabled={isSendingOtp}
+                            />
+                          </div>
+                        </div>
+                        <Button
+                          variant="hero"
+                          className="w-full group"
+                          size="lg"
+                          type="submit"
+                          disabled={isSendingOtp}
+                        >
+                          {isSendingOtp ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <Mail className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                          )}
+                          {isSendingOtp ? "Sending OTP..." : "Send OTP"}
+                        </Button>
+                      </form>
+                    ) : (
+                      <form onSubmit={handleVerifyOtp} className="space-y-3">
+                        <div className="space-y-1.5">
+                          <label htmlFor="otp" className="text-sm text-muted-foreground">Verification Code</label>
+                          <p className="text-xs text-muted-foreground">We've sent a 6-digit code to {email}</p>
+                          <InputOTP
+                            maxLength={6}
+                            value={otp}
+                            onChange={(value) => setOtp(value)}
+                            disabled={isVerifyingOtp}
+                          >
+                            <InputOTPGroup>
+                              <InputOTPSlot index={0} />
+                              <InputOTPSlot index={1} />
+                              <InputOTPSlot index={2} />
+                              <InputOTPSlot index={3} />
+                              <InputOTPSlot index={4} />
+                              <InputOTPSlot index={5} />
+                            </InputOTPGroup>
+                          </InputOTP>
+                        </div>
+                        <Button
+                          variant="hero"
+                          className="w-full group"
+                          size="lg"
+                          type="submit"
+                          disabled={isVerifyingOtp || otp.length !== 6}
+                        >
+                          {isVerifyingOtp ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : null}
+                          {isVerifyingOtp ? "Verifying..." : "Verify & Login"}
+                        </Button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOtpSent(false);
+                            setOtp("");
+                          }}
+                          className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          Change email address
+                        </button>
+                      </form>
+                    )}
+                  </div>
 
                   {/* Trust Indicators */}
                   <div className="space-y-2">

@@ -11,12 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as ResultRouteImport } from './routes/result'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MockInterviewRouteImport } from './routes/mock-interview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as DataDeletionRouteImport } from './routes/data-deletion'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +38,11 @@ const UploadRoute = UploadRouteImport.update({
 const ResultRoute = ResultRouteImport.update({
   id: '/result',
   path: '/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -66,6 +73,11 @@ const FeaturesRoute = FeaturesRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataDeletionRoute = DataDeletionRouteImport.update({
+  id: '/data-deletion',
+  path: '/data-deletion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -123,12 +135,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -142,12 +156,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -163,12 +179,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -185,12 +203,14 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/dashboard'
+    | '/data-deletion'
     | '/faq'
     | '/features'
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
     | '/pricing'
+    | '/privacy'
     | '/result'
     | '/upload'
     | '/auth/callback'
@@ -204,12 +224,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/data-deletion'
     | '/faq'
     | '/features'
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
     | '/pricing'
+    | '/privacy'
     | '/result'
     | '/upload'
     | '/auth/callback'
@@ -224,12 +246,14 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/dashboard'
+    | '/data-deletion'
     | '/faq'
     | '/features'
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
     | '/pricing'
+    | '/privacy'
     | '/result'
     | '/upload'
     | '/auth/callback'
@@ -245,12 +269,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  DataDeletionRoute: typeof DataDeletionRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   MockInterviewRoute: typeof MockInterviewRoute
   PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResultRoute: typeof ResultRoute
   UploadRoute: typeof UploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -271,6 +297,13 @@ declare module '@tanstack/react-router' {
       path: '/result'
       fullPath: '/result'
       preLoaderRoute: typeof ResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -313,6 +346,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-deletion': {
+      id: '/data-deletion'
+      path: '/data-deletion'
+      fullPath: '/data-deletion'
+      preLoaderRoute: typeof DataDeletionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -412,12 +452,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  DataDeletionRoute: DataDeletionRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   MockInterviewRoute: MockInterviewRoute,
   PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   ResultRoute: ResultRoute,
   UploadRoute: UploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,

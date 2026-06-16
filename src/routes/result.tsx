@@ -17,7 +17,6 @@ import { ResultKeywords } from "@/components/result/result-keywords";
 import { ResultStrengths } from "@/components/result/result-strengths";
 import { ResultTools } from "@/components/result/result-tools";
 import { ResultScoreBreakdown } from "@/components/result/result-score-breakdown";
-import { PotentialATSScore } from "@/components/result/result-potential-score";
 import {
   ResultReportBody,
   ResultReportHybridBand,
@@ -33,7 +32,7 @@ import {
 
 function NotComparableCard({ similarity }: { similarity: ResumeSimilarityScores }) {
   return (
-    <Card className="border-border/60 bg-muted/30 transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
+    <Card className="border-border/60 bg-muted/30">
       <CardContent className="p-6 sm:p-8">
         <div className="flex items-center gap-2 text-muted-foreground">
           <GitCompare className="h-4 w-4" aria-hidden />
@@ -292,8 +291,6 @@ function ResultPage() {
       sidebarMissingKeywords,
       quickWinCount: suggestions.length,
       onDownloadPdf: handleDownloadPdf,
-      resumeText,
-      jobDescription,
     }),
     [
       fileName,
@@ -305,8 +302,6 @@ function ResultPage() {
       sidebarMissingKeywords,
       suggestions.length,
       handleDownloadPdf,
-      resumeText,
-      jobDescription,
     ],
   );
 
@@ -346,8 +341,6 @@ function ResultPage() {
 
             <ResultHero part="score" {...heroProps} />
 
-            <PotentialATSScore currentScore={score} actionPlan={actionPlan} />
-
             <ResultJDMatch hasJobDescription={hasJobDescription} jdMatch={jdMatch} />
 
             <ResultActionPlan plan={actionPlan} />
@@ -372,15 +365,18 @@ function ResultPage() {
               </div>
 
               <aside className="flex min-w-0 flex-col gap-6 lg:col-start-2">
-                <ResultStrengths part="summary" strengths={strengths} summary={summary} />
+                <ResultStrengths 
+                  part="summary" 
+                  strengths={strengths} 
+                  summary={summary} 
+                  plan={actionPlan} 
+                  currentScore={score}
+                />
                 <ResultKeywords
                   missingKeywords={sidebarMissingKeywords}
                   presentKeywords={presentKeywords}
                 />
-                <div className="hidden flex-col gap-6 lg:flex">
-                  <ResultScoreBreakdown breakdown={breakdown} />
-                  <ResultStrengths part="strengths" strengths={strengths} summary={summary} />
-                </div>
+                <ResultScoreBreakdown breakdown={breakdown} />
               </aside>
             </ResultReportHybridBand>
 

@@ -32,6 +32,8 @@ export function SiteFooter() {
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li><Link to="/about" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">About</Link></li>
             <li><Link to="/faq" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">FAQ</Link></li>
+            <li><Link to="/privacy" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">Privacy Policy</Link></li>
+            <li><Link to="/data-deletion" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">Data Deletion</Link></li>
             <li><Link to="/login" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">Log in</Link></li>
           </ul>
         </div>

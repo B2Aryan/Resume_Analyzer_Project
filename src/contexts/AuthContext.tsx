@@ -13,6 +13,10 @@ type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithGithub: () => Promise<void>;
+  signInWithFacebook: () => Promise<void>;
+  signInWithEmailOtp: (email: string) => Promise<void>;
+  verifyEmailOtp: (email: string, otp: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -84,6 +88,115 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGithub = async () => {
+    console.log('OAuth starting');
+    console.log('Supabase URL (env):', import.meta.env.VITE_SUPABASE_URL);
+    const supabase = getSupabaseClient();
+    console.log("supabase =", supabase);
+    console.log("supabase restUrl =", (supabase as any)?.rest?.url);
+    console.log("supabase authUrl =", (supabase as any)?.auth?.url);
+    if (!supabase) {
+      console.log("Aborting because supabase is null");
+      return;
+    }
+    console.log("About to start OAuth");
+    const redirectTo = `${window.location.origin}/auth/callback`;
+    console.log('redirectTo URL:', redirectTo);
+    try {
+      const result = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: redirectTo
+        }
+      });
+      console.log('OAuth result:', result);
+      console.log('result.data.url:', result.data.url);
+    } catch (error) {
+      console.error("OAuth Error:", error);
+      throw error;
+    }
+  };
+
+  const signInWithFacebook = async () => {
+    console.log('OAuth starting');
+    console.log('Supabase URL (env):', import.meta.env.VITE_SUPABASE_URL);
+    const supabase = getSupabaseClient();
+    console.log("supabase =", supabase);
+    console.log("supabase restUrl =", (supabase as any)?.rest?.url);
+    console.log("supabase authUrl =", (supabase as any)?.auth?.url);
+    if (!supabase) {
+      console.log("Aborting because supabase is null");
+      return;
+    }
+    console.log("About to start OAuth");
+    const redirectTo = `${window.location.origin}/auth/callback`;
+    console.log('redirectTo URL:', redirectTo);
+    try {
+      const result = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: redirectTo
+        }
+      });
+      console.log('OAuth result:', result);
+      console.log('result.data.url:', result.data.url);
+    } catch (error) {
+      console.error("OAuth Error:", error);
+      throw error;
+    }
+  };
+
+  const signInWithEmailOtp = async (email: string) => {
+    console.log('Signing in with email OTP');
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      console.log("Aborting because supabase is null");
+      return;
+    }
+    console.log('Sending OTP to email:', email);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      if (error) {
+        console.error('Error sending OTP:', error);
+        throw error;
+      }
+      console.log('OTP sent successfully');
+    } catch (error) {
+      console.error("OTP Error:", error);
+      throw error;
+    }
+  };
+
+  const verifyEmailOtp = async (email: string, otp: string) => {
+    console.log('Verifying OTP');
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      console.log("Aborting because supabase is null");
+      return;
+    }
+    console.log('Verifying OTP for email:', email);
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email'
+      });
+      if (error) {
+        console.error('Error verifying OTP:', error);
+        throw error;
+      }
+      console.log('OTP verified successfully');
+    } catch (error) {
+      console.error("OTP Verification Error:", error);
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
@@ -98,6 +211,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isLoading,
         signInWithGoogle,
+        signInWithGithub,
+        signInWithFacebook,
+        signInWithEmailOtp,
+        verifyEmailOtp,
         signOut,
       }}
     >

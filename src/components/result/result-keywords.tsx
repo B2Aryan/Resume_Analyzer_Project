@@ -13,7 +13,7 @@ export const ResultKeywords = memo(function ResultKeywords({
   presentKeywords,
 }: ResultKeywordsProps) {
   return (
-    <Card className="border-border/60 transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
+    <Card className="border-border/60">
       <CardContent className="p-6">
         <h3 className="font-display text-base font-semibold">Missing keywords</h3>
         <p className="mt-1 text-xs text-muted-foreground">
