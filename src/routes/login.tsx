@@ -31,7 +31,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/contexts/AuthContext";
 import Lottie from "lottie-react";
 import profileAvatar from "@/assets/lottie/profile-avatar.json";
@@ -46,16 +45,16 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { user, isLoading, signInWithGoogle, signInWithGithub, signInWithFacebook, signInWithEmailOtp, verifyEmailOtp } = useAuth();
+  const { user, isLoading, signInWithGoogle, signInWithGithub, signInWithFacebook, signInWithPassword, signUpWithPassword, resetPassword } = useAuth();
   const navigate = useNavigate();
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isSigningInGithub, setIsSigningInGithub] = useState(false);
   const [isSigningInFacebook, setIsSigningInFacebook] = useState(false);
-  const [isSendingOtp, setIsSendingOtp] = useState(false);
-  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isSigningInPassword, setIsSigningInPassword] = useState(false);
+  const [isSigningUpPassword, setIsSigningUpPassword] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [email, setEmail] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
 
   // If user is already authenticated, redirect to dashboard
   useEffect(() => {
@@ -106,40 +105,54 @@ function LoginPage() {
     }
   };
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSignInWithPassword = async () => {
+    if (!email || !password) {
+      toast.error("Please enter email and password");
+      return;
+    }
+    try {
+      setIsSigningInPassword(true);
+      await signInWithPassword(email, password);
+      toast.success("Successfully signed in!");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to sign in");
+    } finally {
+      setIsSigningInPassword(false);
+    }
+  };
+
+  const handleSignUpWithPassword = async () => {
+    if (!email || !password) {
+      toast.error("Please enter email and password");
+      return;
+    }
+    try {
+      setIsSigningUpPassword(true);
+      await signUpWithPassword(email, password);
+      toast.success("Account created! Please check your email to verify.");
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to create account");
+    } finally {
+      setIsSigningUpPassword(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
     if (!email) {
       toast.error("Please enter your email");
       return;
     }
     try {
-      setIsSendingOtp(true);
-      await signInWithEmailOtp(email);
-      toast.success("OTP sent to your email");
-      setOtpSent(true);
-    } catch (error) {
+      setIsResettingPassword(true);
+      await resetPassword(email);
+      toast.success("Password reset email sent! Check your inbox.");
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to send OTP");
+      toast.error(error.message || "Failed to send reset email");
     } finally {
-      setIsSendingOtp(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otp || otp.length !== 6) {
-      toast.error("Please enter a valid 6-digit OTP");
-      return;
-    }
-    try {
-      setIsVerifyingOtp(true);
-      await verifyEmailOtp(email, otp);
-      toast.success("Successfully logged in");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to verify OTP");
-    } finally {
-      setIsVerifyingOtp(false);
+      setIsResettingPassword(false);
     }
   };
 
@@ -396,6 +409,83 @@ function LoginPage() {
                     ))}
                   </div>
 
+                  {/* Email + Password Form */}
+                  <div className="space-y-4 mb-6">
+                    <div className="space-y-1.5">
+                      <label htmlFor="email" className="text-sm text-muted-foreground">Email</label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="you@example.com"
+                          className="pl-10"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label htmlFor="password" className="text-sm text-muted-foreground">Password</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="password"
+                          type="password"
+                          placeholder="••••••••"
+                          className="pl-10"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="hero"
+                        className="flex-1"
+                        size="lg"
+                        onClick={handleSignInWithPassword}
+                        disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
+                      >
+                        {isSigningInPassword ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        Sign In
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        size="lg"
+                        onClick={handleSignUpWithPassword}
+                        disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
+                      >
+                        {isSigningUpPassword ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        Create Account
+                      </Button>
+                    </div>
+                    <button
+                      type="button"
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={handleResetPassword}
+                      disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
+                    >
+                      {isResettingPassword ? "Sending reset email..." : "Forgot Password?"}
+                    </button>
+                  </div>
+
+                  {/* Separator */}
+                  <div className="relative mb-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Or
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Social Sign-In Buttons */}
                   {/* Google Sign-In Button */}
                   <Button
                     variant="hero"
@@ -448,7 +538,7 @@ function LoginPage() {
                   {/* Facebook Sign-In Button */}
                   <Button
                     variant="hero"
-                    className="w-full mb-4 group"
+                    className="w-full group"
                     size="lg"
                     onClick={handleFacebookLogin}
                     disabled={isSigningInFacebook}
@@ -461,104 +551,11 @@ function LoginPage() {
                     Continue with Facebook
                   </Button>
 
-                  {/* Separator */}
-                  <div className="relative mb-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-border" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">
-                        Or
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Email OTP Form */}
-                  <div className="space-y-4 mb-6">
-                    {!otpSent ? (
-                      <form onSubmit={handleSendOtp} className="space-y-3">
-                        <div className="space-y-1.5">
-                          <label htmlFor="email" className="text-sm text-muted-foreground">Email Address</label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              id="email"
-                              type="email"
-                              placeholder="you@example.com"
-                              className="pl-10"
-                              value={email}
-                              onChange={(e) => setEmail(e.target.value)}
-                              disabled={isSendingOtp}
-                            />
-                          </div>
-                        </div>
-                        <Button
-                          variant="hero"
-                          className="w-full group"
-                          size="lg"
-                          type="submit"
-                          disabled={isSendingOtp}
-                        >
-                          {isSendingOtp ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          ) : (
-                            <Mail className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                          )}
-                          {isSendingOtp ? "Sending OTP..." : "Send OTP"}
-                        </Button>
-                      </form>
-                    ) : (
-                      <form onSubmit={handleVerifyOtp} className="space-y-3">
-                        <div className="space-y-1.5">
-                          <label htmlFor="otp" className="text-sm text-muted-foreground">Verification Code</label>
-                          <p className="text-xs text-muted-foreground">We've sent a 6-digit code to {email}</p>
-                          <InputOTP
-                            maxLength={6}
-                            value={otp}
-                            onChange={(value) => setOtp(value)}
-                            disabled={isVerifyingOtp}
-                          >
-                            <InputOTPGroup>
-                              <InputOTPSlot index={0} />
-                              <InputOTPSlot index={1} />
-                              <InputOTPSlot index={2} />
-                              <InputOTPSlot index={3} />
-                              <InputOTPSlot index={4} />
-                              <InputOTPSlot index={5} />
-                            </InputOTPGroup>
-                          </InputOTP>
-                        </div>
-                        <Button
-                          variant="hero"
-                          className="w-full group"
-                          size="lg"
-                          type="submit"
-                          disabled={isVerifyingOtp || otp.length !== 6}
-                        >
-                          {isVerifyingOtp ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          ) : null}
-                          {isVerifyingOtp ? "Verifying..." : "Verify & Login"}
-                        </Button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOtpSent(false);
-                            setOtp("");
-                          }}
-                          className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          Change email address
-                        </button>
-                      </form>
-                    )}
-                  </div>
-
                   {/* Trust Indicators */}
                   <div className="space-y-2">
                     {[
-                      { icon: Shield, text: "Secure Google Authentication" },
-                      { icon: Lock, text: "No password required" },
+                      { icon: Shield, text: "Secure authentication" },
+                      { icon: Lock, text: "Password or social login" },
                       { icon: Users, text: "Privacy-first design" },
                     ].map((trust, i) => (
                       <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">

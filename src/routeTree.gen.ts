@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as ResultRouteImport } from './routes/result'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MockInterviewRouteImport } from './routes/mock-interview'
@@ -38,6 +39,11 @@ const UploadRoute = UploadRouteImport.update({
 const ResultRoute = ResultRouteImport.update({
   id: '/result',
   path: '/result',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/mock-interview': typeof MockInterviewRoute
   '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/mock-interview'
     | '/pricing'
     | '/privacy'
+    | '/reset-password'
     | '/result'
     | '/upload'
     | '/auth/callback'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/mock-interview'
     | '/pricing'
     | '/privacy'
+    | '/reset-password'
     | '/result'
     | '/upload'
     | '/auth/callback'
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/mock-interview'
     | '/pricing'
     | '/privacy'
+    | '/reset-password'
     | '/result'
     | '/upload'
     | '/auth/callback'
@@ -277,6 +289,7 @@ export interface RootRouteChildren {
   MockInterviewRoute: typeof MockInterviewRoute
   PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   ResultRoute: typeof ResultRoute
   UploadRoute: typeof UploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/result'
       fullPath: '/result'
       preLoaderRoute: typeof ResultRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -460,6 +480,7 @@ const rootRouteChildren: RootRouteChildren = {
   MockInterviewRoute: MockInterviewRoute,
   PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   ResultRoute: ResultRoute,
   UploadRoute: UploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,

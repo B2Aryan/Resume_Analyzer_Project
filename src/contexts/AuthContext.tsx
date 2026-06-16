@@ -17,6 +17,9 @@ type AuthContextType = {
   signInWithFacebook: () => Promise<void>;
   signInWithEmailOtp: (email: string) => Promise<void>;
   verifyEmailOtp: (email: string, otp: string) => Promise<void>;
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  signUpWithPassword: (email: string, password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -40,6 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      console.log("INITIAL SESSION:", session);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -50,7 +54,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("AUTH EVENT:", event);
+      console.log("SESSION:", session);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -197,6 +203,78 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithPassword = async (email: string, password: string) => {
+    console.log('[AuthContext] signInWithPassword called');
+    console.log('[AuthContext] Email:', email);
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      console.log('[AuthContext] Aborting because supabase is null');
+      return;
+    }
+    try {
+      console.log('[AuthContext] Calling supabase.auth.signInWithPassword');
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        console.error('[AuthContext] signInWithPassword error:', error);
+        throw error;
+      }
+      console.log('[AuthContext] signInWithPassword success! Data:', data);
+      console.log('[AuthContext] User:', data.user);
+      console.log('[AuthContext] Session:', data.session);
+    } catch (error) {
+      console.error("[AuthContext] signInWithPassword catch error:", error);
+      throw error;
+    }
+  };
+
+  const signUpWithPassword = async (email: string, password: string) => {
+    console.log('[AuthContext] signUpWithPassword called');
+    console.log('[AuthContext] Email:', email);
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      console.log('[AuthContext] Aborting because supabase is null');
+      return;
+    }
+    try {
+      console.log('[AuthContext] Calling supabase.auth.signUp');
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) {
+        console.error('[AuthContext] signUpWithPassword error:', error);
+        throw error;
+      }
+      console.log('[AuthContext] signUpWithPassword success! Data:', data);
+      console.log('[AuthContext] User:', data.user);
+      console.log('[AuthContext] Session:', data.session);
+    } catch (error) {
+      console.error("[AuthContext] signUpWithPassword catch error:", error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    console.log('[AuthContext] resetPassword called');
+    console.log('[AuthContext] Email:', email);
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      console.log('[AuthContext] Aborting because supabase is null');
+      return;
+    }
+    try {
+      console.log('[AuthContext] Calling supabase.auth.resetPasswordForEmail');
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+      if (error) {
+        console.error('[AuthContext] resetPassword error:', error);
+        throw error;
+      }
+      console.log('[AuthContext] resetPassword success! Data:', data);
+    } catch (error) {
+      console.error("[AuthContext] resetPassword catch error:", error);
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
@@ -215,6 +293,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signInWithFacebook,
         signInWithEmailOtp,
         verifyEmailOtp,
+        signInWithPassword,
+        signUpWithPassword,
+        resetPassword,
         signOut,
       }}
     >
