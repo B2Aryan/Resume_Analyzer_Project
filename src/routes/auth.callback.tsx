@@ -31,7 +31,24 @@ function AuthCallbackPage() {
       });
       console.log("4. window.location.hash:", window.location.hash);
 
-      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
+      // Detect which flow we're in
+      const hasCode = window.location.search.includes('code=');
+      const hasAccessToken = window.location.hash.includes('access_token=');
+      console.log("5. Detected flow:", hasCode ? "PKCE" : hasAccessToken ? "Implicit" : "Unknown");
+
+      let error;
+      if (hasAccessToken) {
+        // Implicit flow (Facebook)
+        console.log("Handling implicit flow, calling getSession()");
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        error = sessionError;
+        console.log("6. getSession() result:", data);
+      } else if (hasCode) {
+        // PKCE flow (Google, GitHub)
+        console.log("Handling PKCE flow, calling exchangeCodeForSession()");
+        const result = await supabase.auth.exchangeCodeForSession(window.location.href);
+        error = result.error;
+      }
       
       if (error) {
         console.error("Error exchanging code for session:", error);
