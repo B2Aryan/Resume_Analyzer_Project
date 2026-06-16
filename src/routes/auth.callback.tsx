@@ -21,6 +21,16 @@ function AuthCallbackPage() {
         return;
       }
 
+      // Temporary debugging logs
+      console.log("1. window.location.href:", window.location.href);
+      console.log("2. window.location.search:", window.location.search);
+      const searchParams = new URLSearchParams(window.location.search);
+      console.log("3. All URL search params:");
+      searchParams.forEach((value, key) => {
+        console.log(`   - ${key}: ${value}`);
+      });
+      console.log("4. window.location.hash:", window.location.hash);
+
       const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
       
       if (error) {
