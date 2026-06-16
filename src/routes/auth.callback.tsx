@@ -17,6 +17,7 @@ function AuthCallbackPage() {
     const handleAuthCallback = async () => {
       const supabase = getSupabaseClient();
       if (!supabase) {
+        console.log("Navigating to home");
         navigate({ to: "/" });
         return;
       }
@@ -52,10 +53,12 @@ function AuthCallbackPage() {
       
       if (error) {
         console.error("Error exchanging code for session:", error);
+        console.log("Navigating to login");
         navigate({ to: "/login" });
         return;
       }
 
+      console.log("Navigating to dashboard");
       navigate({ to: "/dashboard" });
     };
 
