@@ -58,7 +58,7 @@ function ProfilePage() {
   const degreeDropdownRef = useRef<HTMLDivElement>(null);
   const branchDropdownRef = useRef<HTMLDivElement>(null);
   const yearDropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const collegeSuggestions = useMemo(() => {
     const searchTerm = editAcademic.college.toLowerCase();
     const baseSuggestions = INDIAN_UNIVERSITIES.filter((uni) =>
@@ -69,7 +69,7 @@ function ProfilePage() {
     }
     return baseSuggestions;
   }, [editAcademic.college]);
-  
+
   const graduationYears = useMemo(() => {
     const years = [];
     for (let year = 2026; year <= 2100; year++) {
@@ -77,13 +77,13 @@ function ProfilePage() {
     }
     return years;
   }, []);
-  
+
   const filteredGraduationYears = useMemo(() => {
     const searchTerm = editAcademic.graduationYear;
     if (!searchTerm) return graduationYears;
     return graduationYears.filter((year) => year.includes(searchTerm));
   }, [editAcademic.graduationYear, graduationYears]);
-  
+
   const availableBranches = useMemo(() => {
     const degree = editAcademic.degree as Degree;
     if (BRANCHES[degree]) {

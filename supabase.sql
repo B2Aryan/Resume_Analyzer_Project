@@ -15,6 +15,61 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Feedback table (to store user feedback and support requests)
+CREATE TABLE IF NOT EXISTS public.feedback (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  message TEXT NOT NULL,
+  page_url TEXT,
+  screenshot_url TEXT,
+  contact_me BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add new columns if they don't exist
+DO $$
+BEGIN
+  -- Add page_url if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'feedback' AND column_name = 'page_url') THEN
+    ALTER TABLE public.feedback ADD COLUMN page_url TEXT;
+  END IF;
+  
+  -- Add screenshot_url if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'feedback' AND column_name = 'screenshot_url') THEN
+    ALTER TABLE public.feedback ADD COLUMN screenshot_url TEXT;
+  END IF;
+  
+  -- Add contact_me if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'feedback' AND column_name = 'contact_me') THEN
+    ALTER TABLE public.feedback ADD COLUMN contact_me BOOLEAN DEFAULT FALSE;
+  END IF;
+  
+  -- Drop old page column if it exists
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'feedback' AND column_name = 'page') THEN
+    ALTER TABLE public.feedback DROP COLUMN page;
+  END IF;
+END $$;
+
+-- Create storage bucket for feedback screenshots if it doesn't exist
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('feedback-screenshots', 'feedback-screenshots', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Allow authenticated users to upload to the bucket
+CREATE POLICY "Allow authenticated users to upload feedback screenshots"
+  ON storage.objects
+  FOR INSERT
+  TO authenticated
+  WITH CHECK (bucket_id = 'feedback-screenshots');
+
+-- Allow public access to read uploaded screenshots
+CREATE POLICY "Allow public access to feedback screenshots"
+  ON storage.objects
+  FOR SELECT
+  TO public
+  USING (bucket_id = 'feedback-screenshots');
+
 -- Add username and avatar_id columns if they don't exist already (for existing tables)
 DO $$ 
 BEGIN
@@ -72,6 +127,7 @@ END $$;
 -- Enable RLS
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.analyses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
 
 -- RLS policies for profiles table
 CREATE POLICY "Users can view their own profile"
@@ -114,6 +170,12 @@ CREATE POLICY "Users can delete their own analyses"
   ON public.analyses
   FOR DELETE
   USING (auth.uid() = user_id);
+
+-- RLS policies for feedback table
+CREATE POLICY "Users can create their own feedback"
+  ON public.feedback
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS analyses_user_id_idx ON public.analyses(user_id);
