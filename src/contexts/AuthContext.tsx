@@ -17,6 +17,7 @@ type Profile = {
   degree?: string;
   branch?: string;
   graduation_year?: string;
+  profile_confirmed?: boolean;
   created_at?: string;
   updated_at?: string;
 };
@@ -66,6 +67,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfile({
         id: user.id,
         username: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
+        profile_confirmed: false,
       });
       console.log('[AuthContext] refreshProfile() END');
       return;
@@ -143,6 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setProfile({
             id: user.id,
             username: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
+            profile_confirmed: false,
           });
         }
       }
@@ -152,6 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setProfile({
         id: user.id,
         username: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
+        profile_confirmed: false,
       });
     }
 
@@ -195,6 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const upsertPayload = {
       id: user.id,
       ...updates,
+      profile_confirmed: true,
       updated_at: new Date().toISOString(),
     };
     console.log('[AuthContext] ===============================================');

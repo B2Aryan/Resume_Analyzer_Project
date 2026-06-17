@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   degree TEXT,
   branch TEXT,
   graduation_year TEXT,
+  profile_confirmed BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -31,6 +32,14 @@ BEGIN
     AND column_name = 'avatar_id'
   ) THEN
     ALTER TABLE public.profiles ADD COLUMN avatar_id INTEGER;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'profiles' 
+    AND column_name = 'profile_confirmed'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN profile_confirmed BOOLEAN DEFAULT FALSE;
   END IF;
 END $$;
 
