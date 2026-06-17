@@ -5,14 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { Calendar, FileText, Target, TrendingUp, CheckCircle2, ChevronDown, Upload, Clock, BookOpen, Save, Loader2 } from "lucide-react";
+import { Calendar, FileText, Target, TrendingUp, CheckCircle2, Upload, Clock, Loader2, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
-import { getSupabaseClient } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAnalysesFromDB } from "@/lib/supabase/analysis-db";
+import { PRESET_AVATARS } from "@/lib/avatars";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/profile")({
   head: () => ({ meta: [{ title: "Profile — ResumePilot" }] }),
@@ -20,16 +21,24 @@ export const Route = createFileRoute("/dashboard/profile")({
 });
 
 function ProfilePage() {
-  const { user } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [isAcademicCollapsed, setIsAcademicCollapsed] = useState(true);
-  const [profile, setProfile] = useState({
+  
+  // State for profile edit modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
+  const [editAvatarId, setEditAvatarId] = useState<number | undefined>(undefined);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
+  // State for academic edit modal
+  const [isAcademicEditModalOpen, setIsAcademicEditModalOpen] = useState(false);
+  const [editAcademic, setEditAcademic] = useState({
     college: "",
     degree: "",
     branch: "",
     graduationYear: "",
   });
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSavingAcademic, setIsSavingAcademic] = useState(false);
 
   // Fetch analyses
   const { data: analyses = [], isLoading: isAnalysesLoading } = useQuery({
@@ -41,9 +50,23 @@ function ProfilePage() {
   // Format joined date
   const joinedDate = user?.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "long", year: "numeric" }) : "";
 
+  // Get current avatar URL
+  const getCurrentAvatarUrl = () => {
+    if (profile?.avatar_id) {
+      const avatar = PRESET_AVATARS.find(a => a.id === profile.avatar_id);
+      return avatar?.url;
+    }
+    return user?.user_metadata?.avatar_url;
+  };
+
+  // Get display name
+  const getDisplayName = () => {
+    return profile?.username || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+  };
+
   // Get user initials
   const getUserInitials = () => {
-    const fullName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
+    const fullName = getDisplayName();
     return fullName
       .split(" ")
       .map((n: string) => n[0])
@@ -52,15 +75,85 @@ function ProfilePage() {
       .slice(0, 2);
   };
 
-  // Calculate profile completion
-  const profileCompletion = () => {
-    let completed = 1; // User exists
-    if (profile.college) completed++;
-    if (profile.degree) completed++;
-    if (profile.branch) completed++;
-    if (profile.graduationYear) completed++;
-    return Math.round((completed / 5) * 100);
+  // Set up edit states from profile
+  useEffect(() => {
+    setIsLoading(false);
+  }, [profile]);
+
+  // Open profile edit modal
+  const handleOpenEditModal = () => {
+    setEditUsername(getDisplayName());
+    setEditAvatarId(profile?.avatar_id);
+    setIsEditModalOpen(true);
   };
+
+  // Save profile edit modal
+  const handleSaveEditModal = async () => {
+    setIsSavingEdit(true);
+    try {
+      await updateProfile({
+        username: editUsername,
+        avatar_id: editAvatarId,
+      });
+      toast.success("Profile updated successfully!");
+      setIsEditModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update profile");
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  // Open academic edit modal
+  const handleOpenAcademicEditModal = () => {
+    setEditAcademic({
+      college: profile?.college || "",
+      degree: profile?.degree || "",
+      branch: profile?.branch || "",
+      graduationYear: profile?.graduation_year || "",
+    });
+    setIsAcademicEditModalOpen(true);
+  };
+
+  // Save academic edit modal
+  const handleSaveAcademicModal = async () => {
+    setIsSavingAcademic(true);
+    try {
+      await updateProfile({
+        college: editAcademic.college,
+        degree: editAcademic.degree,
+        branch: editAcademic.branch,
+        graduation_year: editAcademic.graduationYear,
+      });
+      toast.success("Academic information updated!");
+      setIsAcademicEditModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update academic information");
+    } finally {
+      setIsSavingAcademic(false);
+    }
+  };
+
+  // Calculate completion milestones
+  const isProfileSet = !!profile?.username && !!profile?.avatar_id;
+  const isAcademicSet = !!profile?.college && !!profile?.degree && !!profile?.branch && !!profile?.graduation_year;
+  const hasFirstAnalysis = analyses.length > 0;
+
+  // Calculate profile completion percentage
+  const calculateProfileCompletion = () => {
+    let completed = 0;
+    if (isProfileSet) completed += 1;
+    if (isAcademicSet) completed += 1;
+    if (hasFirstAnalysis) completed += 1;
+    
+    if (completed === 0) return 0;
+    if (completed === 1) return 33;
+    if (completed === 2) return 66;
+    return 100;
+  };
+  const profileCompletion = calculateProfileCompletion();
 
   // Calculate stats from analyses
   const stats = (() => {
@@ -87,64 +180,6 @@ function ProfilePage() {
     };
   })();
 
-  // Load profile
-  useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-      const supabase = getSupabaseClient();
-      if (!supabase) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("college, degree, branch, graduation_year")
-          .eq("id", user.id)
-          .single();
-        
-        if (!error && data) {
-          setProfile({
-            college: data.college || "",
-            degree: data.degree || "",
-            branch: data.branch || "",
-            graduationYear: data.graduation_year || "",
-          });
-        }
-      } catch (e) {
-        console.log("Profiles table may not exist yet, using default values");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, [user]);
-
-  const handleSaveProfile = async () => {
-    if (!user) return;
-    const supabase = getSupabaseClient();
-    if (!supabase) return;
-
-    setIsSaving(true);
-    try {
-      await supabase
-        .from("profiles")
-        .upsert({
-          id: user.id,
-          college: profile.college,
-          degree: profile.degree,
-          branch: profile.branch,
-          graduation_year: profile.graduationYear,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "id" });
-      
-      // Success (could use toast here)
-    } catch (error) {
-      console.error("Error saving profile:", error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   if (isLoading) {
     return (
       <AppShell title="Profile" subtitle="Manage your account details.">
@@ -169,15 +204,20 @@ function ProfilePage() {
           {/* Profile Header */}
           <Card className="border-border/60">
             <CardContent className="p-4 sm:p-5">
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-start gap-4">
                 <Avatar className="h-12 w-12 rounded-lg">
-                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarImage src={getCurrentAvatarUrl()} />
                   <AvatarFallback className="text-lg">{getUserInitials()}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-lg font-bold font-display truncate">
-                    {user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User"}
-                  </h1>
+                  <div className="flex items-center justify-between">
+                    <h1 className="text-lg font-bold font-display truncate">
+                      {getDisplayName()}
+                    </h1>
+                    <Button variant="ghost" size="icon" onClick={handleOpenEditModal}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </div>
                   <p className="text-sm text-muted-foreground truncate">{user?.email}</p>
                   <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
@@ -188,28 +228,69 @@ function ProfilePage() {
             </CardContent>
           </Card>
 
-          {/* Read-Only Academic Information Card */}
+          {/* Profile Completion */}
           <Card className="border-border/60">
             <CardHeader className="pb-3">
+              <CardTitle className="text-lg font-display">Profile Completion</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 pt-0 space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm font-medium">{profileCompletion}% Complete</p>
+                </div>
+                <Progress value={profileCompletion} className="h-2" />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className={`h-4 w-4 ${isProfileSet ? "text-green-500" : "text-muted-foreground"}`} />
+                  <div className="flex-1">
+                    <p className="text-sm">Profile Set</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className={`h-4 w-4 ${isAcademicSet ? "text-green-500" : "text-muted-foreground"}`} />
+                  <div className="flex-1">
+                    <p className="text-sm">Academic Information</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className={`h-4 w-4 ${hasFirstAnalysis ? "text-green-500" : "text-muted-foreground"}`} />
+                  <div className="flex-1">
+                    <p className="text-sm">First Resume Analysis</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Read-Only Academic Information Card */}
+          <Card className="border-border/60">
+            <CardHeader className="pb-3 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-display">Academic Information</CardTitle>
+              <Button variant="ghost" size="icon" onClick={handleOpenAcademicEditModal}>
+                <Pencil className="h-4 w-4" />
+              </Button>
             </CardHeader>
             <CardContent className="p-6 pt-0">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">College</p>
-                  <p className="text-base font-medium">{profile.college || "Not provided"}</p>
+                  <p className="text-base font-medium">{profile?.college || "Not provided"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Degree</p>
-                  <p className="text-base font-medium">{profile.degree || "Not provided"}</p>
+                  <p className="text-base font-medium">{profile?.degree || "Not provided"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Branch</p>
-                  <p className="text-base font-medium">{profile.branch || "Not provided"}</p>
+                  <p className="text-base font-medium">{profile?.branch || "Not provided"}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Graduation Year</p>
-                  <p className="text-base font-medium">{profile.graduationYear || "Not provided"}</p>
+                  <p className="text-base font-medium">{profile?.graduation_year || "Not provided"}</p>
                 </div>
               </div>
             </CardContent>
@@ -294,7 +375,7 @@ function ProfilePage() {
                   <div className="p-4 bg-muted/30 rounded-lg text-center">
                     <TrendingUp className="h-5 w-5 mx-auto mb-2 text-primary" />
                     <p className="text-xl font-bold">
-                      {stats.avgImprovement !== null ? `${stats.avgImprovement >=0 ? "+" : ""}${stats.avgImprovement}%` : "—"}
+                      {stats.avgImprovement !== null ? `${stats.avgImprovement >= 0 ? "+" : ""}${stats.avgImprovement}%` : "—"}
                     </p>
                     <p className="text-xs text-muted-foreground">Average Improvement</p>
                   </div>
@@ -307,61 +388,6 @@ function ProfilePage() {
               )}
             </CardContent>
           </Card>
-
-          {/* Collapsible Academic Info */}
-          <Collapsible open={!isAcademicCollapsed} onOpenChange={open => setIsAcademicCollapsed(!open)}>
-            <Card className="border-border/60">
-              <CardHeader className="pb-3">
-                <CollapsibleTrigger asChild>
-                  <div className="flex items-center justify-between cursor-pointer">
-                    <CardTitle className="text-lg font-display">Academic Information</CardTitle>
-                    <ChevronDown className={`h-4 w-4 transition-transform ${isAcademicCollapsed ? "" : "rotate-180"}`} />
-                  </div>
-                </CollapsibleTrigger>
-              </CardHeader>
-              <CollapsibleContent>
-                <CardContent className="p-6 pt-0">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label>College</Label>
-                      <Input
-                        placeholder="e.g., NIT Trichy"
-                        value={profile.college}
-                        onChange={(e) => setProfile(prev => ({ ...prev, college: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Degree</Label>
-                      <Input
-                        placeholder="e.g., B.Tech"
-                        value={profile.degree}
-                        onChange={(e) => setProfile(prev => ({ ...prev, degree: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Branch</Label>
-                      <Input
-                        placeholder="e.g., Computer Science"
-                        value={profile.branch}
-                        onChange={(e) => setProfile(prev => ({ ...prev, branch: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label>Graduation Year</Label>
-                      <Input
-                        placeholder="e.g., 2027"
-                        value={profile.graduationYear}
-                        onChange={(e) => setProfile(prev => ({ ...prev, graduationYear: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                  <Button variant="hero" className="mt-6" onClick={handleSaveProfile} disabled={isSaving}>
-                    {isSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : "Save changes"}
-                  </Button>
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-          </Collapsible>
         </div>
 
         {/* Right Column */}
@@ -390,82 +416,143 @@ function ProfilePage() {
               <Button variant="outline" className="mt-6 w-full">Upgrade to Pro</Button>
             </CardContent>
           </Card>
-
-          {/* Profile Completion */}
-          <Card className="border-border/60">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-display">Profile Completion</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 pt-0 space-y-4">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm font-medium">{profileCompletion()}% Complete</p>
-                </div>
-                <Progress value={profileCompletion()} className="h-2" />
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className={`h-4 w-4 ${profile.college && profile.degree && profile.branch && profile.graduationYear ? "text-green-500" : "text-muted-foreground"}`} />
-                  <div className="flex-1">
-                    <p className="text-sm">Academic Information</p>
-                    <p className="text-xs text-muted-foreground">
-                      {profile.college && profile.degree && profile.branch && profile.graduationYear ? "Completed" : "Add details"}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className={`h-4 w-4 ${stats.totalAnalyses > 0 ? "text-green-500" : "text-muted-foreground"}`} />
-                  <div className="flex-1">
-                    <p className="text-sm">Resume Uploaded</p>
-                    <p className="text-xs text-muted-foreground">
-                      {stats.totalAnalyses > 0 ? "Completed" : "Upload your first resume"}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-                  <div className="flex-1">
-                    <p className="text-sm">Analysis History</p>
-                    <p className="text-xs text-muted-foreground">Run your first analysis</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="border-border/60">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-display">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6 pt-0">
-              <div className="space-y-2">
-                <Button asChild variant="ghost" className="w-full justify-start gap-3">
-                  <Link to="/upload">
-                    <Upload className="h-4 w-4" />
-                    Upload Resume
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" className="w-full justify-start gap-3">
-                  <Link to="/dashboard/history">
-                    <BookOpen className="h-4 w-4" />
-                    View History
-                  </Link>
-                </Button>
-                <Button asChild variant="ghost" className="w-full justify-start gap-3">
-                  <Link to="/dashboard/saved">
-                    <Save className="h-4 w-4" />
-                    Saved Reports
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update your display name and profile picture.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Display Name</Label>
+              <Input
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                placeholder="Enter your display name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Profile Picture</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {PRESET_AVATARS.map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    type="button"
+                    onClick={() => setEditAvatarId(avatar.id)}
+                    className={`rounded-lg p-1 border-2 ${
+                      editAvatarId === avatar.id
+                        ? "border-primary"
+                        : "border-transparent hover:border-border"
+                    }`}
+                  >
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={avatar.url} />
+                    </Avatar>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={isSavingEdit}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEditModal}
+              disabled={isSavingEdit}
+            >
+              {isSavingEdit ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Academic Information Modal */}
+      <Dialog open={isAcademicEditModalOpen} onOpenChange={setIsAcademicEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Academic Information</DialogTitle>
+            <DialogDescription>
+              Update your college, degree, branch, and graduation year.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>College</Label>
+                <Input
+                  placeholder="e.g., NIT Trichy"
+                  value={editAcademic.college}
+                  onChange={(e) => setEditAcademic(prev => ({ ...prev, college: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Degree</Label>
+                <Input
+                  placeholder="e.g., B.Tech"
+                  value={editAcademic.degree}
+                  onChange={(e) => setEditAcademic(prev => ({ ...prev, degree: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Branch</Label>
+                <Input
+                  placeholder="e.g., Computer Science"
+                  value={editAcademic.branch}
+                  onChange={(e) => setEditAcademic(prev => ({ ...prev, branch: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Graduation Year</Label>
+                <Input
+                  placeholder="e.g., 2027"
+                  value={editAcademic.graduationYear}
+                  onChange={(e) => setEditAcademic(prev => ({ ...prev, graduationYear: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setIsAcademicEditModalOpen(false)}
+              disabled={isSavingAcademic}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveAcademicModal}
+              disabled={isSavingAcademic}
+            >
+              {isSavingAcademic ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

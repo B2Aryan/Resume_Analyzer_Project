@@ -72,7 +72,7 @@ export const ResultHero = memo(function ResultHero({
   jobDescription,
 }: ResultHeroProps) {
   const verdict = useMemo(() => getVerdict(score), [score]);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const analysisId = useAnalysisStore(s => s.analysisId);
   const isSaved = useAnalysisStore(s => s.isSaved);
@@ -305,7 +305,7 @@ export const ResultHero = memo(function ResultHero({
                 setCoverLetterOpen(false);
                 setShowProgressOverlay(true);
                 try {
-                  const candidateName = user?.user_metadata?.full_name ?? user?.email?.split('@')[0];
+                  const candidateName = profile?.username ?? user?.user_metadata?.full_name ?? user?.email?.split('@')[0] ?? "Candidate";
                   const result = await generateCoverLetter({
                     resumeText,
                     targetRole: role,

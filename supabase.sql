@@ -4,6 +4,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Profiles table (to store user profile info)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  username TEXT,
+  avatar_id INTEGER,
   college TEXT,
   degree TEXT,
   branch TEXT,
@@ -11,6 +13,26 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add username and avatar_id columns if they don't exist already (for existing tables)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'profiles' 
+    AND column_name = 'username'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN username TEXT;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'profiles' 
+    AND column_name = 'avatar_id'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN avatar_id INTEGER;
+  END IF;
+END $$;
 
 -- Analyses table (to store resume analyses)
 CREATE TABLE IF NOT EXISTS public.analyses (
@@ -93,7 +115,8 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profiles (id)
-  VALUES (NEW.id);
+  VALUES (NEW.id)
+  ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { PRESET_AVATARS } from "@/lib/avatars";
 
 const items = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
@@ -18,12 +19,24 @@ const items = [
 
 export function AppSidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     navigate({ to: "/" });
+  };
+
+  const getCurrentAvatarUrl = () => {
+    if (profile?.avatar_id) {
+      const avatar = PRESET_AVATARS.find(a => a.id === profile.avatar_id);
+      return avatar?.url;
+    }
+    return user?.user_metadata?.avatar_url;
+  };
+
+  const getDisplayName = () => {
+    return profile?.username || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
   };
 
   const getInitials = (name: string | null | undefined) => {
@@ -37,7 +50,7 @@ export function AppSidebar() {
   };
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex sticky top-0 overflow-y-auto">
       <Link to="/" className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6 font-display font-bold">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground">
           <FileCheck2 className="h-5 w-5" />
@@ -66,11 +79,11 @@ export function AppSidebar() {
       <div className="border-t border-sidebar-border p-3">
         <div className="flex items-center gap-3 px-3 py-2.5">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
-            <AvatarFallback>{getInitials(user?.user_metadata?.full_name)}</AvatarFallback>
+            <AvatarImage src={getCurrentAvatarUrl()} />
+            <AvatarFallback>{getInitials(getDisplayName())}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">{user?.user_metadata?.full_name || "User"}</p>
+            <p className="truncate text-sm font-medium text-sidebar-foreground">{getDisplayName()}</p>
             <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
           </div>
         </div>
@@ -108,17 +121,17 @@ export function AppShell({ children, title, subtitle, actions }: { children: Rea
   };
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="flex h-screen overflow-hidden bg-muted/30">
       <AppSidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-background/70 px-4 backdrop-blur sm:px-8">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="flex h-16 items-center justify-between border-b border-border bg-background/70 px-4 backdrop-blur sm:px-8 shrink-0">
           <div>
             {title && <h1 className="font-display text-lg font-semibold">{title}</h1>}
             {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
           </div>
           <div className="flex items-center gap-2"><ThemeToggle />{actions}</div>
         </header>
-        <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">{children}</main>
+        <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8 overflow-y-auto">{children}</main>
       </div>
     </div>
   );

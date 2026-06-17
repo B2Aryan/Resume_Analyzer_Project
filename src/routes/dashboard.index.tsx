@@ -24,7 +24,7 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 function DashboardHome() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const setResult = useAnalysisStore((state) => state.setResult);
 
@@ -63,7 +63,7 @@ function DashboardHome() {
 
   // Get user's name for welcome
   const userName =
-    user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+    profile?.username || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   const getScoreChangeIcon = () => {
     if (scoreChange === null) return null;

@@ -25,7 +25,9 @@ import {
   Bell,
   Mail,
   Github,
-  Facebook
+  Facebook,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,6 +57,7 @@ function LoginPage() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // If user is already authenticated, redirect to dashboard
   useEffect(() => {
@@ -432,13 +435,23 @@ function LoginPage() {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="password"
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10"
+                          className="pl-10 pr-10"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
                         />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
+                          onClick={() => setShowPassword(!showPassword)}
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
                       </div>
                     </div>
                     <div className="flex gap-2">

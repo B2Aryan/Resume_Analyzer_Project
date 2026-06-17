@@ -4,14 +4,27 @@ import { FileCheck2, Menu, X, LogOut, LayoutDashboard, Settings } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/contexts/AuthContext";
+import { PRESET_AVATARS } from "@/lib/avatars";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 function SiteNavbarImpl() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, signOut, profile } = useAuth();
   const navigate = useNavigate();
+  
+  const getCurrentAvatarUrl = () => {
+    if (profile?.avatar_id) {
+      const avatar = PRESET_AVATARS.find(a => a.id === profile.avatar_id);
+      return avatar?.url;
+    }
+    return user?.user_metadata?.avatar_url;
+  };
+  
+  const getDisplayName = () => {
+    return profile?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User";
+  };
 
   const currentPath = (pathname.replace(/\/+$/, "") || "/").toLowerCase();
 
@@ -118,13 +131,13 @@ function SiteNavbarImpl() {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 px-2 text-[13px] font-medium transition-colors hover:bg-foreground/5 rounded-full py-1">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.user_metadata?.avatar_url || ""} alt={user.user_metadata?.full_name || user.email || ""} />
+                    <AvatarImage src={getCurrentAvatarUrl() || ""} alt={getDisplayName()} />
                     <AvatarFallback>
-                      {getInitials(user.user_metadata?.full_name || user.email || "U")}
+                      {getInitials(getDisplayName())}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden sm:inline text-foreground">
-                    {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                    {getDisplayName()}
                   </span>
                 </button>
               </DropdownMenuTrigger>
@@ -132,13 +145,13 @@ function SiteNavbarImpl() {
                 {/* Header Section */}
                 <div className="flex items-center gap-3 px-3 py-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={user.user_metadata?.avatar_url || ""} alt={user.user_metadata?.full_name || user.email || ""} />
+                    <AvatarImage src={getCurrentAvatarUrl() || ""} alt={getDisplayName()} />
                     <AvatarFallback className="text-lg">
-                      {getInitials(user.user_metadata?.full_name || user.email || "U")}
+                      {getInitials(getDisplayName())}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{user.user_metadata?.full_name || user.email?.split('@')[0]}</p>
+                    <p className="font-semibold truncate">{getDisplayName()}</p>
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                 </div>
@@ -212,13 +225,13 @@ function SiteNavbarImpl() {
                 <>
                   <div className="flex items-center gap-2 px-3 py-2">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.user_metadata?.avatar_url || ""} alt={user.user_metadata?.full_name || user.email || ""} />
+                      <AvatarImage src={getCurrentAvatarUrl() || ""} alt={getDisplayName()} />
                       <AvatarFallback>
-                        {getInitials(user.user_metadata?.full_name || user.email || "U")}
+                        {getInitials(getDisplayName())}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-sm">
-                      <div className="font-medium">{user.user_metadata?.full_name || user.email?.split('@')[0]}</div>
+                      <div className="font-medium">{getDisplayName()}</div>
                       <div className="text-xs text-muted-foreground">{user.email}</div>
                     </div>
                   </div>
