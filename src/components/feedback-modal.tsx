@@ -202,7 +202,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Help Improve ResumePilot</DialogTitle>
+          <DialogTitle>Help Improve ResumePilot 🚀</DialogTitle>
           <DialogDescription>
             Found a bug, missing feature, or have an idea? We’d love to hear from you.
           </DialogDescription>
