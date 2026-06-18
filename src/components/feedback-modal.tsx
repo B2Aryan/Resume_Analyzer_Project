@@ -101,6 +101,27 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
     setScreenshotPreview(null);
   };
 
+  const handleDragEnter = (e: React.DragEvent) => {
+    console.log('Drag enter');
+    e.preventDefault();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    console.log('Drag over');
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    console.log('Drop event');
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0] || null;
+    if (file) {
+      console.log('Selected file name:', file.name);
+      setScreenshot(file);
+      setScreenshotPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async () => {
     console.log("STEP 1: Submit clicked");
     if (!feedbackType || !message.trim()) {
@@ -317,7 +338,12 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
           <div className="space-y-1.5">
             <Label>Screenshot (Optional)</Label>
             {!screenshotPreview ? (
-              <div className="border-2 border-dashed border-border rounded-lg p-4 hover:bg-muted/50 cursor-pointer">
+              <div 
+                className="border-2 border-dashed border-border rounded-lg p-4 hover:bg-muted/50 cursor-pointer"
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              >
                 <Input
                   type="file"
                   accept="image/*"

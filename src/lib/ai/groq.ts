@@ -7,8 +7,6 @@ import Groq from "groq-sdk";
  * from environment variables. Used as a fallback when Gemini is unavailable.
  */
 
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-
 /** Preferred model for structured JSON resume analysis */
 export const GROQ_ANALYSIS_MODEL = "llama-3.3-70b-versatile";
 
@@ -27,6 +25,7 @@ export class GroqError extends Error {
  * @throws {GroqError} If API key is missing
  */
 function validateApiKey(): string {
+  const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
   if (!GROQ_API_KEY || GROQ_API_KEY.trim() === "") {
     throw new GroqError(
       "Groq API key is not configured. Please set VITE_GROQ_API_KEY in your .env file."

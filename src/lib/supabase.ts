@@ -25,6 +25,3 @@ export const getSupabaseClient = () => {
   supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
   return supabaseClient;
 };
-
-// Export a reference that can be used, but always use getSupabaseClient()
-export const supabase = getSupabaseClient();

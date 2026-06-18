@@ -107,7 +107,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const { pathname } = useLocation();
   const currentPath = (pathname.replace(/\/+$/, "") || "/").toLowerCase();
-  const showSiteNavbar = !currentPath.startsWith("/dashboard");
+  const showSiteNavbar = !currentPath.startsWith("/dashboard") && currentPath !== "/login";
 
   return (
     <QueryClientProvider client={queryClient}>

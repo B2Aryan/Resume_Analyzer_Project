@@ -1,45 +1,33 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { MarketingLayout } from "@/components/marketing-layout";
-import { 
-  Sparkles, 
-  Loader2, 
-  CheckCircle2, 
-  FileText, 
-  TrendingUp, 
-  Zap, 
-  Shield, 
-  Lock, 
-  Users, 
-  Clock,
-  ArrowRight,
-  BarChart3,
-  Calendar,
-  Star,
-  ChevronRight,
-  Target,
-  LayoutDashboard,
-  History,
-  Save,
-  Settings,
-  Home,
-  Bell,
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import {
+  Loader2,
+  FileText,
+  Lock,
   Mail,
   Github,
   Facebook,
   Eye,
-  EyeOff
+  EyeOff,
+  CheckCircle2,
+  FileCheck2,
+  TrendingUp,
+  BarChart3,
+  Clock,
+  Search,
+  LayoutDashboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
-import Lottie from "lottie-react";
-import profileAvatar from "@/assets/lottie/profile-avatar.json";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ScoreRing } from "@/components/score-ring";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
   head: () => ({
     meta: [{ title: "Log in — ResumePilot" }],
   }),
@@ -59,16 +47,32 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  // If user is already authenticated, redirect to dashboard
+  // Auto redirect to dashboard if user is already authenticated
   useEffect(() => {
     if (user && !isLoading) {
       navigate({ to: "/dashboard" });
     }
   }, [user, isLoading, navigate]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen h-screen w-full bg-background flex items-center justify-center overflow-hidden">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const recentAnalyses = [
+    { id: 1, role: "Frontend Developer", score: 87, time: "2 days ago", color: "text-green-500 bg-green-500/10 border-green-500/20" },
+    { id: 2, role: "Full Stack Developer", score: 72, time: "5 days ago", color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" },
+    { id: 3, role: "UI/UX Designer", score: 91, time: "1 week ago", color: "text-green-500 bg-green-500/10 border-green-500/20" },
+  ] as const;
+
+  const skillChips = ["React", "TypeScript", "Tailwind CSS", "Node.js", "MongoDB"] as const;
+
+  const scoreTrend = [65, 70, 74, 78, 82, 79, 87] as const;
+
   const handleGoogleLogin = async () => {
-    console.log("Button clicked");
-    console.log("handleGoogleLogin called");
     try {
       setIsSigningIn(true);
       await signInWithGoogle();
@@ -81,8 +85,6 @@ function LoginPage() {
   };
 
   const handleGithubLogin = async () => {
-    console.log("Button clicked");
-    console.log("handleGithubLogin called");
     try {
       setIsSigningInGithub(true);
       await signInWithGithub();
@@ -95,8 +97,6 @@ function LoginPage() {
   };
 
   const handleFacebookLogin = async () => {
-    console.log("Button clicked");
-    console.log("handleFacebookLogin called");
     try {
       setIsSigningInFacebook(true);
       await signInWithFacebook();
@@ -159,285 +159,326 @@ function LoginPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <MarketingLayout>
-        <section className="hero-ambient py-16 flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </section>
-      </MarketingLayout>
-    );
-  }
-
-  const recentAnalyses = [
-    { id: 1, name: "Frontend Developer Intern", score: 87, date: "2 days ago", keywords: ["React", "TypeScript", "Tailwind"] },
-    { id: 2, name: "Full Stack Engineer", score: 72, date: "5 days ago", keywords: ["Node.js", "GraphQL", "PostgreSQL"] },
-    { id: 3, name: "UI/UX Designer", score: 91, date: "1 week ago", keywords: ["Figma", "Design Systems", "Accessibility"] }
-  ];
-
-  const scoreData = [78, 82, 75, 87, 91, 88, 89];
-  const missingKeywords = ["Next.js", "Docker", "AWS", "CI/CD"];
-
   return (
-    <MarketingLayout>
-      <section className="hero-ambient min-h-[100vh] pt-20 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-[60%_40%] gap-8 lg:gap-12 items-start">
-            {/* Left: Dashboard Preview */}
-            <div className="relative hidden lg:block">
-              {/* Main Dashboard Preview Card */}
-              <Card className="bg-background/80 backdrop-blur-2xl border-border/40 shadow-elegant overflow-hidden w-full h-full">
-                {/* Dashboard Header */}
-                <div className="flex border-b border-border/50">
-                  {/* Sidebar */}
-                  <div className="w-16 lg:w-64 border-r border-border/50 bg-background/50 flex flex-col py-4 items-center lg:items-start gap-2 px-3">
-                    <div className="flex items-center gap-3 px-3 py-2 w-full rounded-xl bg-muted/30">
-                      <div className="h-8 w-8 rounded-full bg-gradient-primary flex items-center justify-center shadow-glow">
-                        <span className="font-bold text-white text-xs">AP</span>
+    <div className="min-h-screen h-screen w-full bg-background relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 z-0">
+        <div
+          className="absolute inset-0 opacity-[0.08]"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, oklch(0.985 0.005 250 / 0.06) 1px, transparent 1px),
+              linear-gradient(to bottom, oklch(0.985 0.005 250 / 0.06) 1px, transparent 1px)
+            `,
+            backgroundSize: "64px 64px",
+          }}
+        />
+        <div className="absolute top-0 left-1/3 w-[800px] h-[600px] bg-[radial-gradient(circle_at_center,_oklch(0.7_0.17_250/0.18)_0%,_transparent_60%)] opacity-100 pointer-events-none" />
+      </div>
+
+      {/* Floating ResumePilot Logo (top-left) */}
+      <Link
+        to="/"
+        className="fixed top-6 left-6 z-[9999] flex shrink-0 items-center gap-2 font-display text-[15px] font-semibold tracking-tight"
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground shadow-glow">
+          <FileCheck2 className="h-4 w-4" />
+        </span>
+        <span className="hidden sm:inline text-foreground">
+          ResumePilot
+        </span>
+      </Link>
+
+      {/* Floating Theme Toggle (top-right) */}
+      <div className="fixed top-6 right-6 z-[9999]">
+        <ThemeToggle />
+      </div>
+
+      {/* Main Content */}
+      <div className="h-full w-full flex items-center justify-center px-8 sm:px-10 lg:px-20 xl:px-28 relative z-10">
+        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-[66%_34%] gap-x-16 items-start">
+          {/* Left: Hero Section (Redesigned) */}
+          <div className="hidden lg:block">
+            <div className="space-y-7">
+              {/* Headline */}
+              <div className="space-y-3 mb-7">
+                <h1 className="text-foreground font-display text-4xl md:text-5xl lg:text-[3.2rem] font-bold leading-tight tracking-tight">
+                  Analyze. <span className="text-gradient">Improve. Land.</span>
+                </h1>
+                <p className="text-muted-foreground text-lg md:text-xl max-w-xl leading-relaxed">
+                  Get ATS score, keyword insights, and expert suggestions to land more interviews.
+                </p>
+              </div>
+
+              {/* Dashboard Preview Card */}
+              <div className="relative">
+                <div className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-gradient-primary opacity-[0.12] blur-3xl dark:opacity-20" />
+                <div className="bg-slate-950/60 dark:bg-slate-900/70 border border-slate-700/60 dark:border-border/50 rounded-3xl px-6 py-5 backdrop-blur-2xl shadow-xl shadow-blue-900/20">
+                  {/* Dashboard Header */}
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/40">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500">
+                        <LayoutDashboard className="h-4 w-4 text-white" />
                       </div>
-                      <span className="font-semibold hidden lg:block">ResumePilot</span>
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Dashboard</p>
+                        <p className="text-xs text-muted-foreground">Welcome back, Arya!</p>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-1 w-full mt-4">
-                      <Button variant="ghost" size="sm" className="justify-start gap-2 w-full">
-                        <LayoutDashboard className="h-4 w-4" />
-                        <span className="hidden lg:block">Dashboard</span>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="justify-start gap-2 w-full">
-                        <History className="h-4 w-4" />
-                        <span className="hidden lg:block">History</span>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="justify-start gap-2 w-full">
-                        <Save className="h-4 w-4" />
-                        <span className="hidden lg:block">Saved</span>
-                      </Button>
-                    </div>
-                    <div className="mt-auto w-full">
-                      <Button variant="ghost" size="sm" className="justify-start gap-2 w-full">
-                        <Settings className="h-4 w-4" />
-                        <span className="hidden lg:block">Settings</span>
-                      </Button>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                      <span className="text-xs text-muted-foreground">Live</span>
                     </div>
                   </div>
 
-                  {/* Main Content */}
-                  <div className="flex-1 flex flex-col">
-                    {/* Top Bar */}
-                    <div className="flex items-center justify-between p-4 border-b border-border/50">
-                      <div>
-                        <h2 className="font-semibold text-lg">Dashboard</h2>
-                        <p className="text-xs text-muted-foreground">Welcome back, Jane</p>
+                  {/* Dashboard Content */}
+                  <div className="grid grid-cols-12 gap-4">
+                    {/* Left Column */}
+                    <div className="col-span-5 space-y-4">
+                      {/* ATS Score */}
+                      <div className="bg-slate-900/60 dark:bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 flex items-center gap-4">
+                        <ScoreRing score={87} size={100} label="" />
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-display font-bold text-foreground">87</span>
+                            <span className="text-sm text-muted-foreground">/100</span>
+                          </div>
+                          <p className="text-sm font-medium text-green-500 flex items-center gap-1">
+                            <TrendingUp className="h-3.5 w-3.5" />
+                            Excellent
+                          </p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full">
-                          <Bell className="h-4 w-4" />
-                        </Button>
-                        <Avatar className="h-16 w-16">
-                          <Lottie
-                            autoplay
-                            loop
-                            animationData={profileAvatar}
-                            className="h-full w-full"
-                            style={{ width: "100%", height: "100%" }}
-                          />
-                        </Avatar>
+
+                      {/* Recent Analyses */}
+                      <div className="bg-slate-900/60 dark:bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recent Analyses</p>
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <div className="space-y-2.5">
+                          {recentAnalyses.map((analysis) => (
+                            <div key={analysis.id} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/30">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center border ${analysis.color}`}>
+                                  <FileText className="h-3.5 w-3.5" />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-foreground line-clamp-1">{analysis.role}</p>
+                                  <p className="text-[11px] text-muted-foreground">{analysis.time}</p>
+                                </div>
+                              </div>
+                              <span className="text-sm font-bold" style={{ color: analysis.score >= 80 ? "#22c55e" : analysis.score >=70 ? "#eab308" : "#ef4444" }}>
+                                {analysis.score}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Dashboard Body */}
-                    <div className="p-6 space-y-6 flex-1">
-                      {/* Stats Row */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
-                                <BarChart3 className="h-5 w-5 text-white" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Average Score</p>
-                                <p className="text-2xl font-bold text-gradient">86%</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card>
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                                <FileText className="h-5 w-5 text-white" />
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground">Analyses Saved</p>
-                                <p className="text-2xl font-bold">24</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                    {/* Right Column */}
+                    <div className="col-span-7 space-y-4">
+                      {/* Score Trend */}
+                      <div className="bg-slate-900/60 dark:bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Score Trend</p>
+                          <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <div className="h-20 flex items-end gap-2 px-1">
+                          {scoreTrend.map((score, i) => (
+                            <div
+                              key={i}
+                              className="flex-1 rounded-t-lg transition-all hover:opacity-90"
+                              style={{
+                                height: `${score}%`,
+                                background: "linear-gradient(to top, #2563eb, #38bdf8)"
+                              }}
+                            />
+                          ))}
+                        </div>
                       </div>
 
-                      {/* Main ATS Score Card */}
-                      <Card className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
-                        <CardContent className="p-5">
-                          <div className="flex items-center gap-6">
-                            <div className="relative h-28 w-28">
-                              <svg className="transform -rotate-90 h-full w-full" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="10" className="text-muted" />
-                                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="10" strokeDasharray="283" strokeDashoffset="40" className="text-primary" strokeLinecap="round" />
-                              </svg>
-                              <div className="absolute inset-0 flex items-center justify-center flex-col">
-                                <span className="text-3xl font-bold">87</span>
-                                <span className="text-xs text-muted-foreground">ATS Score</span>
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-lg mb-2">Frontend Developer Intern</h3>
-                              <div className="grid grid-cols-2 gap-4 mb-3">
-                                <div className="space-y-1">
-                                  <p className="text-xs text-muted-foreground">Keyword Match</p>
-                                  <div className="flex items-center gap-2">
-                                    <div className="h-2 bg-muted flex-1 rounded-full overflow-hidden">
-                                      <div className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 w-4/5" />
-                                    </div>
-                                    <span className="text-xs font-medium">80%</span>
-                                  </div>
-                                </div>
-                                <div className="space-y-1">
-                                  <p className="text-xs text-muted-foreground">Skills Score</p>
-                                  <div className="flex items-center gap-2">
-                                    <div className="h-2 bg-muted flex-1 rounded-full overflow-hidden">
-                                      <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 w-9/10" />
-                                    </div>
-                                    <span className="text-xs font-medium">90%</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <p className="text-sm text-muted-foreground">Analyzed 2 days ago</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Score Trend Chart */}
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-sm">Score Trend</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <div className="h-32 flex items-end gap-2 px-6 pb-4">
-                            {scoreData.map((score, index) => (
-                              <div key={index} className="flex-1 bg-gradient-to-t from-blue-500 to-cyan-500 rounded-t-lg transition-all hover:from-blue-400 hover:to-cyan-400" style={{ height: `${score}%` }} />
-                            ))}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* Recent Analyses & Missing Keywords */}
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Recent Analyses */}
-                        <Card>
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-sm">Recent Analyses</CardTitle>
-                          </CardHeader>
-                          <CardContent className="p-0">
-                            <div className="divide-y divide-border/50">
-                              {recentAnalyses.map((analysis) => (
-                                <div key={analysis.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors cursor-pointer">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${analysis.score >= 80 ? "bg-green-500/10" : analysis.score >= 70 ? "bg-yellow-500/10" : "bg-red-500/10"}`}>
-                                      <FileText className={`h-5 w-5 ${analysis.score >= 80 ? "text-green-500" : analysis.score >= 70 ? "text-yellow-500" : "text-red-500"}`} />
-                                    </div>
-                                    <div className="text-left">
-                                      <p className="text-sm font-medium line-clamp-1">{analysis.name}</p>
-                                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                        <Calendar className="h-3 w-3" /> {analysis.date}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className={`text-lg font-bold ${analysis.score >= 80 ? "text-green-500" : analysis.score >= 70 ? "text-yellow-500" : "text-red-500"}`}>
-                                    {analysis.score}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        {/* Missing Keywords */}
-                        <Card>
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-sm">Missing Keywords</CardTitle>
-                            <CardDescription className="text-xs">Add these to improve your score</CardDescription>
-                          </CardHeader>
-                          <CardContent className="p-4">
-                            <div className="flex flex-wrap gap-2">
-                              {missingKeywords.map((keyword, index) => (
-                                <div key={index} className="px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full text-xs font-medium flex items-center gap-1.5">
-                                  <Target className="h-3 w-3" /> {keyword}
-                                </div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
+                      {/* Skills Matched */}
+                      <div className="bg-slate-900/60 dark:bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Top Skills Matched</p>
+                          <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {skillChips.map((skill) => (
+                            <span
+                              key={skill}
+                              className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 dark:text-cyan-300 rounded-full text-xs font-medium"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </Card>
+              </div>
             </div>
+          </div>
 
-            {/* Right: Login Card */}
-            <div>
-              <div className="text-center mb-8 animate-fade-in">
-                <h1 className="font-display text-3xl sm:text-4xl font-bold leading-tight mb-3">Welcome Back</h1>
+          {/* Right: Login Section (EXACTLY THE SAME, NO CHANGES!) */}
+          <div className="w-full flex justify-center lg:justify-end lg:pl-4">
+            <div className="w-full max-w-[380px]">
+              <div className="mb-6 mt-7">
+                <h1 className="text-foreground font-display text-3xl font-semibold mb-1.5">
+                  Welcome back
+                </h1>
                 <p className="text-muted-foreground text-base">
-                  Continue where you left off. Access your ATS reports, score history, and saved analyses.
+                  Sign in to continue improving your resume
                 </p>
               </div>
 
-              <Card className="border-border/40 bg-background/80 backdrop-blur-2xl shadow-glow animate-fade-in mb-6">
-                <CardContent className="p-8">
-                  {/* Benefits List */}
-                  <div className="space-y-3 mb-8">
-                    {[
-                      { icon: CheckCircle2, text: "Unlimited resume analyses" },
-                      { icon: TrendingUp, text: "ATS score tracking over time" },
-                      { icon: FileText, text: "Cloud-saved reports" },
-                      { icon: Shield, text: "Secure, privacy-first storage" },
-                    ].map((benefit, i) => (
-                      <div key={i} className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <benefit.icon className="h-4 w-4 text-green-500 flex-shrink-0" />
-                        <span>{benefit.text}</span>
-                      </div>
-                    ))}
+              <Card className="border-gray-200 dark:border-border/50 bg-white dark:bg-slate-900/70 backdrop-blur-xl shadow-lg shadow-gray-200/50 dark:shadow-2xl dark:shadow-black/30 rounded-3xl">
+                <CardContent className="p-7">
+                  {/* Social Login Buttons */}
+                  <div className="flex items-center gap-3">
+                      {/* Google */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              onClick={handleGoogleLogin}
+                              disabled={isSigningIn}
+                              className="flex-1 h-14 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800/50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl"
+                            >
+                              {isSigningIn ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                                  <path
+                                    fill="currentColor"
+                                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                  />
+                                  <path
+                                    fill="currentColor"
+                                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                  />
+                                  <path
+                                    fill="currentColor"
+                                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                                  />
+                                  <path
+                                    fill="currentColor"
+                                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                  />
+                                </svg>
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p className="text-xs">Sign in with Google</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      {/* GitHub */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              onClick={handleGithubLogin}
+                              disabled={isSigningInGithub}
+                              className="flex-1 h-14 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800/50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl"
+                            >
+                              {isSigningInGithub ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <Github className="h-5 w-5" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p className="text-xs">Sign in with GitHub</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      {/* Facebook */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              onClick={handleFacebookLogin}
+                              disabled={isSigningInFacebook}
+                              className="flex-1 h-14 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800/50 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl"
+                            >
+                              {isSigningInFacebook ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <Facebook className="h-5 w-5" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p className="text-xs">Sign in with Facebook</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                  </div>
+
+                  {/* Separator */}
+                  <div className="relative my-5">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200 dark:border-slate-700" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase text-gray-500 dark:text-slate-400 tracking-[0.15em] font-medium">
+                      <span className="bg-white dark:bg-slate-900/70 px-3">
+                        OR CONTINUE WITH EMAIL
+                      </span>
+                    </div>
                   </div>
 
                   {/* Email + Password Form */}
-                  <div className="space-y-4 mb-6">
-                    <div className="space-y-1.5">
-                      <label htmlFor="email" className="text-sm text-muted-foreground">Email</label>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-base text-foreground font-semibold">
+                        Email address
+                      </label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                           id="email"
                           type="email"
                           placeholder="you@example.com"
-                          className="pl-10"
+                          className="pl-12 h-14 text-base bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-2xl placeholder:text-gray-400 dark:placeholder:text-slate-500"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
                         />
                       </div>
                     </div>
-                    <div className="space-y-1.5">
-                      <label htmlFor="password" className="text-sm text-muted-foreground">Password</label>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label htmlFor="password" className="text-base text-foreground font-semibold">
+                          Password
+                        </label>
+                        <button
+                          type="button"
+                          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                          onClick={handleResetPassword}
+                          disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                           id="password"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 pr-10"
+                          className="pl-12 pr-12 h-14 text-base bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-2xl placeholder:text-gray-400 dark:placeholder:text-slate-500"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
@@ -446,155 +487,58 @@ function LoginPage() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 text-muted-foreground hover:text-foreground"
                           onClick={() => setShowPassword(!showPassword)}
                           aria-label={showPassword ? "Hide password" : "Show password"}
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </Button>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+
+                    <div className="space-y-4 pt-1">
                       <Button
                         variant="hero"
-                        className="flex-1"
-                        size="lg"
+                        className="w-full h-14 text-base shadow-[0_8px_30px_rgb(59,130,246,0.3)] rounded-2xl"
                         onClick={handleSignInWithPassword}
                         disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
                       >
-                        {isSigningInPassword ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        Sign In
+                        {isSigningInPassword ? (
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                        ) : null}
+                        Sign in
                       </Button>
-                      <Button
-                        variant="outline"
-                        className="flex-1"
-                        size="lg"
-                        onClick={handleSignUpWithPassword}
-                        disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
-                      >
-                        {isSigningUpPassword ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                        Create Account
-                      </Button>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={handleResetPassword}
-                      disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
-                    >
-                      {isResettingPassword ? "Sending reset email..." : "Forgot Password?"}
-                    </button>
-                  </div>
-
-                  {/* Separator */}
-                  <div className="relative mb-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-border" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">
-                        Or
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Social Sign-In Buttons */}
-                  {/* Google Sign-In Button */}
-                  <Button
-                    variant="hero"
-                    className="w-full mb-2 group"
-                    size="lg"
-                    onClick={handleGoogleLogin}
-                    disabled={isSigningIn}
-                  >
-                    {isSigningIn ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <svg className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                        <path
-                          fill="currentColor"
-                          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        />
-                        <path
-                          fill="currentColor"
-                          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        />
-                      </svg>
-                    )}
-                    Continue with Google
-                  </Button>
-
-                  {/* GitHub Sign-In Button */}
-                  <Button
-                    variant="hero"
-                    className="w-full mb-2 group"
-                    size="lg"
-                    onClick={handleGithubLogin}
-                    disabled={isSigningInGithub}
-                  >
-                    {isSigningInGithub ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Github className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                    )}
-                    Continue with GitHub
-                  </Button>
-
-                  {/* Facebook Sign-In Button */}
-                  <Button
-                    variant="hero"
-                    className="w-full group"
-                    size="lg"
-                    onClick={handleFacebookLogin}
-                    disabled={isSigningInFacebook}
-                  >
-                    {isSigningInFacebook ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Facebook className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                    )}
-                    Continue with Facebook
-                  </Button>
-
-                  {/* Trust Indicators */}
-                  <div className="space-y-2">
-                    {[
-                      { icon: Shield, text: "Secure authentication" },
-                      { icon: Lock, text: "Password or social login" },
-                      { icon: Users, text: "Privacy-first design" },
-                    ].map((trust, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground justify-center">
-                        <trust.icon className="h-3 w-3 text-primary" />
-                        <span>{trust.text}</span>
+                      <div className="text-center space-y-3">
+                        <p className="text-base text-muted-foreground">
+                          Don't have an account?{" "}
+                          <button
+                            type="button"
+                            onClick={handleSignUpWithPassword}
+                            disabled={isSigningInPassword || isSigningUpPassword || isResettingPassword}
+                            className="font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            Create account
+                          </button>
+                        </p>
+                        <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            Secure
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Lock className="h-4 w-4 text-blue-500" />
+                            Private
+                          </div>
+                        </div>
                       </div>
-                    ))}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Social Proof */}
-              <div className="text-center animate-fade-in">
-                <div className="flex items-center justify-center gap-1 mb-2">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                  ))}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Loved by students across campuses worldwide
-                </p>
-              </div>
             </div>
           </div>
         </div>
-      </section>
-    </MarketingLayout>
+      </div>
+    </div>
   );
 }

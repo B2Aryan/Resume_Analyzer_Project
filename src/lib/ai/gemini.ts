@@ -7,8 +7,6 @@ import { GoogleGenAI } from '@google/genai';
  * configured with the API key from environment variables.
  */
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-
 /**
  * Custom error class for Gemini-related errors
  */
@@ -24,6 +22,7 @@ export class GeminiError extends Error {
  * @throws {GeminiError} If API key is missing
  */
 function validateApiKey(): string {
+  const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
   if (!GEMINI_API_KEY || GEMINI_API_KEY.trim() === '') {
     throw new GeminiError(
       'Gemini API key is not configured. Please set VITE_GEMINI_API_KEY in your .env file.'
