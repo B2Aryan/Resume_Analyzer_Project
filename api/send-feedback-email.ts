@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -32,13 +33,20 @@ function getBadgeColor(type: string): { bg: string; text: string } {
   }
 }
 
-export default async function handler(request: Request) {
-  if (request.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  console.log("API START");
+  
+  if (req.method !== "POST") {
+    return res.status(405).send("Method Not Allowed");
   }
 
   try {
-    const body = await request.json();
+    const body = req.body;
+    console.log("Request body:", body);
+    
     const {
       feedback_type,
       message,
@@ -55,6 +63,7 @@ export default async function handler(request: Request) {
 
     const subject = `[ResumePilot] New ${feedback_type} Feedback`;
 
+    console.log("Sending email...");
     const { data, error } = await resend.emails.send({
       from: "ResumePilot Feedback <onboarding@resend.dev>",
       to: "aryan639244@gmail.com",
@@ -278,21 +287,20 @@ export default async function handler(request: Request) {
 
     if (error) {
       console.error("Resend error:", error);
-      return new Response(JSON.stringify({ success: false, error }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+      return res.status(500).json({
+        success: false,
+        error: String(error)
       });
     }
 
-    return new Response(JSON.stringify({ success: true, data }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.log("Email sent successfully");
+    return res.status(200).json({ success: true, data });
   } catch (error) {
+    console.error("API ERROR:", error);
     console.error("Server error sending feedback email:", error);
-    return new Response(JSON.stringify({ success: false, error }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
+    return res.status(500).json({
+      success: false,
+      error: String(error)
     });
   }
 }
