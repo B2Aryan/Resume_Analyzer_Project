@@ -35,6 +35,23 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   const dropdownWrapperRef = useRef<HTMLDivElement>(null);
   const { user, session } = useAuth();
 
+  // Debug logs
+  console.log("AuthContext user:", user);
+  console.log("AuthContext session:", session);
+  console.log("useAuth() returning user:", user, ", session:", session);
+  
+  // Also check direct supabase session
+  useEffect(() => {
+    const checkDirectSession = async () => {
+      const supabase = getSupabaseClient();
+      if (supabase) {
+        const { data: { session: directSession } } = await supabase.auth.getSession();
+        console.log("Direct supabase.auth.getSession() result:", directSession);
+      }
+    };
+    checkDirectSession();
+  }, []);
+
   // Reset state when closing
   useEffect(() => {
     if (!isOpen) {

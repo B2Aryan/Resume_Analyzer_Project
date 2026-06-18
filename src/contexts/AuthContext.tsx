@@ -48,6 +48,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
 
+  // Debug logs
+  console.log("AuthProvider state - session:", session, ", user:", user, ", isLoading:", isLoading);
+
   const refreshProfile = async () => {
     console.log('[AuthContext] ===============================================');
     console.log('[AuthContext] refreshProfile() START');
@@ -248,15 +251,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Get initial session
-    const getInitialSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      console.log("INITIAL SESSION:", session);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    };
+        const getInitialSession = async () => {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          console.log("AuthProvider INITIAL SESSION from getSession():", session);
+          console.log("AuthProvider setting session/user/isLoading now");
+          setSession(session);
+          setUser(session?.user ?? null);
+          setIsLoading(false);
+        };
 
     getInitialSession();
 
