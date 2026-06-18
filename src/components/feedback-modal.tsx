@@ -187,8 +187,9 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
           body: JSON.stringify({
               feedback_type: feedbackType,
               message: message.trim(),
-              user_email: user?.email || "Not logged in",
-              user_id: user?.id || "Not logged in",
+              user_name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || "Not provided",
+              user_email: user?.email || "Not provided",
+              user_id: user?.id || "Not provided",
               page_url: window.location.pathname,
               contact_me: contactMe ? "Yes" : "No",
               screenshot_url: screenshotUrl || null,
