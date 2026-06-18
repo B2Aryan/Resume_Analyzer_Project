@@ -33,7 +33,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dropdownWrapperRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
+  const { user, session } = useAuth();
 
   // Reset state when closing
   useEffect(() => {
@@ -97,19 +97,38 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
     try {
       let screenshotUrl: string | null = null;
       if (screenshot) {
-        const fileExt = screenshot.name.split('.').pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from('feedback-screenshots')
-          .upload(fileName, screenshot);
-        
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from('feedback-screenshots')
-          .getPublicUrl(fileName);
-        
-        screenshotUrl = urlData.publicUrl;
+        try {
+          const fileExt = screenshot.name.split('.').pop();
+          const fileName = `${crypto.randomUUID()}.${fileExt}`;
+          const bucket = 'feedback-screenshots';
+          
+          // Log all relevant info
+          console.log('=== Screenshot Upload Debug Info ===');
+          console.log({
+            bucket,
+            fileName,
+            filePath: fileName,
+            userId: user?.id || null,
+            session: session || null,
+          });
+          console.log('=====================================');
+          
+          const { error: uploadError } = await supabase.storage
+            .from(bucket)
+            .upload(fileName, screenshot);
+          
+          if (uploadError) {
+            console.error('Failed to upload screenshot:', uploadError);
+          } else {
+            const { data: urlData } = supabase.storage
+              .from('feedback-screenshots')
+              .getPublicUrl(fileName);
+            
+            screenshotUrl = urlData.publicUrl;
+          }
+        } catch (uploadErr) {
+          console.error('Error during screenshot upload:', uploadErr);
+        }
       }
 
       const feedbackRecord = {
@@ -137,14 +156,15 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            feedback_type: feedbackType,
-            message: message.trim(),
-            user_email: user?.email || "Not logged in",
-            page_url: window.location.pathname,
-            contact_me: contactMe ? "Yes" : "No",
-            screenshot_url: screenshotUrl || "Not provided",
-            submission_timestamp: new Date().toLocaleString(),
-          }),
+              feedback_type: feedbackType,
+              message: message.trim(),
+              user_email: user?.email || "Not logged in",
+              user_id: user?.id || "Not logged in",
+              page_url: window.location.pathname,
+              contact_me: contactMe ? "Yes" : "No",
+              screenshot_url: screenshotUrl || null,
+              submission_timestamp: new Date().toLocaleString(),
+            }),
         });
       } catch (emailError) {
         console.error('Failed to send feedback email via API:', emailError);

@@ -56,19 +56,37 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('feedback-screenshots', 'feedback-screenshots', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Allow authenticated users to upload to the bucket
+-- Ensure RLS is enabled on storage.objects (required for policies to work)
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+
+-- Allow authenticated users to upload to the feedback-screenshots bucket
 CREATE POLICY "Allow authenticated users to upload feedback screenshots"
   ON storage.objects
   FOR INSERT
   TO authenticated
   WITH CHECK (bucket_id = 'feedback-screenshots');
 
--- Allow public access to read uploaded screenshots
+-- Allow public read access to feedback-screenshots bucket objects
 CREATE POLICY "Allow public access to feedback screenshots"
   ON storage.objects
   FOR SELECT
   TO public
   USING (bucket_id = 'feedback-screenshots');
+
+-- Allow authenticated users to update their own objects in feedback-screenshots bucket
+CREATE POLICY "Allow authenticated users to update their feedback screenshots"
+  ON storage.objects
+  FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'feedback-screenshots' AND auth.uid() = owner)
+  WITH CHECK (bucket_id = 'feedback-screenshots' AND auth.uid() = owner);
+
+-- Allow authenticated users to delete their own objects in feedback-screenshots bucket
+CREATE POLICY "Allow authenticated users to delete their feedback screenshots"
+  ON storage.objects
+  FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'feedback-screenshots' AND auth.uid() = owner);
 
 -- Add username and avatar_id columns if they don't exist already (for existing tables)
 DO $$ 
