@@ -102,11 +102,13 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   };
 
   const handleSubmit = async () => {
+    console.log("STEP 1: Submit clicked");
     if (!feedbackType || !message.trim()) {
       toast.error("Please select a feedback type and enter a message");
       return;
     }
 
+    console.log("STEP 2: Validation passed");
     const supabase = getSupabaseClient();
     if (!supabase) return;
 
@@ -115,6 +117,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       let screenshotUrl: string | null = null;
       if (screenshot) {
         try {
+          console.log("STEP 3: Screenshot upload starting");
           const fileExt = screenshot.name.split('.').pop();
           const fileName = `${crypto.randomUUID()}.${fileExt}`;
           const bucket = 'feedback-screenshots';
@@ -135,6 +138,7 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             .upload(fileName, screenshot);
           
           if (uploadError) {
+            console.error('FAILED AT STEP 3', uploadError);
             console.error('Failed to upload screenshot:', uploadError);
           } else {
             const { data: urlData } = supabase.storage
@@ -143,7 +147,9 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             
             screenshotUrl = urlData.publicUrl;
           }
+          console.log("STEP 4: Screenshot upload finished");
         } catch (uploadErr) {
+          console.error('FAILED AT STEP 3', uploadErr);
           console.error('Error during screenshot upload:', uploadErr);
         }
       }
@@ -159,14 +165,20 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       };
 
       // First, insert into database
+      console.log("STEP 5: Database insert starting");
       const { error: insertError } = await supabase
         .from('feedback')
         .insert(feedbackRecord);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('FAILED AT STEP 5', insertError);
+        throw insertError;
+      }
+      console.log("STEP 6: Database insert finished");
 
       // Now, try to send email via our API route (don't fail feedback submission if email fails)
       try {
+        console.log("STEP 7: Email API call starting");
         await fetch("/api/send-feedback-email", {
           method: "POST",
           headers: {
@@ -183,17 +195,22 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
               submission_timestamp: new Date().toLocaleString(),
             }),
         });
+        console.log("STEP 8: Email API call finished");
       } catch (emailError) {
+        console.error('FAILED AT STEP 7', emailError);
         console.error('Failed to send feedback email via API:', emailError);
         // Don't show error to user, just log it
       }
 
+      console.log("STEP 9: Success toast");
       toast.success("Thanks for your feedback! We'll review it soon.");
       onClose();
     } catch (error) {
+      console.error('FAILED AT STEP 5 OR EARLIER', error);
       console.error('Error submitting feedback:', error);
       toast.error("Failed to submit feedback. Please try again.");
     } finally {
+      console.log("STEP 10: setSubmitting(false)");
       setIsSubmitting(false);
     }
   };
