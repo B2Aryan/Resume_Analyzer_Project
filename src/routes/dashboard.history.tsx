@@ -1,15 +1,24 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { FileText, Search, FileX, Loader2 } from "lucide-react";
+import { FileText, Search, FileX, Loader2, Trash2, Link2 } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchAnalysesFromDB } from "@/lib/supabase/analysis-db";
+import { fetchAnalysesFromDB, deleteAnalysisFromDB } from "@/lib/supabase/analysis-db";
 import { formatDistanceToNow } from "date-fns";
 import { useState } from "react";
 import { useAnalysisStore } from "@/store/analysisStore";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/history")({
   head: () => ({ meta: [{ title: "History — ResumePilot" }] }),
@@ -23,8 +32,12 @@ function tone(score: number) {
 function HistoryPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const setResult = useAnalysisStore((state) => state.setResult);
   const [search, setSearch] = useState("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [analysisToDelete, setAnalysisToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: analyses = [], isLoading } = useQuery({
     queryKey: ["analyses", user?.id],
@@ -37,6 +50,61 @@ function HistoryPage() {
     (a) => a.file_name.toLowerCase().includes(search.toLowerCase()) || 
            a.role.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleDelete = async () => {
+    if (!analysisToDelete || !user) return;
+    
+    setIsDeleting(true);
+    
+    // Optimistic update
+    queryClient.setQueryData(["analyses", user?.id], (oldAnalyses: any[]) => {
+      return oldAnalyses.filter(a => a.id !== analysisToDelete);
+    });
+    
+    try {
+      await deleteAnalysisFromDB(analysisToDelete);
+      // Also invalidate saved reports in case this was a saved report
+      queryClient.invalidateQueries({ queryKey: ["saved-reports", user?.id] });
+      toast.success("Report deleted successfully.");
+    } catch {
+      // Revert optimistic update if fails
+      queryClient.invalidateQueries({ queryKey: ["analyses", user?.id] });
+      toast.error("Failed to delete report.");
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmOpen(false);
+      setAnalysisToDelete(null);
+    }
+  };
+
+  const openDeleteConfirm = (analysisId: string) => {
+    setAnalysisToDelete(analysisId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleViewReport = (analysis: any) => {
+    setResult(
+      analysis.analysis_result,
+      analysis.role,
+      analysis.file_name,
+      analysis.resume_text || "",
+      analysis.job_description ?? undefined,
+      { 
+        animateEntry: false, 
+        analysisId: analysis.id, 
+        isSaved: analysis.is_saved, 
+        interviewQuestions: analysis.interview_questions || undefined 
+      }
+    );
+    navigate({ to: "/result" });
+  };
+
+  const handleShareReport = (analysis: any) => {
+    // For now, copy a simple link (we can enhance later to a specific analysis ID, but current setup uses store
+    // Copy /result for now
+    navigator.clipboard.writeText(window.location.origin + "/result");
+    toast.success("Report link copied");
+  };
 
   return (
     <AppShell title="Analysis history" subtitle="Every scan you've run, in one place.">
@@ -71,55 +139,106 @@ function HistoryPage() {
       ) : (
         <div className="grid gap-3">
           {filteredAnalyses.map((analysis) => (
-                <Card key={analysis.id} className="border-border/60 transition-shadow hover:shadow-soft">
-                  <CardContent className="grid items-center gap-3 p-4 sm:grid-cols-[auto,1fr,auto,auto,auto]">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-accent text-primary">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate font-semibold">{analysis.file_name}</p>
-                        {analysis.interview_questions && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                            🎤 Interview Ready
-                          </span>
-                        )}
+                <Card key={analysis.id} className="border-border/60 transition-all hover:shadow-soft">
+                <div className="flex">
+                  <div className="flex-1">
+                    <CardHeader className="p-4 pb-0">
+                      <div className="flex items-center gap-3 min-w-0 cursor-pointer group" onClick={() => handleViewReport(analysis)}>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-primary shrink-0 transition-colors group-hover:bg-primary/10">
+                          <FileText className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate font-semibold transition-colors group-hover:text-primary">
+                              {analysis.file_name}
+                            </p>
+                            {analysis.interview_questions && (
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
+                                🎤 Interview Ready
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">{analysis.role}</p>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">{analysis.role}</p>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-3">
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <span>
+                          {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
+                        </span>
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(analysis.analysis_result.score)}`}>
+                          ATS {analysis.analysis_result.score}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </div>
+                  <div className="flex items-center border-l border-border/50 px-3">
+                    <div className="flex flex-col items-center gap-2">
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="text-muted-foreground hover:text-foreground"
+                        onClick={() => handleShareReport(analysis)}
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-xs text-muted-foreground hover:text-foreground"
+                        onClick={() => handleViewReport(analysis)}
+                      >
+                        View
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => openDeleteConfirm(analysis.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
-                    </span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(analysis.analysis_result.score)}`}>
-                      {analysis.analysis_result.score}
-                    </span>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => {
-                        setResult(
-                          analysis.analysis_result,
-                          analysis.role,
-                          analysis.file_name,
-                          analysis.resume_text || "",
-                          analysis.job_description ?? undefined,
-                          { 
-                            animateEntry: false, 
-                            analysisId: analysis.id, 
-                            isSaved: analysis.is_saved, 
-                            interviewQuestions: analysis.interview_questions || undefined 
-                          }
-                        );
-                        navigate({ to: "/result" });
-                      }}
-                    >
-                      View
-                    </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
+              </Card>
               ))}
         </div>
       )}
+      
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this report?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteConfirmOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : "Delete Report"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

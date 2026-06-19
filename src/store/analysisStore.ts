@@ -6,6 +6,8 @@ import {
 } from "@/lib/ats/types";
 import type { InterviewQuestionsResponse } from "@/lib/ats/interview-questions";
 
+const PENDING_ANALYSIS_KEY = "resumePilot.pendingAnalysis";
+
 interface AnalysisState {
   role: string;
   fileName: string;
@@ -47,9 +49,12 @@ interface AnalysisState {
   setSaved: (isSaved: boolean) => void;
   acknowledgeReportReveal: () => void;
   clearResult: () => void;
+  savePendingAnalysis: () => void;
+  loadPendingAnalysis: () => boolean;
+  clearPendingAnalysis: () => void;
 }
 
-export const useAnalysisStore = create<AnalysisState>((set) => ({
+export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   role: "",
   fileName: "Resume.pdf",
   resumeText: "",
@@ -146,5 +151,70 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
       isSaved: false,
       interviewQuestions: null,
     });
+  },
+
+  savePendingAnalysis: () => {
+    const state = get();
+    if (!state.hasResult) return;
+
+    const pending = {
+      role: state.role,
+      fileName: state.fileName,
+      resumeText: state.resumeText,
+      jobDescription: state.jobDescription,
+      hasJobDescription: state.hasJobDescription,
+      score: state.score,
+      atsCompatibility: state.atsCompatibility,
+      keywordMatch: state.keywordMatch,
+      skillsScore: state.skillsScore,
+      projectScore: state.projectScore,
+      missingKeywords: state.missingKeywords,
+      presentKeywords: state.presentKeywords,
+      strengths: state.strengths,
+      suggestions: state.suggestions,
+      summary: state.summary,
+      jdMatch: state.jdMatch,
+      improvementSuggestions: state.improvementSuggestions,
+      usedBackupProvider: state.usedBackupProvider,
+    };
+
+    localStorage.setItem(PENDING_ANALYSIS_KEY, JSON.stringify(pending));
+  },
+
+  loadPendingAnalysis: () => {
+    const stored = localStorage.getItem(PENDING_ANALYSIS_KEY);
+    if (!stored) return false;
+
+    try {
+      const pending = JSON.parse(stored);
+      const result: ATSAnalysisResult = {
+        score: pending.score,
+        atsCompatibility: pending.atsCompatibility,
+        keywordMatch: pending.keywordMatch,
+        skillsScore: pending.skillsScore,
+        projectScore: pending.projectScore,
+        missingKeywords: pending.missingKeywords,
+        presentKeywords: pending.presentKeywords,
+        strengths: pending.strengths,
+        suggestions: pending.suggestions,
+        summary: pending.summary,
+        jdMatch: pending.jdMatch,
+        improvementSuggestions: pending.improvementSuggestions,
+      };
+
+      get().setResult(result, pending.role, pending.fileName, pending.resumeText, pending.jobDescription, {
+        animateEntry: false,
+        usedBackupProvider: pending.usedBackupProvider,
+      });
+
+      return true;
+    } catch (e) {
+      console.error("Failed to load pending analysis:", e);
+      return false;
+    }
+  },
+
+  clearPendingAnalysis: () => {
+    localStorage.removeItem(PENDING_ANALYSIS_KEY);
   },
 }));

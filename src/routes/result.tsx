@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { GitCompare } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { useAnalysisStore } from "@/store/analysisStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { downloadATSReportPdf } from "@/lib/pdf/ats-report-pdf";
 import { buildActionPlan } from "@/lib/ats/action-plan";
 import { ResumeImprovementHub } from "@/components/resume-improvement-hub";
@@ -89,9 +90,20 @@ function ResultPage() {
     usedBackupProvider,
     acknowledgeReportReveal,
     analysisId,
+    loadPendingAnalysis,
+    clearPendingAnalysis,
   } = useAnalysisStore();
 
+  const { user } = useAuth();
 
+  useEffect(() => {
+    if (user && !hasResult) {
+      const loaded = loadPendingAnalysis();
+      if (loaded) {
+        clearPendingAnalysis();
+      }
+    }
+  }, [user, hasResult, loadPendingAnalysis, clearPendingAnalysis]);
 
   useEffect(() => {
     if (!hasResult) {
@@ -291,6 +303,8 @@ function ResultPage() {
       sidebarMissingKeywords,
       quickWinCount: suggestions.length,
       onDownloadPdf: handleDownloadPdf,
+      resumeText,
+      jobDescription,
     }),
     [
       fileName,
@@ -302,6 +316,8 @@ function ResultPage() {
       sidebarMissingKeywords,
       suggestions.length,
       handleDownloadPdf,
+      resumeText,
+      jobDescription,
     ],
   );
 

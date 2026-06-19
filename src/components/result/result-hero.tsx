@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, useEffect, useMemo } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Download,
@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Loader2,
   Copy,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,6 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { ScoreRing } from "@/components/score-ring";
 import { getVerdict } from "@/components/result/result-verdict";
+import { PremiumLockOverlay } from "@/components/PremiumLockOverlay";
 import { toast } from "sonner";
 import { generateCoverLetter } from "@/lib/ats/cover-letter";
 import { downloadCoverLetterPdf } from "@/lib/pdf/cover-letter-pdf";
@@ -52,7 +54,6 @@ export interface ResultHeroProps {
   sidebarMissingKeywords: string[];
   quickWinCount: number;
   onDownloadPdf: () => void;
-  // Next Actions props
   resumeText: string;
   jobDescription: string;
 }
@@ -73,12 +74,14 @@ export const ResultHero = memo(function ResultHero({
 }: ResultHeroProps) {
   const verdict = useMemo(() => getVerdict(score), [score]);
   const { user, profile } = useAuth();
+  const isLocked = !user;
   const queryClient = useQueryClient();
   const analysisId = useAnalysisStore(s => s.analysisId);
   const isSaved = useAnalysisStore(s => s.isSaved);
   const setSaved = useAnalysisStore(s => s.setSaved);
   const interviewQuestionsFromStore = useAnalysisStore(s => s.interviewQuestions);
   const setInterviewQuestions = useAnalysisStore(s => s.setInterviewQuestions);
+  const savePendingAnalysis = useAnalysisStore(s => s.savePendingAnalysis);
   const [saveLoading, setSaveLoading] = useState(false);
   const [coverLetterOpen, setCoverLetterOpen] = useState(false);
   const [coverLetterJd, setCoverLetterJd] = useState("");
@@ -90,6 +93,7 @@ export const ResultHero = memo(function ResultHero({
   const [interviewQuestionsOpen, setInterviewQuestionsOpen] = useState(false);
   const [interviewQuestionsJd, setInterviewQuestionsJd] = useState("");
   const [interviewQuestionsGenerating, setInterviewQuestionsGenerating] = useState(false);
+  const navigate = useNavigate();
 
   const handleCancelGeneration = useCallback(() => {
     console.log("handleCancelGeneration called!");
@@ -127,6 +131,16 @@ export const ResultHero = memo(function ResultHero({
     }
   }, [user, analysisId, isSaved, setSaved, queryClient]);
 
+  const handleSignIn = () => {
+    savePendingAnalysis();
+    navigate({ to: "/login" });
+  };
+
+  const handleCreateAccount = () => {
+    savePendingAnalysis();
+    navigate({ to: "/login" });
+  };
+
   if (part === "header") {
     return (
       <section className="border-b border-border hero-ambient overflow-x-hidden">
@@ -152,122 +166,169 @@ export const ResultHero = memo(function ResultHero({
     <>
       <Card className="border-border/60 shadow-soft transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
         <CardContent className="grid grid-cols-1 md:grid-cols-[55%_1px_45%] gap-0 p-5 sm:p-6">
-        {/* Left Section (55%) */}
-        <div className="flex flex-col justify-center items-center py-4 md:py-0">
-          <ScoreRing score={score} size={210} />
-          <div className="text-center mt-3">
-            <h2 className="font-display text-2xl font-bold">{verdict.title}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{verdict.description}</p>
-            <div className="mt-3 flex flex-wrap justify-center gap-2">
-              {atsCompatibility >= 70 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
-                  <CheckCircle2 className="h-3 w-3" aria-hidden /> ATS-safe
-                </span>
+          {/* Left Section (55%) - Always visible */}
+          <div className="flex flex-col justify-center items-center py-4 md:py-0">
+            <ScoreRing score={score} size={210} />
+            <div className="text-center mt-3">
+              <h2 className="font-display text-2xl font-bold">{verdict.title}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{verdict.description}</p>
+              {isLocked && (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Resume scanned successfully. Detailed recommendations are available after login.
+                </p>
               )}
-              {sidebarMissingKeywords.length > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-3 py-1 text-xs font-medium text-warning">
-                  <AlertCircle className="h-3 w-3" aria-hidden /> Keyword gaps
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                {atsCompatibility >= 70 && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
+                    <CheckCircle2 className="h-3 w-3" aria-hidden /> ATS-safe
+                  </span>
+                )}
+                {sidebarMissingKeywords.length > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 px-3 py-1 text-xs font-medium text-warning">
+                    <AlertCircle className="h-3 w-3" aria-hidden /> Keyword gaps
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
+                  <Sparkles className="h-3 w-3" aria-hidden /> {quickWinCount} quick wins
                 </span>
-              )}
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-                <Sparkles className="h-3 w-3" aria-hidden /> {quickWinCount} quick wins
-              </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Divider */}
-        <div className="hidden md:block border-l border-border/50" />
+          {/* Divider */}
+          <div className="hidden md:block border-l border-border/50" />
 
-        {/* Right Section (45%) - Next Actions */}
-        <div className="flex flex-col justify-center items-center py-4 md:py-0 md:pl-6">
-          <div className="w-full max-w-[320px] space-y-2">
-            <Button asChild variant="hero" className="w-full">
-              <Link to="/upload">
-                Re-scan after edits <ArrowRight className="h-4 w-4" aria-hidden />
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full" onClick={onDownloadPdf}>
-              <Download className="h-4 w-4" aria-hidden /> Download PDF Report
-            </Button>
-            <Button variant="outline" className="w-full" onClick={() => setCoverLetterOpen(true)}>
-              <FileText className="h-4 w-4" aria-hidden /> Generate Cover Letter
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full" 
-              onClick={() => {
-                setInterviewQuestionsJd(jobDescription || "");
-                setInterviewQuestionsOpen(true);
-              }}
-            >
-              <MessageSquare className="h-4 w-4" aria-hidden /> 
-              {interviewQuestionsFromStore ? "View Interview Questions" : "Generate Interview Questions"}
-            </Button>
-            {interviewQuestionsFromStore && (
-              <>
+          {/* Right Section (45%) - Next Actions or Unlock Card */}
+          {isLocked ? (
+            <div className="flex flex-col justify-center items-center py-4 md:py-0 md:pl-6">
+              <div className="bg-card/95 backdrop-blur-sm border border-border rounded-2xl p-8 text-center max-w-md w-full mx-4">
+                <div className="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-full mx-auto mb-4">
+                  <Lock className="w-7 h-7 text-primary" />
+                </div>
+                <h3 className="text-xl font-display font-bold mb-2">
+                  Unlock Full ATS Report
+                </h3>
+                <p className="text-muted-foreground mb-6">
+              Create a free account to unlock:
+            </p>
+            <ul className="text-sm text-muted-foreground space-y-2 mb-8 text-left">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                AI Resume Improvements
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                AI Cover Letter Generator
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                Interview Question Generator
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+                Save Reports to Dashboard
+              </li>
+            </ul>
+                <div className="flex gap-3">
+                  <Button onClick={handleSignIn} variant="secondary" className="flex-1">
+                    Sign In
+                  </Button>
+                  <Button onClick={handleCreateAccount} className="flex-1 bg-gradient-primary">
+                    Create Account
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col justify-center items-center py-4 md:py-0 md:pl-6">
+              <div className="w-full max-w-[320px] space-y-2">
                 <Button asChild variant="hero" className="w-full">
-                  <Link to="/mock-interview">
-                    <MessageSquare className="h-4 w-4 mr-2" aria-hidden /> Start Mock Interview
+                  <Link to="/upload">
+                    Re-scan after edits <ArrowRight className="h-4 w-4" aria-hidden />
                   </Link>
+                </Button>
+                <Button variant="outline" className="w-full" onClick={onDownloadPdf}>
+                  <Download className="h-4 w-4" aria-hidden /> Download PDF Report
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => setCoverLetterOpen(true)}>
+                  <FileText className="h-4 w-4" aria-hidden /> Generate Cover Letter
                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full" 
-                  onClick={async () => {
-                    setInterviewQuestionsGenerating(true);
-                    try {
-                      const result = await generateInterviewQuestions({
-                        resumeText,
-                        targetRole: role,
-                        jobDescription: jobDescription || undefined,
-                      });
-                      if (result.success) {
-                        setInterviewQuestions(result.data);
-                        if (analysisId) {
-                          await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
-                        }
-                        toast.success("Interview questions regenerated!");
-                      } else {
-                        toast.error(result.error);
-                      }
-                    } catch {
-                      toast.error("Could not regenerate interview questions.");
-                    } finally {
-                      setInterviewQuestionsGenerating(false);
-                    }
+                  onClick={() => {
+                    setInterviewQuestionsJd(jobDescription || "");
+                    setInterviewQuestionsOpen(true);
                   }}
-                  disabled={interviewQuestionsGenerating || !analysisId}
                 >
-                  {interviewQuestionsGenerating ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" /> Regenerating...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" /> Regenerate Questions
-                    </>
-                  )}
+                  <MessageSquare className="h-4 w-4" aria-hidden /> 
+                  {interviewQuestionsFromStore ? "View Interview Questions" : "Generate Interview Questions"}
                 </Button>
-              </>
-            )}
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleSaveToggle}
-              disabled={saveLoading || !user || !analysisId}
-            >
-              {saveLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isSaved ? (
-                <BookmarkCheck className="h-4 w-4" />
-              ) : (
-                <Bookmark className="h-4 w-4" />
-              )}
-              {isSaved ? "Saved to Dashboard" : "Save to Dashboard"}
-            </Button>
-          </div>
-        </div>
+                {interviewQuestionsFromStore && (
+                  <>
+                    <Button asChild variant="hero" className="w-full">
+                      <Link to="/mock-interview">
+                        <MessageSquare className="h-4 w-4 mr-2" aria-hidden /> Start Mock Interview
+                      </Link>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full" 
+                      onClick={async () => {
+                        setInterviewQuestionsGenerating(true);
+                        try {
+                          const result = await generateInterviewQuestions({
+                            resumeText,
+                            targetRole: role,
+                            jobDescription: jobDescription || undefined,
+                          });
+                          if (result.success) {
+                            setInterviewQuestions(result.data);
+                            if (analysisId) {
+                              await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
+                            }
+                            toast.success("Interview questions regenerated!");
+                          } else {
+                            toast.error(result.error);
+                          }
+                        } catch {
+                          toast.error("Could not regenerate interview questions.");
+                        } finally {
+                          setInterviewQuestionsGenerating(false);
+                        }
+                      }}
+                      disabled={interviewQuestionsGenerating || !analysisId}
+                    >
+                      {interviewQuestionsGenerating ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" /> Regenerating...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" /> Regenerate Questions
+                        </>
+                      )}
+                    </Button>
+                  </>
+                )}
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleSaveToggle}
+                  disabled={saveLoading || !user || !analysisId}
+                >
+                  {saveLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isSaved ? (
+                    <BookmarkCheck className="h-4 w-4" />
+                  ) : (
+                    <Bookmark className="h-4 w-4" />
+                  )}
+                  {isSaved ? "Saved to Dashboard" : "Save to Dashboard"}
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

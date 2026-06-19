@@ -172,3 +172,21 @@ export async function fetchAnalysisById(
   }
   return data as DBAnalysis;
 }
+
+// Delete an analysis from Supabase
+export async function deleteAnalysisFromDB(
+  analysisId: string
+): Promise<void> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  const { error } = await supabase
+    .from("analyses")
+    .delete()
+    .eq("id", analysisId);
+
+  if (error) {
+    console.error("Failed to delete analysis:", error);
+    throw new Error("Failed to delete analysis");
+  }
+}

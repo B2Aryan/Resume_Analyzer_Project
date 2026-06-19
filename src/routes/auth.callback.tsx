@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { useEffect } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
+import { useAnalysisStore } from "@/store/analysisStore";
 
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({
@@ -12,6 +13,8 @@ export const Route = createFileRoute("/auth/callback")({
 
 function AuthCallbackPage() {
   const navigate = useNavigate();
+  const loadPendingAnalysis = useAnalysisStore((state) => state.loadPendingAnalysis);
+  const clearPendingAnalysis = useAnalysisStore((state) => state.clearPendingAnalysis);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -58,12 +61,20 @@ function AuthCallbackPage() {
         return;
       }
 
-      console.log("Navigating to dashboard");
-      navigate({ to: "/dashboard" });
+      // Check for pending analysis
+      const hasPending = loadPendingAnalysis();
+      if (hasPending) {
+        clearPendingAnalysis();
+        console.log("Navigating to result page with restored analysis");
+        navigate({ to: "/result" });
+      } else {
+        console.log("Navigating to dashboard");
+        navigate({ to: "/dashboard" });
+      }
     };
 
     handleAuthCallback();
-  }, [navigate]);
+  }, [navigate, loadPendingAnalysis, clearPendingAnalysis]);
 
   return (
     <MarketingLayout>
