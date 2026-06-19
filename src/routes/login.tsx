@@ -213,9 +213,9 @@ function LoginPage() {
               {/* Dashboard Preview Card */}
               <div className="relative">
                 <div className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-gradient-primary opacity-[0.12] blur-3xl dark:opacity-20" />
-                <div className="bg-slate-950/60 dark:bg-slate-900/70 border border-slate-700/60 dark:border-border/50 rounded-3xl px-6 py-5 backdrop-blur-2xl shadow-xl shadow-blue-900/20">
+                <div className="bg-white dark:bg-slate-900/70 border border-gray-200 dark:border-border/50 rounded-3xl px-6 py-5 backdrop-blur-2xl shadow-xl shadow-blue-100 dark:shadow-blue-900/20">
                   {/* Dashboard Header */}
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/40">
+                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-slate-700/40">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500">
                         <LayoutDashboard className="h-4 w-4 text-white" />
@@ -226,8 +226,7 @@ function LoginPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-                      <span className="text-xs text-muted-foreground">Live</span>
+                      <span className="text-xs text-muted-foreground">🎯 ATS Ready</span>
                     </div>
                   </div>
 
@@ -236,7 +235,7 @@ function LoginPage() {
                     {/* Left Column */}
                     <div className="col-span-5 space-y-4">
                       {/* ATS Score */}
-                      <div className="bg-slate-900/60 dark:bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4 flex items-center gap-4">
+                      <div className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-700/50 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
                         <ScoreRing score={87} size={100} label="" />
                         <div className="flex flex-col gap-1">
                           <div className="flex items-baseline gap-1">
@@ -251,14 +250,14 @@ function LoginPage() {
                       </div>
 
                       {/* Recent Analyses */}
-                      <div className="bg-slate-900/60 dark:bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4">
+                      <div className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-700/50 rounded-2xl p-4 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recent Analyses</p>
                           <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                         </div>
                         <div className="space-y-2.5">
                           {recentAnalyses.map((analysis) => (
-                            <div key={analysis.id} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/40 border border-slate-700/30">
+                            <div key={analysis.id} className="flex items-center justify-between p-2.5 rounded-xl bg-gray-50 dark:bg-slate-800/40 border border-gray-100 dark:border-slate-700/30">
                               <div className="flex items-center gap-3">
                                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center border ${analysis.color}`}>
                                   <FileText className="h-3.5 w-3.5" />
@@ -280,7 +279,7 @@ function LoginPage() {
                     {/* Right Column */}
                     <div className="col-span-7 space-y-4">
                       {/* Score Trend */}
-                      <div className="bg-slate-900/60 dark:bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4">
+                      <div className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-700/50 rounded-2xl p-4 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Score Trend</p>
                           <BarChart3 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -300,7 +299,7 @@ function LoginPage() {
                       </div>
 
                       {/* Skills Matched */}
-                      <div className="bg-slate-900/60 dark:bg-slate-900/40 border border-slate-700/50 rounded-2xl p-4">
+                      <div className="bg-white dark:bg-slate-900/40 border border-gray-200 dark:border-slate-700/50 rounded-2xl p-4 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Top Skills Matched</p>
                           <Search className="h-3.5 w-3.5 text-muted-foreground" />
@@ -309,7 +308,7 @@ function LoginPage() {
                           {skillChips.map((skill) => (
                             <span
                               key={skill}
-                              className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 dark:text-cyan-300 rounded-full text-xs font-medium"
+                              className="px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-cyan-300 rounded-full text-xs font-medium"
                             >
                               {skill}
                             </span>
