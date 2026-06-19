@@ -10,53 +10,71 @@ export interface InterviewQuestionItem {
 export function flattenInterviewQuestions(
   data: InterviewQuestionsResponse,
 ): InterviewQuestionItem[] {
+  console.log("flattenInterviewQuestions: input data:", data);
   const items: InterviewQuestionItem[] = [];
   
   // Project Questions
-  for (let i = 0; i < data.project_questions.length; i++) {
-    items.push({
-      id: `project-${i + 1}`,
-      category: "project",
-      question: data.project_questions[i],
-    });
+  const projectQuestions = data?.project_questions || [];
+  for (let i = 0; i < projectQuestions.length; i++) {
+    if (projectQuestions[i]) {
+      items.push({
+        id: `project-${i + 1}`,
+        category: "project",
+        question: projectQuestions[i],
+      });
+    }
   }
 
   // Technical Questions
-  for (let i = 0; i < data.technical_questions.length; i++) {
-    items.push({
-      id: `technical-${i + 1}`,
-      category: "technical",
-      question: data.technical_questions[i].question,
-    });
+  const technicalQuestions = data?.technical_questions || [];
+  for (let i = 0; i < technicalQuestions.length; i++) {
+    const q = technicalQuestions[i];
+    if (q?.question) {
+      items.push({
+        id: `technical-${i + 1}`,
+        category: "technical",
+        question: q.question,
+      });
+    }
   }
 
   // Behavioral Questions
-  for (let i = 0; i < data.behavioral_questions.length; i++) {
-    items.push({
-      id: `behavioral-${i + 1}`,
-      category: "behavioral",
-      question: data.behavioral_questions[i],
-    });
+  const behavioralQuestions = data?.behavioral_questions || [];
+  for (let i = 0; i < behavioralQuestions.length; i++) {
+    if (behavioralQuestions[i]) {
+      items.push({
+        id: `behavioral-${i + 1}`,
+        category: "behavioral",
+        question: behavioralQuestions[i],
+      });
+    }
   }
 
   // System Design Questions
-  for (let i = 0; i < data.system_design_questions.length; i++) {
-    items.push({
-      id: `system_design-${i + 1}`,
-      category: "system_design",
-      question: data.system_design_questions[i],
-    });
+  const systemDesignQuestions = data?.system_design_questions || [];
+  for (let i = 0; i < systemDesignQuestions.length; i++) {
+    if (systemDesignQuestions[i]) {
+      items.push({
+        id: `system_design-${i + 1}`,
+        category: "system_design",
+        question: systemDesignQuestions[i],
+      });
+    }
   }
 
   // Follow-up Questions
-  for (let i = 0; i < data.follow_up_questions.length; i++) {
-    items.push({
-      id: `follow_up-${i + 1}`,
-      category: "follow_up",
-      question: data.follow_up_questions[i],
-    });
+  const followUpQuestions = data?.follow_up_questions || [];
+  for (let i = 0; i < followUpQuestions.length; i++) {
+    if (followUpQuestions[i]) {
+      items.push({
+        id: `follow_up-${i + 1}`,
+        category: "follow_up",
+        question: followUpQuestions[i],
+      });
+    }
   }
 
+  console.log("flattenInterviewQuestions: output items:", items);
   return items;
 }
 

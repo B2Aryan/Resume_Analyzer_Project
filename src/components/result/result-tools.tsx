@@ -144,17 +144,47 @@ export const ResultTools = memo(function ResultTools({
   }, [user, analysisId, isPublic, setPublic, queryClient]);
 
   const handleShare = useCallback(async () => {
-    if (!analysisId) return;
-    
-    const shareUrl = `${window.location.origin}/report/${analysisId}`;
-    
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success("Share link copied to clipboard!");
-    } catch {
-      toast.error("Failed to copy link");
+    console.log("handleShare: Called");
+    console.log("handleShare: user:", user);
+    console.log("handleShare: analysisId:", analysisId);
+    console.log("handleShare: isPublic current state:", isPublic);
+
+    if (!user || !analysisId) {
+      console.log("handleShare: Missing user or analysisId");
+      toast.error("You need to be logged in to share this report");
+      return;
     }
-  }, [analysisId]);
+
+    setShareLoading(true);
+    try {
+      // If the report is not public yet, make it public first
+      let currentAnalysis = null;
+      if (!isPublic) {
+        console.log("handleShare: Report is not public, making it public...");
+        currentAnalysis = await togglePublicAnalysis(analysisId, true);
+        console.log("handleShare: togglePublicAnalysis returned:", currentAnalysis);
+        if (!currentAnalysis) {
+          toast.error("Failed to make report public");
+          return;
+        }
+        setPublic(currentAnalysis.is_public);
+        queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
+        queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
+      }
+
+      // Now copy the share URL
+      const shareUrl = `${window.location.origin}/report/${analysisId}`;
+      console.log("handleShare: Copying share URL:", shareUrl);
+      await navigator.clipboard.writeText(shareUrl);
+      
+      toast.success("Share link copied to clipboard!");
+    } catch (error) {
+      console.error("handleShare: Caught error:", error);
+      toast.error("Failed to share report");
+    } finally {
+      setShareLoading(false);
+    }
+  }, [user, analysisId, isPublic, setPublic, queryClient]);
 
   const copyToClipboard = useCallback(async (text: string, label: string) => {
     try {
@@ -462,13 +492,13 @@ export const ResultTools = memo(function ResultTools({
                   {shareLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : isPublic ? "Make Private" : "Make Public"}
                 </Button>
               </div>
-              {isPublic && analysisId && (
+              {analysisId && (
                 <div className="flex items-center gap-2">
                   <div className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm truncate">
                     {`${window.location.origin}/report/${analysisId}`}
                   </div>
-                  <Button variant="outline" onClick={handleShare}>
-                    <Copy className="h-4 w-4" />
+                  <Button variant="outline" onClick={handleShare} disabled={shareLoading}>
+                    {shareLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               )}
@@ -643,42 +673,50 @@ function InterviewQuestionsDialog({
 
   const handleCopy = async () => {
     if (!questions) return;
+    console.log("InterviewQuestionsDialog: handleCopy, questions:", questions);
     
     const textParts: string[] = [];
     
-    if (questions.project_questions.length > 0) {
+    const projectQuestions = questions.project_questions || [];
+    if (projectQuestions.length > 0) {
       textParts.push("Project Questions");
-      questions.project_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      projectQuestions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
       textParts.push("");
     }
     
-    if (questions.technical_questions.length > 0) {
+    const technicalQuestions = questions.technical_questions || [];
+    if (technicalQuestions.length > 0) {
       textParts.push("Technical Questions");
-      questions.technical_questions.forEach((q, i) => {
-        textParts.push(`${i + 1}. ${q.question} [${q.difficulty}]`);
-        if (q.expectedAnswerPoints.length > 0) {
+      technicalQuestions.forEach((q, i) => {
+        if (!q) return;
+        textParts.push(`${i + 1}. ${q.question} [${q.difficulty || "Unknown"}]`);
+        const expectedAnswerPoints = q.expectedAnswerPoints || [];
+        if (expectedAnswerPoints.length > 0) {
           textParts.push("   Expected Points:");
-          q.expectedAnswerPoints.forEach(p => textParts.push(`   - ${p}`));
+          expectedAnswerPoints.forEach(p => textParts.push(`   - ${p}`));
         }
       });
       textParts.push("");
     }
     
-    if (questions.behavioral_questions.length > 0) {
+    const behavioralQuestions = questions.behavioral_questions || [];
+    if (behavioralQuestions.length > 0) {
       textParts.push("Behavioral Questions");
-      questions.behavioral_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      behavioralQuestions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
       textParts.push("");
     }
     
-    if (questions.system_design_questions.length > 0) {
+    const systemDesignQuestions = questions.system_design_questions || [];
+    if (systemDesignQuestions.length > 0) {
       textParts.push("System Design Questions");
-      questions.system_design_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      systemDesignQuestions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
       textParts.push("");
     }
     
-    if (questions.follow_up_questions.length > 0) {
+    const followUpQuestions = questions.follow_up_questions || [];
+    if (followUpQuestions.length > 0) {
       textParts.push("Follow-Up Questions");
-      questions.follow_up_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      followUpQuestions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
     }
 
     try {
@@ -691,12 +729,14 @@ function InterviewQuestionsDialog({
 
   const handleDownloadPdf = async () => {
     if (!questions) return;
+    console.log("InterviewQuestionsDialog: handleDownloadPdf, questions:", questions);
     setDownloading(true);
     try {
       // We can keep the existing download for now, we'll update the PDF function later if needed
       downloadInterviewQuestionsPdf(questions as any, role);
       toast.success("Interview questions downloaded!");
-    } catch {
+    } catch (error) {
+      console.error("InterviewQuestionsDialog: handleDownloadPdf error:", error);
       toast.error("Failed to generate PDF.");
     } finally {
       setDownloading(false);

@@ -539,42 +539,50 @@ function InterviewQuestionsDialog({
 
   const handleCopy = async () => {
     if (!questions) return;
+    console.log("InterviewQuestionsDialog (result-hero): handleCopy, questions:", questions);
     
     const textParts: string[] = [];
     
-    if (questions.project_questions.length > 0) {
+    const projectQuestions = questions.project_questions || [];
+    if (projectQuestions.length > 0) {
       textParts.push("Project Questions");
-      questions.project_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      projectQuestions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
       textParts.push("");
     }
     
-    if (questions.technical_questions.length > 0) {
+    const technicalQuestions = questions.technical_questions || [];
+    if (technicalQuestions.length > 0) {
       textParts.push("Technical Questions");
-      questions.technical_questions.forEach((q, i) => {
-        textParts.push(`${i + 1}. ${q.question} [${q.difficulty}]`);
-        if (q.expectedAnswerPoints.length > 0) {
+      technicalQuestions.forEach((q, i) => {
+        if (!q) return;
+        textParts.push(`${i + 1}. ${q.question} [${q.difficulty || "Unknown"}]`);
+        const expectedAnswerPoints = q.expectedAnswerPoints || [];
+        if (expectedAnswerPoints.length > 0) {
           textParts.push("   Expected Points:");
-          q.expectedAnswerPoints.forEach(p => textParts.push(`   - ${p}`));
+          expectedAnswerPoints.forEach(p => textParts.push(`   - ${p}`));
         }
       });
       textParts.push("");
     }
     
-    if (questions.behavioral_questions.length > 0) {
+    const behavioralQuestions = questions.behavioral_questions || [];
+    if (behavioralQuestions.length > 0) {
       textParts.push("Behavioral Questions");
-      questions.behavioral_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      behavioralQuestions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
       textParts.push("");
     }
     
-    if (questions.system_design_questions.length > 0) {
+    const systemDesignQuestions = questions.system_design_questions || [];
+    if (systemDesignQuestions.length > 0) {
       textParts.push("System Design Questions");
-      questions.system_design_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      systemDesignQuestions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
       textParts.push("");
     }
     
-    if (questions.follow_up_questions.length > 0) {
+    const followUpQuestions = questions.follow_up_questions || [];
+    if (followUpQuestions.length > 0) {
       textParts.push("Follow-Up Questions");
-      questions.follow_up_questions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
+      followUpQuestions.forEach((q, i) => textParts.push(`${i + 1}. ${q}`));
     }
 
     try {
@@ -587,11 +595,13 @@ function InterviewQuestionsDialog({
 
   const handleDownloadPdf = async () => {
     if (!questions) return;
+    console.log("InterviewQuestionsDialog (result-hero): handleDownloadPdf, questions:", questions);
     setDownloading(true);
     try {
       downloadInterviewQuestionsPdf(questions as any, role);
       toast.success("Interview questions downloaded!");
-    } catch {
+    } catch (error) {
+      console.error("InterviewQuestionsDialog (result-hero): handleDownloadPdf error:", error);
       toast.error("Failed to generate PDF.");
     } finally {
       setDownloading(false);
@@ -655,11 +665,11 @@ function InterviewQuestionsDialog({
           <>
             <div className="mt-2 space-y-8 max-h-[70vh] overflow-y-auto">
               
-              {questions.project_questions.length > 0 && (
+              {((questions.project_questions || []).length > 0) && (
                 <div className="space-y-3">
                   <h4 className="font-display text-lg font-semibold text-foreground">Project Questions</h4>
                   <ul className="space-y-2">
-                    {questions.project_questions.map((question, i) => (
+                    {(questions.project_questions || []).map((question, i) => (
                       <li
                         key={i}
                         className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-foreground"
@@ -671,11 +681,11 @@ function InterviewQuestionsDialog({
                 </div>
               )}
               
-              {questions.technical_questions.length > 0 && (
+              {((questions.technical_questions || []).length > 0) && (
                 <div className="space-y-4">
                   <h4 className="font-display text-lg font-semibold text-foreground">Technical Questions</h4>
                   <div className="space-y-3">
-                    {questions.technical_questions.map((q, i) => (
+                    {(questions.technical_questions || []).filter(Boolean).map((q, i) => (
                       <div
                         key={i}
                         className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm"
@@ -684,17 +694,17 @@ function InterviewQuestionsDialog({
                           <p className="text-foreground">
                             {i + 1}. {q.question}
                           </p>
-                          <span className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium border ${getDifficultyColor(q.difficulty)}`}>
-                            {q.difficulty}
+                          <span className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium border ${getDifficultyColor(q.difficulty || "")}`}>
+                            {q.difficulty || "Unknown"}
                           </span>
                         </div>
-                        {q.expectedAnswerPoints.length > 0 && (
+                        {((q.expectedAnswerPoints || []).length > 0) && (
                           <div className="mt-3 space-y-1">
                             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                               Expected Points:
                             </p>
                             <ul className="list-disc list-inside text-xs text-muted-foreground">
-                              {q.expectedAnswerPoints.map((point, j) => (
+                              {(q.expectedAnswerPoints || []).map((point, j) => (
                                 <li key={j}>{point}</li>
                               ))}
                             </ul>
@@ -706,11 +716,11 @@ function InterviewQuestionsDialog({
                 </div>
               )}
               
-              {questions.behavioral_questions.length > 0 && (
+              {((questions.behavioral_questions || []).length > 0) && (
                 <div className="space-y-3">
                   <h4 className="font-display text-lg font-semibold text-foreground">Behavioral Questions</h4>
                   <ul className="space-y-2">
-                    {questions.behavioral_questions.map((question, i) => (
+                    {(questions.behavioral_questions || []).map((question, i) => (
                       <li
                         key={i}
                         className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-foreground"
@@ -722,11 +732,11 @@ function InterviewQuestionsDialog({
                 </div>
               )}
               
-              {questions.system_design_questions.length > 0 && (
+              {((questions.system_design_questions || []).length > 0) && (
                 <div className="space-y-3">
                   <h4 className="font-display text-lg font-semibold text-foreground">System Design Questions</h4>
                   <ul className="space-y-2">
-                    {questions.system_design_questions.map((question, i) => (
+                    {(questions.system_design_questions || []).map((question, i) => (
                       <li
                         key={i}
                         className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-foreground"
@@ -738,11 +748,11 @@ function InterviewQuestionsDialog({
                 </div>
               )}
               
-              {questions.follow_up_questions.length > 0 && (
+              {((questions.follow_up_questions || []).length > 0) && (
                 <div className="space-y-3">
                   <h4 className="font-display text-lg font-semibold text-foreground">Follow-Up Questions</h4>
                   <ul className="space-y-2">
-                    {questions.follow_up_questions.map((question, i) => (
+                    {(questions.follow_up_questions || []).map((question, i) => (
                       <li
                         key={i}
                         className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-foreground"

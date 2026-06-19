@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchSavedReportsFromDB, toggleSaveAnalysis, deleteAnalysisFromDB } from "@/lib/supabase/analysis-db";
+import { fetchSavedReportsFromDB, toggleSaveAnalysis, deleteAnalysisFromDB, togglePublicAnalysis } from "@/lib/supabase/analysis-db";
 import { formatDistanceToNow } from "date-fns";
 import { useAnalysisStore } from "@/store/analysisStore";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dashboard/saved")({
@@ -85,9 +86,44 @@ function SavedReportsPage() {
     setDeleteConfirmOpen(true);
   };
 
-  const handleShareReport = (analysis: any) => {
-    navigator.clipboard.writeText(window.location.origin + `/report/${analysis.id}`);
-    toast.success("Report link copied");
+  const [shareLoadingId, setShareLoadingId] = useState<string | null>(null);
+  
+  const handleShareReport = async (analysis: any) => {
+    console.log("handleShareReport (saved dashboard): Called for analysis:", analysis);
+    if (!user) {
+      toast.error("You need to be logged in to share this report");
+      return;
+    }
+
+    setShareLoadingId(analysis.id);
+    try {
+      let currentAnalysis = analysis;
+      // If the report is not public yet, make it public first
+      if (!analysis.is_public) {
+        console.log("handleShareReport (saved dashboard): Report is not public, making it public...");
+        const updated = await togglePublicAnalysis(analysis.id, true);
+        console.log("handleShareReport (saved dashboard): togglePublicAnalysis returned:", updated);
+        if (!updated) {
+          toast.error("Failed to make report public");
+          return;
+        }
+        currentAnalysis = updated;
+        queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
+        queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
+      }
+
+      // Copy the share URL
+      const shareUrl = window.location.origin + `/report/${currentAnalysis.id}`;
+      console.log("handleShareReport (saved dashboard): Copying share URL:", shareUrl);
+      await navigator.clipboard.writeText(shareUrl);
+      
+      toast.success("Share link copied to clipboard!");
+    } catch (error) {
+      console.error("handleShareReport (saved dashboard): Caught error:", error);
+      toast.error("Failed to share report");
+    } finally {
+      setShareLoadingId(null);
+    }
   };
 
   const handleViewReport = (analysis: any) => {
@@ -166,14 +202,15 @@ function SavedReportsPage() {
                   </div>
                   <div className="flex items-center border-l border-border/50 px-3">
                     <div className="flex flex-col items-center gap-2">
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="text-muted-foreground hover:text-foreground"
-                        onClick={() => handleShareReport(analysis)}
-                      >
-                        <Link2 className="h-4 w-4" />
-                      </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => handleShareReport(analysis)}
+                      disabled={shareLoadingId === analysis.id}
+                    >
+                      {shareLoadingId === analysis.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
+                    </Button>
                       <Button 
                         size="sm" 
                         variant="ghost" 

@@ -117,22 +117,26 @@ export function downloadInterviewQuestionsPdf(
     let y = drawHeader(doc, role);
 
     // Project Questions
-    if (questions.project_questions.length > 0) {
+    const projectQuestions = questions.project_questions || [];
+    if (projectQuestions.length > 0) {
       y = drawSectionTitle(doc, y, "Project Questions");
-      y = drawNumberedList(doc, y, questions.project_questions);
+      y = drawNumberedList(doc, y, projectQuestions);
     }
 
     // Technical Questions
-    if (questions.technical_questions.length > 0) {
+    const technicalQuestions = questions.technical_questions || [];
+    if (technicalQuestions.length > 0) {
       y = drawSectionTitle(doc, y, "Technical Questions");
-      const technicalQuestionTexts = questions.technical_questions.map(q => q.question);
+      const technicalQuestionTexts = technicalQuestions.filter(Boolean).map(q => q.question);
       y = drawNumberedList(doc, y, technicalQuestionTexts);
       
       // Add expected answer points for each technical question
-      for (let i = 0; i < questions.technical_questions.length; i++) {
-        const techQ = questions.technical_questions[i];
-        if (techQ.expectedAnswerPoints.length > 0) {
-          const lines = doc.splitTextToSize(`   Expected Points: ${techQ.expectedAnswerPoints.join(", ")}`, CONTENT_WIDTH - 4);
+      for (let i = 0; i < technicalQuestions.length; i++) {
+        const techQ = technicalQuestions[i];
+        if (!techQ) continue;
+        const expectedAnswerPoints = techQ.expectedAnswerPoints || [];
+        if (expectedAnswerPoints.length > 0) {
+          const lines = doc.splitTextToSize(`   Expected Points: ${expectedAnswerPoints.join(", ")}`, CONTENT_WIDTH - 4);
           const blockHeight = lines.length * 4.2 + 2;
           y = ensureSpace(doc, y, blockHeight);
           doc.setFont("helvetica", "italic");
@@ -148,21 +152,24 @@ export function downloadInterviewQuestionsPdf(
     }
 
     // Behavioral Questions
-    if (questions.behavioral_questions.length > 0) {
+    const behavioralQuestions = questions.behavioral_questions || [];
+    if (behavioralQuestions.length > 0) {
       y = drawSectionTitle(doc, y, "Behavioral Questions");
-      y = drawNumberedList(doc, y, questions.behavioral_questions);
+      y = drawNumberedList(doc, y, behavioralQuestions);
     }
 
     // System Design Questions
-    if (questions.system_design_questions.length > 0) {
+    const systemDesignQuestions = questions.system_design_questions || [];
+    if (systemDesignQuestions.length > 0) {
       y = drawSectionTitle(doc, y, "System Design Questions");
-      y = drawNumberedList(doc, y, questions.system_design_questions);
+      y = drawNumberedList(doc, y, systemDesignQuestions);
     }
 
     // Follow-up Questions
-    if (questions.follow_up_questions.length > 0) {
+    const followUpQuestions = questions.follow_up_questions || [];
+    if (followUpQuestions.length > 0) {
       y = drawSectionTitle(doc, y, "Follow-Up Questions");
-      y = drawNumberedList(doc, y, questions.follow_up_questions);
+      y = drawNumberedList(doc, y, followUpQuestions);
     }
 
     // Interview Tips

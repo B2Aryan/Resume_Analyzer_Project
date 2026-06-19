@@ -39,6 +39,8 @@ function ReportPage() {
 
       try {
         const analysis = await fetchAnalysisById(id);
+        console.log("report.$id.tsx: fetchAnalysisById returned:", analysis);
+        console.log("report.$id.tsx: interview_questions:", analysis?.interview_questions);
         if (!analysis) {
           setError("Report not found");
           setIsLoading(false);
