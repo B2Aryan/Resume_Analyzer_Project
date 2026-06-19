@@ -17,16 +17,17 @@ import { canRunAnalysis, incrementAnalysisUsage } from "@/lib/supabase/usage";
 import { persistNewAnalysis, snapshotFromResult } from "@/lib/storage/analysis-versions";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleAutocomplete } from "@/components/role-autocomplete";
+import { createSeoHead, ORGANIZATION_SCHEMA } from "@/lib/seo";
 
 export const Route = createFileRoute("/upload")({
-  head: () => ({
-    meta: [
-      { title: "Upload Resume — ResumePilot" },
-      {
-        name: "description",
-        content: "Upload your resume PDF or paste text and run an instant ATS analysis.",
-      },
-    ],
+  head: () => createSeoHead({
+    title: "Upload Resume",
+    description: "Upload your resume PDF or paste text and run an instant ATS analysis.",
+    path: "/upload",
+    schema: {
+      "@context": "https://schema.org",
+      "@graph": [ORGANIZATION_SCHEMA],
+    },
   }),
   component: UploadPage,
 });

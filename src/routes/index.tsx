@@ -9,13 +9,32 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CTAPanel } from "@/components/marketing/CTAPanel";
 import { SpotlightCard } from "@/components/marketing/SpotlightCard";
 import { useAnalysisStore } from "@/store/analysisStore";
+import { createSeoHead, ORGANIZATION_SCHEMA, SOFTWARE_APPLICATION_SCHEMA } from "@/lib/seo";
+
+const homeSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    ORGANIZATION_SCHEMA,
+    {
+      "@type": "WebSite",
+      name: "ResumePilot",
+      url: "https://resumepilot.com",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: "https://resumepilot.com/search?q={search_term_string}",
+        "query-input": "required name=search_term_string",
+      },
+    },
+    SOFTWARE_APPLICATION_SCHEMA,
+  ],
+};
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "ResumePilot — Beat the ATS, land the interview" },
-      { name: "description", content: "An AI-powered career toolkit for students, freshers, and job seekers — resume analysis, interview prep, report sharing, and more." },
-    ],
+  head: () => createSeoHead({
+    title: "Home",
+    description: "Free ATS Resume Checker for students and freshers. Analyze ATS score, generate AI interview questions, create cover letters, and improve your resume.",
+    path: "/",
+    schema: homeSchema,
   }),
   component: LandingPage,
 });
@@ -130,6 +149,7 @@ function LandingPage() {
     );
     navigate({ to: "/result" });
   };
+  
   return (
     <MarketingLayout>
       {/* Hero */}

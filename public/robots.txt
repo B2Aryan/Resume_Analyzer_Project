@@ -1,0 +1,9 @@
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /saved-reports
+Disallow: /history
+
+Sitemap: https://resumepilot.com/sitemap.xml

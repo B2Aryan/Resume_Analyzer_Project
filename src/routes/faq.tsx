@@ -2,13 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { createSeoHead, ORGANIZATION_SCHEMA } from "@/lib/seo";
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({
-    meta: [
-      { title: "FAQ — ResumePilot" },
-      { name: "description", content: "Answers to common questions about resume analysis, pricing and privacy." },
-    ],
+  head: () => createSeoHead({
+    title: "FAQ",
+    description: "Answers to common questions about resume analysis, pricing and privacy.",
+    path: "/faq",
+    schema: {
+      "@context": "https://schema.org",
+      "@graph": [ORGANIZATION_SCHEMA],
+    },
   }),
   component: FAQPage,
 });

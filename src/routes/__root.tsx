@@ -63,16 +63,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#DFF0FE", media: "(prefers-color-scheme: light)" },
       { name: "theme-color", content: "#0D609C", media: "(prefers-color-scheme: dark)" },
-      { title: "ResumePilot — Instant ATS Resume Analyzer for Students" },
-      { name: "description", content: "Upload your resume, get an instant ATS score, missing keywords, and improvement tips. Built for students and freshers." },
-      { property: "og:title", content: "ResumePilot — Instant ATS Resume Analyzer for Students" },
-      { property: "og:description", content: "Upload your resume, get an instant ATS score, missing keywords, and improvement tips. Built for students and freshers." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "ResumePilot — Instant ATS Resume Analyzer for Students" },
-      { name: "twitter:description", content: "Upload your resume, get an instant ATS score, missing keywords, and improvement tips. Built for students and freshers." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/407db6d2-0aa9-4f1f-ab75-259f4b3c297c" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/407db6d2-0aa9-4f1f-ab75-259f4b3c297c" },
+      // Google Search Console Verification - Replace with your actual verification code
+      { name: "google-site-verification", content: "YOUR_GOOGLE_VERIFICATION_CODE" },
+      // Bing Webmaster Verification - Replace with your actual verification code
+      { name: "msvalidate.01", content: "YOUR_BING_VERIFICATION_CODE" },
     ],
     links: [
       { rel: "icon", href: "/favicon.ico" },

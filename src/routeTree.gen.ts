@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
+import { Route as SoftwareEngineerResumeTemplateRouteImport } from './routes/software-engineer-resume-template'
+import { Route as ResumeScoreCheckerRouteImport } from './routes/resume-score-checker'
 import { Route as ResultRouteImport } from './routes/result'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -17,10 +19,15 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MockInterviewRouteImport } from './routes/mock-interview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as FresherResumeTemplateRouteImport } from './routes/fresher-resume-template'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DataDeletionRouteImport } from './routes/data-deletion'
+import { Route as DataAnalystResumeTemplateRouteImport } from './routes/data-analyst-resume-template'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AtsResumeCheckerRouteImport } from './routes/ats-resume-checker'
+import { Route as AiInterviewQuestionsRouteImport } from './routes/ai-interview-questions'
+import { Route as AiCoverLetterGeneratorRouteImport } from './routes/ai-cover-letter-generator'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
@@ -35,6 +42,17 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
   path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SoftwareEngineerResumeTemplateRoute =
+  SoftwareEngineerResumeTemplateRouteImport.update({
+    id: '/software-engineer-resume-template',
+    path: '/software-engineer-resume-template',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ResumeScoreCheckerRoute = ResumeScoreCheckerRouteImport.update({
+  id: '/resume-score-checker',
+  path: '/resume-score-checker',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResultRoute = ResultRouteImport.update({
@@ -72,6 +90,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FresherResumeTemplateRoute = FresherResumeTemplateRouteImport.update({
+  id: '/fresher-resume-template',
+  path: '/fresher-resume-template',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeaturesRoute = FeaturesRouteImport.update({
   id: '/features',
   path: '/features',
@@ -87,9 +110,30 @@ const DataDeletionRoute = DataDeletionRouteImport.update({
   path: '/data-deletion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DataAnalystResumeTemplateRoute =
+  DataAnalystResumeTemplateRouteImport.update({
+    id: '/data-analyst-resume-template',
+    path: '/data-analyst-resume-template',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtsResumeCheckerRoute = AtsResumeCheckerRouteImport.update({
+  id: '/ats-resume-checker',
+  path: '/ats-resume-checker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiInterviewQuestionsRoute = AiInterviewQuestionsRouteImport.update({
+  id: '/ai-interview-questions',
+  path: '/ai-interview-questions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiCoverLetterGeneratorRoute = AiCoverLetterGeneratorRouteImport.update({
+  id: '/ai-cover-letter-generator',
+  path: '/ai-cover-letter-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -146,10 +190,15 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-cover-letter-generator': typeof AiCoverLetterGeneratorRoute
+  '/ai-interview-questions': typeof AiInterviewQuestionsRoute
+  '/ats-resume-checker': typeof AtsResumeCheckerRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/fresher-resume-template': typeof FresherResumeTemplateRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
@@ -157,6 +206,8 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
+  '/resume-score-checker': typeof ResumeScoreCheckerRoute
+  '/software-engineer-resume-template': typeof SoftwareEngineerResumeTemplateRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -170,9 +221,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-cover-letter-generator': typeof AiCoverLetterGeneratorRoute
+  '/ai-interview-questions': typeof AiInterviewQuestionsRoute
+  '/ats-resume-checker': typeof AtsResumeCheckerRoute
+  '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/fresher-resume-template': typeof FresherResumeTemplateRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
@@ -180,6 +236,8 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
+  '/resume-score-checker': typeof ResumeScoreCheckerRoute
+  '/software-engineer-resume-template': typeof SoftwareEngineerResumeTemplateRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -194,10 +252,15 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-cover-letter-generator': typeof AiCoverLetterGeneratorRoute
+  '/ai-interview-questions': typeof AiInterviewQuestionsRoute
+  '/ats-resume-checker': typeof AtsResumeCheckerRoute
   '/dashboard': typeof DashboardRouteWithChildren
+  '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/fresher-resume-template': typeof FresherResumeTemplateRoute
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
@@ -205,6 +268,8 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
+  '/resume-score-checker': typeof ResumeScoreCheckerRoute
+  '/software-engineer-resume-template': typeof SoftwareEngineerResumeTemplateRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
@@ -220,10 +285,15 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/ai-cover-letter-generator'
+    | '/ai-interview-questions'
+    | '/ats-resume-checker'
     | '/dashboard'
+    | '/data-analyst-resume-template'
     | '/data-deletion'
     | '/faq'
     | '/features'
+    | '/fresher-resume-template'
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
@@ -231,6 +301,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/result'
+    | '/resume-score-checker'
+    | '/software-engineer-resume-template'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
@@ -244,9 +316,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/ai-cover-letter-generator'
+    | '/ai-interview-questions'
+    | '/ats-resume-checker'
+    | '/data-analyst-resume-template'
     | '/data-deletion'
     | '/faq'
     | '/features'
+    | '/fresher-resume-template'
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
@@ -254,6 +331,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/result'
+    | '/resume-score-checker'
+    | '/software-engineer-resume-template'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
@@ -267,10 +346,15 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/ai-cover-letter-generator'
+    | '/ai-interview-questions'
+    | '/ats-resume-checker'
     | '/dashboard'
+    | '/data-analyst-resume-template'
     | '/data-deletion'
     | '/faq'
     | '/features'
+    | '/fresher-resume-template'
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
@@ -278,6 +362,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/reset-password'
     | '/result'
+    | '/resume-score-checker'
+    | '/software-engineer-resume-template'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
@@ -292,10 +378,15 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AiCoverLetterGeneratorRoute: typeof AiCoverLetterGeneratorRoute
+  AiInterviewQuestionsRoute: typeof AiInterviewQuestionsRoute
+  AtsResumeCheckerRoute: typeof AtsResumeCheckerRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  DataAnalystResumeTemplateRoute: typeof DataAnalystResumeTemplateRoute
   DataDeletionRoute: typeof DataDeletionRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
+  FresherResumeTemplateRoute: typeof FresherResumeTemplateRoute
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   MockInterviewRoute: typeof MockInterviewRoute
@@ -303,6 +394,8 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResultRoute: typeof ResultRoute
+  ResumeScoreCheckerRoute: typeof ResumeScoreCheckerRoute
+  SoftwareEngineerResumeTemplateRoute: typeof SoftwareEngineerResumeTemplateRoute
   UploadRoute: typeof UploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   InterviewReportIdRoute: typeof InterviewReportIdRoute
@@ -316,6 +409,20 @@ declare module '@tanstack/react-router' {
       path: '/upload'
       fullPath: '/upload'
       preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/software-engineer-resume-template': {
+      id: '/software-engineer-resume-template'
+      path: '/software-engineer-resume-template'
+      fullPath: '/software-engineer-resume-template'
+      preLoaderRoute: typeof SoftwareEngineerResumeTemplateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resume-score-checker': {
+      id: '/resume-score-checker'
+      path: '/resume-score-checker'
+      fullPath: '/resume-score-checker'
+      preLoaderRoute: typeof ResumeScoreCheckerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/result': {
@@ -367,6 +474,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fresher-resume-template': {
+      id: '/fresher-resume-template'
+      path: '/fresher-resume-template'
+      fullPath: '/fresher-resume-template'
+      preLoaderRoute: typeof FresherResumeTemplateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/features': {
       id: '/features'
       path: '/features'
@@ -388,11 +502,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DataDeletionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/data-analyst-resume-template': {
+      id: '/data-analyst-resume-template'
+      path: '/data-analyst-resume-template'
+      fullPath: '/data-analyst-resume-template'
+      preLoaderRoute: typeof DataAnalystResumeTemplateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ats-resume-checker': {
+      id: '/ats-resume-checker'
+      path: '/ats-resume-checker'
+      fullPath: '/ats-resume-checker'
+      preLoaderRoute: typeof AtsResumeCheckerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-interview-questions': {
+      id: '/ai-interview-questions'
+      path: '/ai-interview-questions'
+      fullPath: '/ai-interview-questions'
+      preLoaderRoute: typeof AiInterviewQuestionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-cover-letter-generator': {
+      id: '/ai-cover-letter-generator'
+      path: '/ai-cover-letter-generator'
+      fullPath: '/ai-cover-letter-generator'
+      preLoaderRoute: typeof AiCoverLetterGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -491,10 +633,15 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AiCoverLetterGeneratorRoute: AiCoverLetterGeneratorRoute,
+  AiInterviewQuestionsRoute: AiInterviewQuestionsRoute,
+  AtsResumeCheckerRoute: AtsResumeCheckerRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  DataAnalystResumeTemplateRoute: DataAnalystResumeTemplateRoute,
   DataDeletionRoute: DataDeletionRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
+  FresherResumeTemplateRoute: FresherResumeTemplateRoute,
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   MockInterviewRoute: MockInterviewRoute,
@@ -502,6 +649,8 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResultRoute: ResultRoute,
+  ResumeScoreCheckerRoute: ResumeScoreCheckerRoute,
+  SoftwareEngineerResumeTemplateRoute: SoftwareEngineerResumeTemplateRoute,
   UploadRoute: UploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   InterviewReportIdRoute: InterviewReportIdRoute,

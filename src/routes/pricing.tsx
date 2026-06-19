@@ -3,13 +3,17 @@ import { Check, Sparkles, X } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { createSeoHead, ORGANIZATION_SCHEMA } from "@/lib/seo";
 
 export const Route = createFileRoute("/pricing")({
-  head: () => ({
-    meta: [
-      { title: "Pricing — ResumePilot" },
-      { name: "description", content: "Free forever for basic resume checks. Pro plan for unlimited scans and deeper feedback." },
-    ],
+  head: () => createSeoHead({
+    title: "Pricing",
+    description: "Choose the best ResumePilot plan for ATS analysis, interview preparation, and career growth.",
+    path: "/pricing",
+    schema: {
+      "@context": "https://schema.org",
+      "@graph": [ORGANIZATION_SCHEMA],
+    },
   }),
   component: PricingPage,
 });

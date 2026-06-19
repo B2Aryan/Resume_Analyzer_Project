@@ -2,13 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ScanSearch, MessageSquareCode, History, BookmarkCheck, Sparkles, FileText, ArrowRight } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { Button } from "@/components/ui/button";
+import { createSeoHead, ORGANIZATION_SCHEMA } from "@/lib/seo";
 
 export const Route = createFileRoute("/features")({
-  head: () => ({
-    meta: [
-      { title: "Features — ResumePilot" },
-      { name: "description", content: "An AI-powered career toolkit for students, freshers, and job seekers — resume analysis, interview prep, report sharing, and more." },
-    ],
+  head: () => createSeoHead({
+    title: "Features",
+    description: "Explore ATS analysis, interview questions, cover letter generation, resume history, report sharing, and more.",
+    path: "/features",
+    schema: {
+      "@context": "https://schema.org",
+      "@graph": [ORGANIZATION_SCHEMA],
+    },
   }),
   component: FeaturesPage,
 });

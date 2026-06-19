@@ -20,7 +20,12 @@ import {
 } from "recharts";
 
 export const Route = createFileRoute("/dashboard/")({
-  head: () => ({ meta: [{ title: "Dashboard — ResumePilot" }] }),
+  head: () => ({
+    meta: [
+      { title: "Dashboard — ResumePilot" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: DashboardHome,
 });
 
