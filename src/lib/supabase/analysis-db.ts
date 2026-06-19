@@ -18,6 +18,27 @@ export interface DBAnalysis {
   is_public: boolean;
 }
 
+// Type for the database profiles table
+export interface DBProfile {
+  id: string;
+  username: string | null;
+  avatar_id: number | null;
+  college: string | null;
+  degree: string | null;
+  branch: string | null;
+  graduation_year: string | null;
+  profile_confirmed: boolean;
+  plan: "free" | "premium";
+  analyses_used: number;
+  analyses_reset_date: string | null;
+  cover_letters_used: number;
+  cover_letters_reset_date: string | null;
+  interviews_used: number;
+  interviews_reset_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // Save a new analysis to Supabase
 export async function saveAnalysisToDB({
   user,

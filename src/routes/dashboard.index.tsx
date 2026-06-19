@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { TrendingUp, FileText, Plus, Bookmark, Trophy, Clock, Loader2, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import { TrendingUp, FileText, Plus, Bookmark, Trophy, Clock, Loader2, ArrowUpRight, ArrowDownRight, Minus, Lock } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchAnalysesFromDB } from "@/lib/supabase/analysis-db";
+import { fetchUserProfile, FREE_TIER_LIMITS } from "@/lib/supabase/usage";
 import { formatDistanceToNow } from "date-fns";
 import { useAnalysisStore } from "@/store/analysisStore";
 import {
@@ -28,9 +29,15 @@ function DashboardHome() {
   const navigate = useNavigate();
   const setResult = useAnalysisStore((state) => state.setResult);
 
-  const { data: analyses = [], isLoading } = useQuery({
+  const { data: analyses = [], isLoading: analysesLoading } = useQuery({
     queryKey: ["analyses", user?.id],
     queryFn: () => (user ? fetchAnalysesFromDB(user) : []),
+    enabled: !!user,
+  });
+
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: () => (user ? fetchUserProfile(user) : null),
     enabled: !!user,
   });
 
@@ -93,7 +100,7 @@ function DashboardHome() {
         </Button>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {/* Total Analyses */}
         <Card className="border-border/60">
           <CardContent className="flex items-center gap-4 p-5">
@@ -103,7 +110,7 @@ function DashboardHome() {
             <div>
               <p className="text-xs text-muted-foreground">Total analyses</p>
               <p className="font-display text-2xl font-bold">
-                {isLoading ? (
+                {analysesLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   totalAnalyses
@@ -122,7 +129,7 @@ function DashboardHome() {
             <div>
               <p className="text-xs text-muted-foreground">Best ATS score</p>
               <p className="font-display text-2xl font-bold">
-                {isLoading ? (
+                {analysesLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : bestScore !== null ? (
                   `${bestScore}%`
@@ -143,7 +150,7 @@ function DashboardHome() {
             <div>
               <p className="text-xs text-muted-foreground">Average ATS score</p>
               <p className="font-display text-2xl font-bold">
-                {isLoading ? (
+                {analysesLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : averageScore !== null ? (
                   `${averageScore}%`
@@ -164,12 +171,45 @@ function DashboardHome() {
             <div>
               <p className="text-xs text-muted-foreground">Saved reports</p>
               <p className="font-display text-2xl font-bold">
-                {isLoading ? (
+                {analysesLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   savedCount
                 )}
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Usage Limit */}
+        <Card className="border-border/60">
+          <CardContent className="flex items-center gap-4 p-5">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary">
+              <Lock className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground">
+                {userProfile?.plan === "premium" ? "Premium Plan" : "Analyses left"}
+              </p>
+              <p className="font-display text-2xl font-bold">
+                {profileLoading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : userProfile?.plan === "premium" ? (
+                  "∞"
+                ) : (
+                  `${FREE_TIER_LIMITS.analyses - (userProfile?.analyses_used || 0)}`
+                )}
+              </p>
+              {userProfile?.plan !== "premium" && (
+                <div className="mt-2 h-2 rounded-full bg-muted/50 overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-primary transition-all"
+                    style={{
+                      width: `${Math.min(100, ((userProfile?.analyses_used || 0) / FREE_TIER_LIMITS.analyses) * 100)}%`
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -185,7 +225,7 @@ function DashboardHome() {
               </Button>
             </div>
             <div className="mt-4">
-              {isLoading ? (
+              {analysesLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
@@ -277,7 +317,7 @@ function DashboardHome() {
           <CardContent className="p-6">
             <h2 className="font-display text-lg font-semibold">Score trend</h2>
             <p className="text-xs text-muted-foreground">Last 5 scans</p>
-            {isLoading ? (
+            {analysesLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>

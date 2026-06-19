@@ -6,12 +6,14 @@ import { toast } from "sonner";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { AnalysisProgressOverlay } from "@/components/analysis-progress-overlay";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import {
   type AnalysisProgressStepId,
   createProgressTracker,
 } from "@/lib/ats/analysis-progress";
 import { runResumeAnalysis } from "@/lib/ats/run-resume-analysis";
 import { saveAnalysisToDB } from "@/lib/supabase/analysis-db";
+import { canRunAnalysis, incrementAnalysisUsage } from "@/lib/supabase/usage";
 import { persistNewAnalysis, snapshotFromResult } from "@/lib/storage/analysis-versions";
 import { useAuth } from "@/contexts/AuthContext";
 import { RoleAutocomplete } from "@/components/role-autocomplete";
@@ -49,10 +51,20 @@ function UploadPage() {
   const [isPending, startTransition] = useTransition();
   const [activeStepId, setActiveStepId] = useState<AnalysisProgressStepId | null>(null);
   const [completedStepIds, setCompletedStepIds] = useState<Set<AnalysisProgressStepId>>(new Set());
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
-  const handleAnalyze = useCallback(() => {
+  const handleAnalyze = useCallback(async () => {
     const role = pastedRole.trim() || "Software Engineer";
     const jd = jobDescription.trim();
+
+    // Check usage limit first if user is logged in
+    if (user) {
+      const { canRun } = await canRunAnalysis(user);
+      if (!canRun) {
+        setUpgradeModalOpen(true);
+        return;
+      }
+    }
 
     if (uploadMethod === "file") {
       if (!selectedFile) {
@@ -110,6 +122,9 @@ function UploadPage() {
               analysisResult: result.data,
             });
             savedAnalysisId = dbResult?.id ?? null;
+            
+            // Increment usage
+            await incrementAnalysisUsage(user);
             
             // Invalidate queries to refresh dashboard data
             queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
@@ -408,6 +423,11 @@ Responsibilities:
           </div>
         </section>
       </MarketingLayout>
+      <UpgradeModal 
+        open={upgradeModalOpen} 
+        onOpenChange={setUpgradeModalOpen} 
+        feature="resume analyses" 
+      />
     </>
   );
 }

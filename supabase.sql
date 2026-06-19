@@ -11,6 +11,13 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   branch TEXT,
   graduation_year TEXT,
   profile_confirmed BOOLEAN DEFAULT FALSE,
+  plan TEXT DEFAULT 'free',
+  analyses_used INTEGER DEFAULT 0,
+  analyses_reset_date TIMESTAMPTZ,
+  cover_letters_used INTEGER DEFAULT 0,
+  cover_letters_reset_date TIMESTAMPTZ,
+  interviews_used INTEGER DEFAULT 0,
+  interviews_reset_date TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -31,25 +38,128 @@ CREATE TABLE IF NOT EXISTS public.feedback (
 DO $$
 BEGIN
   -- Add page_url if it doesn't exist
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'feedback' AND column_name = 'page_url') THEN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'feedback' AND column_name = 'page_url') THEN
     ALTER TABLE public.feedback ADD COLUMN page_url TEXT;
   END IF;
   
   -- Add screenshot_url if it doesn't exist
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'feedback' AND column_name = 'screenshot_url') THEN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'feedback' AND column_name = 'screenshot_url') THEN
     ALTER TABLE public.feedback ADD COLUMN screenshot_url TEXT;
   END IF;
   
   -- Add contact_me if it doesn't exist
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'feedback' AND column_name = 'contact_me') THEN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'feedback' AND column_name = 'contact_me') THEN
     ALTER TABLE public.feedback ADD COLUMN contact_me BOOLEAN DEFAULT FALSE;
   END IF;
   
   -- Drop old page column if it exists
-  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'feedback' AND column_name = 'page') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'feedback' AND column_name = 'page') THEN
     ALTER TABLE public.feedback DROP COLUMN page;
   END IF;
 END $$;
+
+-- Add usage tracking columns to profiles table (for existing tables)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'username'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN username TEXT;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'avatar_id'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN avatar_id INTEGER;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'profile_confirmed'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN profile_confirmed BOOLEAN DEFAULT FALSE;
+  END IF;
+  
+  -- Add usage tracking columns
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'plan'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN plan TEXT DEFAULT 'free';
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'analyses_used'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN analyses_used INTEGER DEFAULT 0;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'analyses_reset_date'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN analyses_reset_date TIMESTAMPTZ;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'cover_letters_used'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN cover_letters_used INTEGER DEFAULT 0;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'cover_letters_reset_date'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN cover_letters_reset_date TIMESTAMPTZ;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'interviews_used'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN interviews_used INTEGER DEFAULT 0;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'interviews_reset_date'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN interviews_reset_date TIMESTAMPTZ;
+  END IF;
+END $$;
+
+-- Update existing profiles with default values
+UPDATE public.profiles
+SET 
+  plan = COALESCE(plan, 'free'),
+  analyses_used = COALESCE(analyses_used, 0),
+  cover_letters_used = COALESCE(cover_letters_used, 0),
+  interviews_used = COALESCE(interviews_used, 0);
 
 -- Create storage bucket for feedback screenshots if it doesn't exist
 INSERT INTO storage.buckets (id, name, public)
@@ -88,34 +198,6 @@ CREATE POLICY "Allow authenticated users to delete their feedback screenshots"
   TO authenticated
   USING (bucket_id = 'feedback-screenshots' AND auth.uid() = owner);
 
--- Add username and avatar_id columns if they don't exist already (for existing tables)
-DO $$ 
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'profiles' 
-    AND column_name = 'username'
-  ) THEN
-    ALTER TABLE public.profiles ADD COLUMN username TEXT;
-  END IF;
-  
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'profiles' 
-    AND column_name = 'avatar_id'
-  ) THEN
-    ALTER TABLE public.profiles ADD COLUMN avatar_id INTEGER;
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'profiles' 
-    AND column_name = 'profile_confirmed'
-  ) THEN
-    ALTER TABLE public.profiles ADD COLUMN profile_confirmed BOOLEAN DEFAULT FALSE;
-  END IF;
-END $$;
-
 -- Analyses table (to store resume analyses)
 CREATE TABLE IF NOT EXISTS public.analyses (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -136,7 +218,8 @@ DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'analyses' 
+    WHERE table_schema = 'public'
+    AND table_name = 'analyses' 
     AND column_name = 'interview_questions'
   ) THEN
     ALTER TABLE public.analyses ADD COLUMN interview_questions JSONB;
@@ -148,7 +231,8 @@ DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'analyses' 
+    WHERE table_schema = 'public'
+    AND table_name = 'analyses' 
     AND column_name = 'is_public'
   ) THEN
     ALTER TABLE public.analyses ADD COLUMN is_public BOOLEAN DEFAULT FALSE;
