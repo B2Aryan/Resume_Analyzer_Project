@@ -24,6 +24,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as ReportIdRouteImport } from './routes/report.$id'
 import { Route as InterviewReportIdRouteImport } from './routes/interview-report.$id'
 import { Route as DashboardSavedRouteImport } from './routes/dashboard.saved'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
@@ -106,6 +107,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const ReportIdRoute = ReportIdRouteImport.update({
+  id: '/report/$id',
+  path: '/report/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InterviewReportIdRoute = InterviewReportIdRouteImport.update({
   id: '/interview-report/$id',
   path: '/interview-report/$id',
@@ -158,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
   '/interview-report/$id': typeof InterviewReportIdRoute
+  '/report/$id': typeof ReportIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
@@ -180,6 +187,7 @@ export interface FileRoutesByTo {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
   '/interview-report/$id': typeof InterviewReportIdRoute
+  '/report/$id': typeof ReportIdRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -204,6 +212,7 @@ export interface FileRoutesById {
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
   '/interview-report/$id': typeof InterviewReportIdRoute
+  '/report/$id': typeof ReportIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/saved'
     | '/interview-report/$id'
+    | '/report/$id'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -251,6 +261,7 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/saved'
     | '/interview-report/$id'
+    | '/report/$id'
     | '/dashboard'
   id:
     | '__root__'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/dashboard/profile'
     | '/dashboard/saved'
     | '/interview-report/$id'
+    | '/report/$id'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
@@ -294,6 +306,7 @@ export interface RootRouteChildren {
   UploadRoute: typeof UploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   InterviewReportIdRoute: typeof InterviewReportIdRoute
+  ReportIdRoute: typeof ReportIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -403,6 +416,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/report/$id': {
+      id: '/report/$id'
+      path: '/report/$id'
+      fullPath: '/report/$id'
+      preLoaderRoute: typeof ReportIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/interview-report/$id': {
       id: '/interview-report/$id'
       path: '/interview-report/$id'
@@ -485,6 +505,7 @@ const rootRouteChildren: RootRouteChildren = {
   UploadRoute: UploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   InterviewReportIdRoute: InterviewReportIdRoute,
+  ReportIdRoute: ReportIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -15,6 +15,7 @@ export interface DBAnalysis {
   analysis_result: ATSAnalysisResult;
   is_saved: boolean;
   interview_questions: InterviewQuestionsResponse | null;
+  is_public: boolean;
 }
 
 // Save a new analysis to Supabase
@@ -151,6 +152,37 @@ export async function toggleSaveAnalysis(
     .from("analyses")
     .update({ is_saved: shouldSave })
     .eq("id", analysisId);
+}
+
+// Toggle public status of an analysis
+export async function togglePublicAnalysis(
+  analysisId: string,
+  shouldBePublic: boolean
+): Promise<DBAnalysis | null> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    console.log("togglePublicAnalysis: No Supabase client available");
+    return null;
+  }
+
+  console.log("togglePublicAnalysis: Starting update for analysis ID:", analysisId);
+  console.log("togglePublicAnalysis: Setting is_public to:", shouldBePublic);
+
+  const { data, error } = await supabase
+    .from("analyses")
+    .update({ is_public: shouldBePublic })
+    .eq("id", analysisId)
+    .select()
+    .single();
+
+  console.log("togglePublicAnalysis: Supabase update result - data:", data);
+  console.log("togglePublicAnalysis: Supabase update result - error:", error);
+
+  if (error) {
+    console.error("togglePublicAnalysis: Failed to toggle public status:", error);
+    return null;
+  }
+  return data as DBAnalysis;
 }
 
 // Fetch a single analysis by ID

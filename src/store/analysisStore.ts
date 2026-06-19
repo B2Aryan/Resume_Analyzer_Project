@@ -35,6 +35,7 @@ interface AnalysisState {
   
   analysisId: string | null;
   isSaved: boolean;
+  isPublic: boolean;
   interviewQuestions: InterviewQuestionsResponse | null;
 
   setResult: (
@@ -43,10 +44,11 @@ interface AnalysisState {
     fileName: string,
     resumeText: string,
     jobDescription?: string,
-    options?: { animateEntry?: boolean; usedBackupProvider?: boolean; analysisId?: string; isSaved?: boolean; interviewQuestions?: InterviewQuestionsResponse },
+    options?: { animateEntry?: boolean; usedBackupProvider?: boolean; analysisId?: string; isSaved?: boolean; isPublic?: boolean; interviewQuestions?: InterviewQuestionsResponse },
   ) => void;
   setInterviewQuestions: (questions: InterviewQuestionsResponse | null) => void;
   setSaved: (isSaved: boolean) => void;
+  setPublic: (isPublic: boolean) => void;
   acknowledgeReportReveal: () => void;
   clearResult: () => void;
   savePendingAnalysis: () => void;
@@ -81,6 +83,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   
   analysisId: null,
   isSaved: false,
+  isPublic: false,
   interviewQuestions: null,
 
   setResult: (result, role, fileName, resumeText, jobDescription, options) => {
@@ -109,6 +112,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       usedBackupProvider: options?.usedBackupProvider ?? false,
       analysisId: options?.analysisId ?? null,
       isSaved: options?.isSaved ?? false,
+      isPublic: options?.isPublic ?? false,
       interviewQuestions: options?.interviewQuestions ?? null,
     });
   },
@@ -119,6 +123,10 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   
   setSaved: (isSaved) => {
     set({ isSaved });
+  },
+
+  setPublic: (isPublic) => {
+    set({ isPublic });
   },
 
   acknowledgeReportReveal: () => {
@@ -149,6 +157,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       usedBackupProvider: false,
       analysisId: null,
       isSaved: false,
+      isPublic: false,
       interviewQuestions: null,
     });
   },

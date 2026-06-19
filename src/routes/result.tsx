@@ -65,7 +65,7 @@ export const Route = createFileRoute("/result")({
   component: ResultPage,
 });
 
-function ResultPage() {
+export function ResultPage() {
   const navigate = useNavigate();
   const {
     hasResult,

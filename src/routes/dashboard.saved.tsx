@@ -86,7 +86,7 @@ function SavedReportsPage() {
   };
 
   const handleShareReport = (analysis: any) => {
-    navigator.clipboard.writeText(window.location.origin + "/result");
+    navigator.clipboard.writeText(window.location.origin + `/report/${analysis.id}`);
     toast.success("Report link copied");
   };
 
@@ -101,6 +101,7 @@ function SavedReportsPage() {
         animateEntry: false, 
         analysisId: analysis.id, 
         isSaved: true, 
+        isPublic: analysis.is_public,
         interviewQuestions: analysis.interview_questions || undefined 
       }
     );

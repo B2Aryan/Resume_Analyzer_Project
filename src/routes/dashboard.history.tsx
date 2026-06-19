@@ -93,6 +93,7 @@ function HistoryPage() {
         animateEntry: false, 
         analysisId: analysis.id, 
         isSaved: analysis.is_saved, 
+        isPublic: analysis.is_public,
         interviewQuestions: analysis.interview_questions || undefined 
       }
     );
@@ -100,9 +101,7 @@ function HistoryPage() {
   };
 
   const handleShareReport = (analysis: any) => {
-    // For now, copy a simple link (we can enhance later to a specific analysis ID, but current setup uses store
-    // Copy /result for now
-    navigator.clipboard.writeText(window.location.origin + "/result");
+    navigator.clipboard.writeText(window.location.origin + `/report/${analysis.id}`);
     toast.success("Report link copied");
   };
 
