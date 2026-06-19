@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Upload, Sparkles, Target, CheckCircle2, FileSearch, KeyRound, FolderKanban, FileText, LayoutGrid, Zap, GraduationCap, Heart, Quote, Star, TrendingUp } from "lucide-react";
+import { ArrowRight, Upload, Sparkles, Target, CheckCircle2, FileSearch, KeyRound, FolderKanban, FileText, LayoutGrid, Zap, GraduationCap, Heart, Quote, Star, TrendingUp, ScanSearch, MessageSquareCode, History, BookmarkCheck } from "lucide-react";
 import { TypingText } from "@/components/typing-text";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { Button } from "@/components/ui/button";
@@ -14,19 +14,19 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "ResumePilot — Beat the ATS, land the interview" },
-      { name: "description", content: "Free ATS resume analyzer for students. Upload, get a score, missing keywords and improvement tips in seconds." },
+      { name: "description", content: "An AI-powered career toolkit for students, freshers, and job seekers — resume analysis, interview prep, report sharing, and more." },
     ],
   }),
   component: LandingPage,
 });
 
 const features = [
-  { icon: Target, title: "ATS Compatibility Score", desc: "See exactly how parser-friendly your resume is, scored out of 100.", tone: "feat-blue" },
-  { icon: KeyRound, title: "Keyword Detection", desc: "Match against the target role and surface missing high-impact keywords.", tone: "feat-blue" },
-  { icon: FileText, title: "Summary & Skills Check", desc: "Make sure your headline, summary and skills section work for recruiters.", tone: "feat-purple" },
-  { icon: Sparkles, title: "Smart Suggestions", desc: "Actionable rewrites with stronger verbs and quantifiable outcomes.", tone: "feat-purple" },
-  { icon: FolderKanban, title: "Project Review", desc: "Get specific feedback on impact, metrics, and tech stack on every project.", tone: "feat-green" },
-  { icon: LayoutGrid, title: "Formatting Audit", desc: "Catch tables, columns, icons and exotic fonts that break ATS parsing.", tone: "feat-green" },
+  { icon: ScanSearch, title: "ATS Analysis", desc: "Analyze ATS compatibility, keyword match, formatting issues, and recruiter readiness.", tone: "feat-blue" },
+  { icon: MessageSquareCode, title: "AI Interview Questions", desc: "Generate personalized interview questions based on your resume and target role.", tone: "feat-blue" },
+  { icon: Sparkles, title: "AI Improvement Suggestions", desc: "Receive actionable recommendations to improve ATS score and resume quality.", tone: "feat-purple" },
+  { icon: History, title: "Resume History", desc: "Track every resume analysis and monitor improvements over time.", tone: "feat-purple" },
+  { icon: BookmarkCheck, title: "Saved Reports", desc: "Save important ATS reports and revisit them whenever needed.", tone: "feat-green" },
+  { icon: FileText, title: "Cover Letter Generator", desc: "Generate job-specific cover letters using your resume and job description.", tone: "feat-green" },
 ];
 
 const steps = [
@@ -242,14 +242,14 @@ function LandingPage() {
       <section id="features" className="py-14 sm:py-20">
         <div className="mx-auto max-w-7xl px-5 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">Everything you need to beat the ATS</h2>
-            <p className="mt-3 text-muted-foreground">Six powerful checks running on every scan.</p>
+            <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">Everything you need to land interviews</h2>
+            <p className="mt-3 text-muted-foreground">An AI-powered career toolkit for students, freshers, and job seekers.</p>
           </div>
           <div className="mt-10 grid sm:mt-12 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => {
               const Icon = f.icon;
               return (
-                <div key={f.title} className={`feature-card feat-tinted ${f.tone} p-6`}>
+                <div key={f.title} className={`feature-card feat-tinted ${f.tone} p-6 relative overflow-hidden transition-all hover:-translate-y-1 hover:shadow-elegant`}>
                   <div className="feat-icon mb-4 flex h-11 w-11 items-center justify-center rounded-xl">
                     <Icon className="h-5 w-5" />
                   </div>
@@ -291,36 +291,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-14 sm:py-20">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-[1.65rem] font-bold leading-tight sm:text-4xl">Loved by students across campuses</h2>
-          </div>
-          <div className="mt-10 grid sm:mt-12 gap-5 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <div key={t.name} className="feature-card relative p-6">
-                <Quote className="absolute right-5 top-4 h-8 w-8 text-primary/15" />
-                <div className="mb-3 flex gap-0.5 text-warning">
-                  {[1,2,3,4,5].map(i => <Star key={i} className="h-4 w-4 fill-current" />)}
-                </div>
-                <p className="text-sm leading-relaxed">{t.quote}</p>
-                <div className="mt-5 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-[11px] font-semibold text-success">
-                    <TrendingUp className="h-3 w-3" />
-                    {t.before} → {t.after}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section className="py-14 sm:py-20">
         <div className="mx-auto max-w-3xl px-5 sm:px-6">
@@ -335,39 +305,6 @@ function LandingPage() {
               </AccordionItem>
             ))}
           </Accordion>
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="py-12 sm:py-16 section-cta">
-        <div className="mx-auto max-w-5xl px-5 sm:px-6">
-          <CTAPanel>
-            <div className="px-6 py-8 text-center sm:px-12 sm:py-12 md:px-16 md:py-16">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/40 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_currentColor]" />
-                Free to start
-              </span>
-              <h2 className="mt-5 font-display text-3xl font-bold leading-[1.05] tracking-tight sm:text-5xl md:text-6xl">
-                Ready to land
-                <br className="hidden sm:block" />{" "}
-                <span className="text-gradient">more interviews?</span>
-              </h2>
-              <p className="mx-auto mt-5 max-w-xl text-sm text-muted-foreground sm:text-base">
-                Run your first analysis in under a minute. No card, no friction.
-              </p>
-              <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button asChild size="lg" variant="hero" className="group w-full sm:w-auto">
-                  <Link to="/upload">
-                    Analyze My Resume
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="ghost" className="w-full sm:w-auto">
-                  <Link to="/how-it-works">See how it works</Link>
-                </Button>
-              </div>
-            </div>
-          </CTAPanel>
         </div>
       </section>
     </MarketingLayout>
