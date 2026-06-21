@@ -1,6 +1,6 @@
 import { ATSAnalysisResult } from "@/lib/ats/types";
 import { getGeminiClient } from "@/lib/ai/gemini";
-import { getGroqClient, GROQ_ANALYSIS_MODEL } from "@/lib/ai/groq";
+import { getGroqClient, GROQ_ANALYSIS_MODEL, hasSecondaryGroqKey } from "@/lib/ai/groq";
 import { buildJDMatchResult, extractKeywordsFromText } from "@/lib/ats/jd-keyword-matcher";
 import { generateImprovementSuggestions } from "@/lib/ats/improvement-suggestions";
 import type { AnalysisProgressReporter } from "@/lib/ats/analysis-progress";
@@ -681,12 +681,29 @@ function isQuotaOrRateLimitError(error: unknown): boolean {
 }
 
 type ProviderAttempt =
-  | { success: true; data: ATSAnalysisResult; provider: AnalysisProvider }
+  | { success: true; data: ATSAnalysisResult; provider: AnalysisProvider; keyType?: "primary" | "secondary" }
   | { success: false; isQuotaError: boolean };
 
-async function tryGroqAnalysis(prompt: string): Promise<ProviderAttempt> {
+/**
+ * Try Groq analysis with a specific key
+ * @param prompt - Analysis prompt
+ * @param keyType - Which Groq key to use
+ */
+async function tryGroqAnalysisWithKey(
+  prompt: string,
+  keyType: "primary" | "secondary"
+): Promise<ProviderAttempt> {
+  const keyLabel = keyType === "primary" ? "Primary" : "Secondary";
+  
   try {
-    const client = getGroqClient();
+    console.log(`[Groq] Using ${keyLabel} Key`);
+    
+    const client = getGroqClient(keyType);
+    if (!client) {
+      console.log(`[Groq] ${keyLabel} Key not configured - skipping`);
+      return { success: false, isQuotaError: false };
+    }
+    
     const response = await client.chat.completions.create({
       model: GROQ_ANALYSIS_MODEL,
       messages: [{ role: "user", content: prompt }],
@@ -696,14 +713,51 @@ async function tryGroqAnalysis(prompt: string): Promise<ProviderAttempt> {
     const raw = response.choices[0]?.message?.content ?? "";
     const parsed = parseAnalysisJson(raw);
     if (!parsed) {
+      console.log(`[Groq] ${keyLabel} Key - Failed to parse response`);
       return { success: false, isQuotaError: false };
     }
 
-    return { success: true, data: parsed, provider: "groq" };
+    console.log(`[Groq] ${keyLabel} Key - Success ✓`);
+    return { success: true, data: parsed, provider: "groq", keyType };
   } catch (error) {
-    console.error("GROQ ERROR:", error);
-    return { success: false, isQuotaError: isQuotaOrRateLimitError(error) };
+    const isQuota = isQuotaOrRateLimitError(error);
+    const errorType = isQuota ? "Rate Limit/Quota Error" : "Error";
+    console.error(`[Groq] ${keyLabel} Key - ${errorType}:`, error);
+    return { success: false, isQuotaError: isQuota };
   }
+}
+
+/**
+ * Try Groq analysis with automatic failover from primary to secondary key
+ */
+async function tryGroqAnalysis(prompt: string): Promise<ProviderAttempt> {
+  // Try primary key first
+  const primaryResult = await tryGroqAnalysisWithKey(prompt, "primary");
+  if (primaryResult.success) {
+    return primaryResult;
+  }
+  
+  // Check if secondary key is available
+  if (!hasSecondaryGroqKey()) {
+    console.log("[Groq] No secondary key configured - skipping failover");
+    return primaryResult; // Return primary result with error info
+  }
+  
+  // Primary failed, try secondary
+  console.log("[Groq] Primary Key Failed - Switching to Secondary Key");
+  const secondaryResult = await tryGroqAnalysisWithKey(prompt, "secondary");
+  
+  if (secondaryResult.success) {
+    console.log("[Groq] Secondary Key Success - Failover successful ✓");
+    return secondaryResult;
+  }
+  
+  console.log("[Groq] Secondary Key Failed - Both Groq keys exhausted");
+  // Return the result with combined quota error status
+  return {
+    success: false,
+    isQuotaError: primaryResult.isQuotaError || secondaryResult.isQuotaError,
+  };
 }
 
 async function tryGeminiAnalysis(prompt: string): Promise<ProviderAttempt> {
@@ -741,8 +795,12 @@ async function runAnalysisProviderChain(prompt: string): Promise<AnalysisResult>
     };
   }
 
+  // Both Groq keys failed, fall back to Gemini
+  console.log("[Groq] Both keys failed - Falling back to Gemini");
+  
   const geminiResult = await tryGeminiAnalysis(prompt);
   if (geminiResult.success) {
+    console.log("[Gemini] Success ✓");
     return {
       success: true,
       data: geminiResult.data,
@@ -751,6 +809,7 @@ async function runAnalysisProviderChain(prompt: string): Promise<AnalysisResult>
     };
   }
 
+  console.error("[Analysis] All providers failed");
   return {
     success: false,
     error: "Failed to analyze resume",
