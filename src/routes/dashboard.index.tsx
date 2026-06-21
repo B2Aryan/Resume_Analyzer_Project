@@ -9,6 +9,7 @@ import { fetchAnalysesFromDB } from "@/lib/supabase/analysis-db";
 import { fetchUserProfile, FREE_TIER_LIMITS } from "@/lib/supabase/usage";
 import { formatDistanceToNow } from "date-fns";
 import { useAnalysisStore } from "@/store/analysisStore";
+import { hasPremiumAccess } from "@/lib/access";
 import {
   AreaChart,
   Area,
@@ -194,18 +195,18 @@ function DashboardHome() {
             </div>
             <div className="flex-1">
               <p className="text-xs text-muted-foreground">
-                {userProfile?.plan === "premium" ? "Premium Plan" : "Analyses left"}
+                {hasPremiumAccess(userProfile) ? "Premium Plan" : "Analyses left"}
               </p>
               <p className="font-display text-2xl font-bold">
                 {profileLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
-                ) : userProfile?.plan === "premium" ? (
+                ) : hasPremiumAccess(userProfile) ? (
                   "∞"
                 ) : (
                   `${FREE_TIER_LIMITS.analyses - (userProfile?.analyses_used || 0)}`
                 )}
               </p>
-              {userProfile?.plan !== "premium" && (
+              {!hasPremiumAccess(userProfile) && (
                 <div className="mt-2 h-2 rounded-full bg-muted/50 overflow-hidden">
                   <div 
                     className="h-full bg-gradient-primary transition-all"

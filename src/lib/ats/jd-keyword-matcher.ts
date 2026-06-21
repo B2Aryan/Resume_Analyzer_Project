@@ -5,21 +5,66 @@ import type { JDMatchResult } from "@/lib/ats/types";
  * Longest phrases should appear before shorter overlaps (sorted at runtime).
  */
 export const TECHNICAL_KEYWORDS = [
+  // Frontend Frameworks & Libraries
   "Spring Boot",
   "Ruby on Rails",
   "React Native",
   "Tailwind CSS",
   "Material UI",
   "Chakra UI",
+  "Remix",
+  "Astro",
+  "Solid.js",
+  "Vite",
+  "Webpack",
+  "Parcel",
+  "Rollup",
+  "Turborepo",
+  "Testing Library",
+  
+  // CI/CD & DevOps
   "GitHub Actions",
   "GitLab CI",
   "CircleCI",
   "Travis CI",
+  "Terraform",
+  "Ansible",
+  "Pulumi",
+  "ArgoCD",
+  "Helm",
+  
+  // AI/ML & Data
   "Machine Learning",
   "Deep Learning",
   "Data Science",
-  "Testing Library",
+  "Natural Language Processing",
+  "Computer Vision",
+  "Large Language Models",
+  "LangChain",
+  "Hugging Face",
+  "Scikit-learn",
+  "Pandas",
+  "NumPy",
+  "Matplotlib",
+  "Seaborn",
+  "Apache Spark",
+  "Apache Kafka",
+  "Apache Airflow",
+  "dbt",
+  "Snowflake",
+  "Databricks",
+  
+  // Web & API
   "REST API",
+  "GraphQL",
+  "WebSocket",
+  "gRPC",
+  "SOAP",
+  "tRPC",
+  "Swagger",
+  "OpenAPI",
+  
+  // Programming Languages
   "JavaScript",
   "TypeScript",
   "Python",
@@ -30,27 +75,52 @@ export const TECHNICAL_KEYWORDS = [
   "Rust",
   "PHP",
   "Ruby",
+  "Scala",
+  "Elixir",
+  "Dart",
+  "R",
+  
+  // Frontend Frameworks
   "React",
   "Vue",
   "Angular",
   "Next.js",
   "Nuxt.js",
   "Svelte",
+  "SvelteKit",
+  "Gatsby",
+  "Qwik",
+  
+  // Backend Frameworks
   "Node.js",
   "Express",
+  "Fastify",
+  "NestJS",
   "FastAPI",
   "Django",
   "Flask",
   "ASP.NET",
   "Laravel",
+  "Phoenix",
+  
+  // Styling & UI
   "HTML",
   "CSS",
   "SASS",
   "LESS",
   "Bootstrap",
+  "Ant Design",
+  "Styled Components",
+  "Emotion",
+  "shadcn/ui",
+  
+  // Version Control & Collaboration
   "Git",
   "GitHub",
   "GitLab",
+  "Bitbucket",
+  
+  // Cloud & Infrastructure
   "Docker",
   "Kubernetes",
   "AWS",
@@ -58,45 +128,129 @@ export const TECHNICAL_KEYWORDS = [
   "GCP",
   "Heroku",
   "Vercel",
-  "GraphQL",
-  "WebSocket",
-  "gRPC",
-  "SOAP",
+  "Netlify",
+  "Cloudflare",
+  "DigitalOcean",
+  "Linode",
+  
+  // Databases
   "SQL",
   "PostgreSQL",
   "MySQL",
   "MongoDB",
   "Redis",
+  "Elasticsearch",
+  "DynamoDB",
+  "Cassandra",
+  "Neo4j",
   "Firebase",
   "Supabase",
+  "PlanetScale",
   "Prisma",
+  "Drizzle",
+  "TypeORM",
+  "Sequelize",
+  
+  // Testing
   "Jest",
+  "Vitest",
   "Cypress",
   "Playwright",
+  "Puppeteer",
   "Mocha",
   "Chai",
   "Jasmine",
+  "Storybook",
+  
+  // Build Tools & Package Managers
   "CI/CD",
   "Jenkins",
+  "npm",
+  "Yarn",
+  "pnpm",
+  "Bun",
+  
+  // Project Management & Productivity
   "Agile",
   "Scrum",
   "Kanban",
   "Jira",
   "Confluence",
+  "Linear",
+  "Asana",
+  "Monday.com",
   "Notion",
+  "Slack",
+  "Discord",
+  
+  // Design Tools
   "Figma",
   "Adobe XD",
   "Sketch",
   "Photoshop",
   "Illustrator",
+  "InVision",
+  "Framer",
+  
+  // AI/ML Frameworks
   "TensorFlow",
   "PyTorch",
+  "Keras",
+  "ONNX",
+  "OpenCV",
+  
+  // Mobile Development
+  "React Native",
   "Flutter",
   "Swift",
+  "SwiftUI",
   "Kotlin",
+  "Jetpack Compose",
   "Objective-C",
   "Android",
   "iOS",
+  "Expo",
+  
+  // Authentication & Security
+  "OAuth",
+  "JWT",
+  "Auth0",
+  "Okta",
+  "Clerk",
+  "NextAuth.js",
+  
+  // State Management
+  "Redux",
+  "Zustand",
+  "Recoil",
+  "MobX",
+  "Jotai",
+  "Pinia",
+  "Vuex",
+  
+  // Backend as a Service
+  "Serverless",
+  "AWS Lambda",
+  "Google Cloud Functions",
+  "Azure Functions",
+  
+  // Monitoring & Logging
+  "Datadog",
+  "New Relic",
+  "Sentry",
+  "LogRocket",
+  "Splunk",
+  "Grafana",
+  "Prometheus",
+  
+  // CMS & E-commerce
+  "WordPress",
+  "Contentful",
+  "Strapi",
+  "Sanity",
+  "Shopify",
+  "WooCommerce",
+  "Magento",
 ] as const;
 
 /**
@@ -180,16 +334,45 @@ const TECHNICAL_ALIASES: Record<string, string> = {
   nodejs: "Node.js",
   "node js": "Node.js",
   nextjs: "Next.js",
+  "next js": "Next.js",
   nuxtjs: "Nuxt.js",
+  "nuxt js": "Nuxt.js",
   "react.js": "React",
   reactjs: "React",
   "vue.js": "Vue",
   vuejs: "Vue",
+  "svelte.js": "Svelte",
+  sveltejs: "Svelte",
   typescript: "TypeScript",
   javascript: "JavaScript",
   "mongo db": "MongoDB",
+  mongodb: "MongoDB",
   postgresql: "PostgreSQL",
+  postgres: "PostgreSQL",
   mysql: "MySQL",
+  "my sql": "MySQL",
+  "machine learning": "Machine Learning",
+  "deep learning": "Deep Learning",
+  "data science": "Data Science",
+  tensorflow: "TensorFlow",
+  pytorch: "PyTorch",
+  "llm": "Large Language Models",
+  "llms": "Large Language Models",
+  "nlp": "Natural Language Processing",
+  "ci cd": "CI/CD",
+  "aws lambda": "AWS Lambda",
+  kubernetes: "Kubernetes",
+  k8s: "Kubernetes",
+  docker: "Docker",
+  "scikit learn": "Scikit-learn",
+  sklearn: "Scikit-learn",
+  "natural language processing": "Natural Language Processing",
+  "computer vision": "Computer Vision",
+  vitejs: "Vite",
+  bun: "Bun",
+  "shadcn": "shadcn/ui",
+  "next auth": "NextAuth.js",
+  nextauth: "NextAuth.js",
 };
 
 const SORTED_TECHNICAL = [...TECHNICAL_KEYWORDS].sort((a, b) => b.length - a.length);
@@ -270,14 +453,14 @@ export interface JDKeywordMatchResult {
  * Deterministic JD ↔ resume keyword comparison (technical terms only).
  *
  * jdMatchScore = round(matchedKeywords.length / totalJDKeywords × 100)
- * isSufficientJD = true if ≥3 technical keywords extracted from JD
+ * isSufficientJD = true if ≥6 technical keywords extracted from JD
  */
 export function computeJDKeywordMatch(
   resumeText: string,
   jobDescription: string,
 ): JDKeywordMatchResult {
   const jdKeywords = extractKeywordsFromText(jobDescription);
-  const isSufficientJD = jdKeywords.length >= 3;
+  const isSufficientJD = jdKeywords.length >= 6;
   const resumeKeywords = extractKeywordsFromText(resumeText);
   const resumeKeywordSet = new Set(
     resumeKeywords.map((k) => normalizeToken(k)),

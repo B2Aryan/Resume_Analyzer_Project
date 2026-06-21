@@ -8,6 +8,7 @@ import {
 import { Session, User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase';
 import { PRESET_AVATARS } from '@/lib/avatars';
+import { logUserAccess } from '@/lib/access';
 
 type Profile = {
   id: string;
@@ -18,6 +19,8 @@ type Profile = {
   branch?: string;
   graduation_year?: string;
   profile_confirmed?: boolean;
+  plan?: "free" | "premium";
+  is_admin?: boolean;
   created_at?: string;
   updated_at?: string;
 };
@@ -110,6 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         )[0];
         console.log('[AuthContext] Using profile:', profileToUse);
         setProfile(profileToUse);
+        logUserAccess(profileToUse);
       } else {
         console.log('[AuthContext] No profile found, creating new profile...');
           const insertPayload = { 
@@ -532,6 +536,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
+    // During SSR or initial hydration, return safe defaults instead of throwing
+    if (typeof window === 'undefined') {
+      console.warn('[useAuth] Called during SSR - returning default values');
+      return {
+        session: null,
+        user: null,
+        isLoading: true,
+        profile: null,
+        refreshProfile: async () => {},
+        updateProfile: async () => {},
+        signInWithGoogle: async () => {},
+        signInWithGithub: async () => {},
+        signInWithFacebook: async () => {},
+        signInWithEmailOtp: async () => {},
+        verifyEmailOtp: async () => {},
+        signInWithPassword: async () => {},
+        signUpWithPassword: async () => {},
+        resetPassword: async () => {},
+        signOut: async () => {},
+      } as AuthContextType;
+    }
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

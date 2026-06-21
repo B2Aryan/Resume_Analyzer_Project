@@ -2,6 +2,7 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import type { DBProfile } from "./analysis-db";
+import { hasPremiumAccess, logUserAccess } from "@/lib/access";
 
 // Free tier limits
 export const FREE_TIER_LIMITS = {
@@ -48,8 +49,11 @@ export async function canRunAnalysis(user: User): Promise<{ canRun: boolean; rem
   const profile = await fetchUserProfile(user);
   if (!profile) return { canRun: false, remaining: 0, profile: {} as DBProfile };
 
-  // If user is premium, always allow
-  if (profile.plan === "premium") return { canRun: true, remaining: Infinity, profile };
+  // Log access state in development for verification
+  logUserAccess(profile);
+
+  // Admins and premium users bypass all usage limits
+  if (hasPremiumAccess(profile)) return { canRun: true, remaining: Infinity, profile };
 
   // Check if we need to reset
   let updatedProfile = profile;
@@ -66,7 +70,8 @@ export async function canGenerateCoverLetter(user: User): Promise<{ canRun: bool
   const profile = await fetchUserProfile(user);
   if (!profile) return { canRun: false, remaining: 0, profile: {} as DBProfile };
 
-  if (profile.plan === "premium") return { canRun: true, remaining: Infinity, profile };
+  // Admins and premium users bypass all usage limits
+  if (hasPremiumAccess(profile)) return { canRun: true, remaining: Infinity, profile };
 
   let updatedProfile = profile;
   if (needsReset(profile.cover_letters_reset_date)) {
@@ -82,7 +87,8 @@ export async function canRunMockInterview(user: User): Promise<{ canRun: boolean
   const profile = await fetchUserProfile(user);
   if (!profile) return { canRun: false, remaining: 0, profile: {} as DBProfile };
 
-  if (profile.plan === "premium") return { canRun: true, remaining: Infinity, profile };
+  // Admins and premium users bypass all usage limits
+  if (hasPremiumAccess(profile)) return { canRun: true, remaining: Infinity, profile };
 
   let updatedProfile = profile;
   if (needsReset(profile.interviews_reset_date)) {
@@ -99,7 +105,7 @@ async function updateUsageResetDate(user: User, type: "analyses" | "cover_letter
   if (!supabase) throw new Error("No Supabase client");
 
   const resetDate = getFirstDayOfMonth().toISOString();
-  const updateData: Record<string, any> = {
+  const updateData: Record<string, unknown> = {
     [`${type}_used`]: 0,
     [`${type}_reset_date`]: resetDate,
   };
@@ -174,4 +180,3 @@ export async function incrementMockInterviewUsage(user: User): Promise<DBProfile
   }
   return data as DBProfile;
 }
-

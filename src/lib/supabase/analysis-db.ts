@@ -29,6 +29,7 @@ export interface DBProfile {
   graduation_year: string | null;
   profile_confirmed: boolean;
   plan: "free" | "premium";
+  is_admin: boolean;
   analyses_used: number;
   analyses_reset_date: string | null;
   cover_letters_used: number;

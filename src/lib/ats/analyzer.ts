@@ -690,7 +690,7 @@ async function tryGroqAnalysis(prompt: string): Promise<ProviderAttempt> {
     const response = await client.chat.completions.create({
       model: GROQ_ANALYSIS_MODEL,
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.2,
+      temperature: 0,
     });
 
     const raw = response.choices[0]?.message?.content ?? "";
@@ -712,6 +712,9 @@ async function tryGeminiAnalysis(prompt: string): Promise<ProviderAttempt> {
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
+      config: {
+        temperature: 0,
+      },
     });
 
     const raw = response.text ?? "";
@@ -769,7 +772,7 @@ export async function analyzeResumeWithGemini(
   let hasSufficientJDKeywords = false;
   if (jd) {
     const jdKeywords = extractKeywordsFromText(jd);
-    hasSufficientJDKeywords = jdKeywords.length >=3;
+    hasSufficientJDKeywords = jdKeywords.length >= 6;
   }
 
   const prompt = jd && hasSufficientJDKeywords

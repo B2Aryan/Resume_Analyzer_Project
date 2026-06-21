@@ -17,6 +17,7 @@ import { INDIAN_UNIVERSITIES } from "@/lib/universities";
 import { DEGREES, type Degree } from "@/lib/degrees";
 import { BRANCHES } from "@/lib/branches";
 import { toast } from "sonner";
+import { hasPremiumAccess, isAdmin } from "@/lib/access";
 
 export const Route = createFileRoute("/dashboard/profile")({
   head: () => ({ meta: [{ title: "Profile — ResumePilot" }] }),
@@ -532,24 +533,41 @@ function ProfilePage() {
           <Card className="border-border/60 bg-gradient-card">
             <CardContent className="p-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Current Plan</p>
-              <p className="mt-1 font-display text-2xl font-bold">Free Plan</p>
+              <p className="mt-1 font-display text-2xl font-bold">
+                {isAdmin(profile) ? "Admin" : hasPremiumAccess(profile) ? "Premium Plan" : "Free Plan"}
+              </p>
               
-              <div className="mt-6 space-y-4">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Monthly Usage</span>
-                    <span>{stats.totalAnalyses} / 3 scans used</span>
+              {!hasPremiumAccess(profile) && (
+                <div className="mt-6 space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">Monthly Usage</span>
+                      <span>{stats.totalAnalyses} / 3 scans used</span>
+                    </div>
+                    <Progress value={(stats.totalAnalyses / 3) * 100} className="h-2" />
                   </div>
-                  <Progress value={(stats.totalAnalyses / 3) * 100} className="h-2" />
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Remaining Scans</span>
+                    <span className="font-medium">{Math.max(3 - stats.totalAnalyses, 0)} scans remaining</span>
+                  </div>
                 </div>
-                
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Remaining Scans</span>
-                  <span className="font-medium">{Math.max(3 - stats.totalAnalyses, 0)} scans remaining</span>
+              )}
+
+              {hasPremiumAccess(profile) && (
+                <div className="mt-4 space-y-1">
+                  <p className="text-sm text-muted-foreground">✓ Unlimited ATS analyses</p>
+                  <p className="text-sm text-muted-foreground">✓ Unlimited cover letters</p>
+                  <p className="text-sm text-muted-foreground">✓ Unlimited interview questions</p>
+                  {isAdmin(profile) && (
+                    <p className="text-sm text-muted-foreground">✓ Admin access</p>
+                  )}
                 </div>
-              </div>
+              )}
               
-              <Button variant="outline" className="mt-6 w-full">Upgrade to Pro</Button>
+              {!hasPremiumAccess(profile) && (
+                <Button variant="outline" className="mt-6 w-full">Upgrade to Pro</Button>
+              )}
             </CardContent>
           </Card>
         </div>
