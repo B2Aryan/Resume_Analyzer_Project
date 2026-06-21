@@ -96,13 +96,13 @@ Optimized for:
 Clone repository:
 
 ```bash
-git clone https://github.com/yourusername/resumecheck-ai.git
+git clone https://github.com/B2Aryan/Resume_Analyzer_Project.git
 ```
 
 Go into project directory:
 
 ```bash
-cd resumecheck-ai
+cd Resume_Analyzer_Project
 ```
 
 Install dependencies:
