@@ -7,8 +7,6 @@
  * SECURITY: Pricing is defined server-side only. Frontend cannot manipulate prices.
  */
 
-import { json } from "@tanstack/start";
-import type { APIEvent } from "@tanstack/start";
 import { getRazorpayInstance, RAZORPAY_CONFIG } from "@/lib/razorpay/config";
 
 // Backend-only pricing table (NEVER exposed to frontend)
@@ -33,16 +31,23 @@ interface CreateOrderResponse {
   error?: string;
 }
 
-export async function POST({ request }: APIEvent): Promise<Response> {
+export default async function handler(req: Request): Promise<Response> {
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      { status: 405, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   try {
-    const body = (await request.json()) as CreateOrderRequest;
+    const body = (await req.json()) as CreateOrderRequest;
     const { productId, currency = RAZORPAY_CONFIG.currency, receipt, notes } = body;
 
     // Validation: Check if product exists
     if (!productId || !(productId in PRICING)) {
-      return json<CreateOrderResponse>(
-        { success: false, error: "Invalid product" },
-        { status: 400 }
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid product" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -52,22 +57,22 @@ export async function POST({ request }: APIEvent): Promise<Response> {
 
     // Validate amount limits (should never fail with backend pricing)
     if (amountInPaise < RAZORPAY_CONFIG.minAmount) {
-      return json<CreateOrderResponse>(
-        {
+      return new Response(
+        JSON.stringify({
           success: false,
           error: `Amount must be at least ₹${RAZORPAY_CONFIG.minAmount / 100}`,
-        },
-        { status: 400 }
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     if (amountInPaise > RAZORPAY_CONFIG.maxAmount) {
-      return json<CreateOrderResponse>(
-        {
+      return new Response(
+        JSON.stringify({
           success: false,
           error: `Amount must not exceed ₹${RAZORPAY_CONFIG.maxAmount / 100}`,
-        },
-        { status: 400 }
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -88,21 +93,24 @@ export async function POST({ request }: APIEvent): Promise<Response> {
 
     console.log("[Razorpay] Order created:", order.id, "Product:", productId, "Amount:", amount);
 
-    return json<CreateOrderResponse>({
-      success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency,
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        orderId: order.id,
+        amount: order.amount,
+        currency: order.currency,
+      }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error("[Razorpay] Order creation failed:", error);
 
-    return json<CreateOrderResponse>(
-      {
+    return new Response(
+      JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : "Failed to create order",
-      },
-      { status: 500 }
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

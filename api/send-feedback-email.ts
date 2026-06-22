@@ -1,5 +1,3 @@
-import { json } from "@tanstack/start";
-import type { APIEvent } from "@tanstack/start";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -34,13 +32,20 @@ function getBadgeColor(type: string): { bg: string; text: string } {
   }
 }
 
-export async function POST({ request }: APIEvent): Promise<Response> {
+export default async function handler(req: Request): Promise<Response> {
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      { status: 405, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   console.log("FEEDBACK API HIT");
   console.log("ADMIN_EMAIL =", process.env.ADMIN_EMAIL);
   console.log("RESEND_API_KEY present =", !!process.env.RESEND_API_KEY);
   
   try {
-    const body = await request.json();
+    const body = await req.json();
     console.log("Request body:", body);
     
     const {
@@ -210,28 +215,31 @@ export async function POST({ request }: APIEvent): Promise<Response> {
     if (error) {
       console.error("RESEND FAILURE", error);
       console.error("Resend error:", error);
-      return json(
-        {
+      return new Response(
+        JSON.stringify({
           success: false,
           error: error instanceof Error ? error.message : String(error)
-        },
-        { status: 500 }
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
     console.log("RESEND SUCCESS", { data });
     console.log("Email sent successfully");
-    return json({ success: true, data });
+    return new Response(
+      JSON.stringify({ success: true, data }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   } catch (error) {
     console.error("RESEND FAILURE", error);
     console.error("API ERROR:", error);
     console.error("Server error sending feedback email:", error);
-    return json(
-      {
+    return new Response(
+      JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : String(error)
-      },
-      { status: 500 }
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }

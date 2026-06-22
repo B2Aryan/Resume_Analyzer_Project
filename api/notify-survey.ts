@@ -1,5 +1,3 @@
-import { json } from "@tanstack/start";
-import type { APIEvent } from "@tanstack/start";
 import { Resend } from "resend";
 
 // Validate required environment variables
@@ -13,33 +11,40 @@ if (!process.env.ADMIN_EMAIL) {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export async function POST({ request }: APIEvent): Promise<Response> {
+export default async function handler(req: Request): Promise<Response> {
+  if (req.method !== "POST") {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      { status: 405, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   console.log("=================================================");
   console.log("SURVEY ROUTE EXECUTED");
   console.log("=================================================");
   
   try {
-    const body = await request.json();
+    const body = await req.json();
     console.log("SURVEY API HIT", body);
     const { userName, userEmail, userId, submissionTimestamp, answers } = body;
 
     // Validate required fields
     if (!userName || !userEmail || !userId || !submissionTimestamp || !answers) {
-      return json(
-        { error: "Missing required fields" },
-        { status: 400 }
+      return new Response(
+        JSON.stringify({ error: "Missing required fields" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Check if email system is configured
     if (!process.env.RESEND_API_KEY || !process.env.ADMIN_EMAIL) {
       console.error("❌ Cannot send email: RESEND_API_KEY or ADMIN_EMAIL not configured");
-      return json(
-        { 
+      return new Response(
+        JSON.stringify({ 
           success: true, 
           warning: "Email notification skipped: Email system not configured" 
-        },
-        { status: 200 }
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -154,28 +159,34 @@ export async function POST({ request }: APIEvent): Promise<Response> {
       console.log(`   User: ${userName} (${userEmail})`);
       console.log("Resend success:", emailResponse);
 
-      return json({ 
-        success: true, 
-        emailId: emailResponse.data?.id,
-        recipient: adminEmail 
-      });
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          emailId: emailResponse.data?.id,
+          recipient: adminEmail 
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
     } catch (emailError: any) {
       // Log error but don't fail the request
       console.error("Resend failure:", emailError);
       console.error("❌ Failed to send survey notification email:", emailError);
       console.error("   Error details:", emailError.message || emailError);
       
-      return json({ 
-        success: true, 
-        warning: "Email notification failed but survey submission succeeded",
-        error: emailError.message 
-      });
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          warning: "Email notification failed but survey submission succeeded",
+          error: emailError.message 
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
     }
   } catch (error: any) {
     console.error("❌ Survey notification error:", error);
-    return json(
-      { error: "Internal server error", details: error.message },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: "Internal server error", details: error.message }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
