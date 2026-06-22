@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
 
 // Validate required environment variables
@@ -11,12 +12,9 @@ if (!process.env.ADMIN_EMAIL) {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
-    );
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   console.log("=================================================");
@@ -24,28 +22,22 @@ export default async function handler(req: Request): Promise<Response> {
   console.log("=================================================");
   
   try {
-    const body = await req.json();
+    const body = req.body;
     console.log("WAITLIST API HIT", body);
     const { userName, userEmail, userId, joinTimestamp, totalCount, position, sourcePage } = body;
 
     // Validate required fields
     if (!userName || !userEmail || !userId || !joinTimestamp || totalCount === undefined) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     // Check if email system is configured
     if (!process.env.RESEND_API_KEY || !process.env.ADMIN_EMAIL) {
       console.error("❌ Cannot send email: RESEND_API_KEY or ADMIN_EMAIL not configured");
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          warning: "Email notification skipped: Email system not configured" 
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(200).json({ 
+        success: true, 
+        warning: "Email notification skipped: Email system not configured" 
+      });
     }
 
     const adminEmail = process.env.ADMIN_EMAIL;
@@ -132,34 +124,25 @@ export default async function handler(req: Request): Promise<Response> {
       console.log(`   User: ${userName} (${userEmail})`);
       console.log("Resend success:", emailResponse);
 
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          emailId: emailResponse.data?.id,
-          recipient: adminEmail 
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(200).json({ 
+        success: true, 
+        emailId: emailResponse.data?.id,
+        recipient: adminEmail 
+      });
     } catch (emailError: any) {
       // Log error but don't fail the request
       console.error("Resend failure:", emailError);
       console.error("❌ Failed to send waitlist notification email:", emailError);
       console.error("   Error details:", emailError.message || emailError);
       
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          warning: "Email notification failed but waitlist signup succeeded",
-          error: emailError.message 
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(200).json({ 
+        success: true, 
+        warning: "Email notification failed but waitlist signup succeeded",
+        error: emailError.message 
+      });
     }
   } catch (error: any) {
     console.error("❌ Waitlist notification error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error", details: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return res.status(500).json({ error: "Internal server error", details: error.message });
   }
 }

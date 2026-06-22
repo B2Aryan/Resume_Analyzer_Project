@@ -9,6 +9,7 @@
  * Frontend CANNOT upgrade users to premium.
  */
 
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "crypto";
 import { createClient } from "@supabase/supabase-js";
 
@@ -27,41 +28,29 @@ interface VerifyPaymentResponse {
   message?: string;
 }
 
-export default async function handler(req: Request): Promise<Response> {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } }
-    );
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const body = (await req.json()) as VerifyPaymentRequest;
+    const body = req.body as VerifyPaymentRequest;
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId } = body;
 
     // Validation
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Missing payment verification parameters" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(400).json({ success: false, error: "Missing payment verification parameters" });
     }
 
     if (!userId) {
-      return new Response(
-        JSON.stringify({ success: false, error: "User ID required for premium activation" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(400).json({ success: false, error: "User ID required for premium activation" });
     }
 
     // Get Razorpay secret key from environment
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     if (!keySecret) {
       console.error("[Razorpay] Secret key not configured");
-      return new Response(
-        JSON.stringify({ success: false, error: "Payment verification not configured" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(500).json({ success: false, error: "Payment verification not configured" });
     }
 
     // Generate expected signature
@@ -79,15 +68,12 @@ export default async function handler(req: Request): Promise<Response> {
 
     if (!isValid) {
       console.error("[Razorpay] Payment signature verification failed");
-      return new Response(
-        JSON.stringify({
-          success: false,
-          verified: false,
-          premiumActivated: false,
-          error: "Payment signature verification failed",
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(400).json({
+        success: false,
+        verified: false,
+        premiumActivated: false,
+        error: "Payment signature verification failed",
+      });
     }
 
     console.log("[Razorpay] Payment verified successfully:", razorpay_payment_id);
@@ -99,15 +85,12 @@ export default async function handler(req: Request): Promise<Response> {
 
     if (!supabaseUrl || !supabaseServiceRoleKey) {
       console.error("[Razorpay] Supabase credentials not configured");
-      return new Response(
-        JSON.stringify({
-          success: false,
-          verified: true,
-          premiumActivated: false,
-          error: "Payment verified but premium activation not configured",
-        }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(500).json({
+        success: false,
+        verified: true,
+        premiumActivated: false,
+        error: "Payment verified but premium activation not configured",
+      });
     }
 
     // Create Supabase client with Service Role Key (bypasses RLS)
@@ -126,39 +109,30 @@ export default async function handler(req: Request): Promise<Response> {
 
     if (updateError) {
       console.error("[Razorpay] Failed to activate premium:", updateError);
-      return new Response(
-        JSON.stringify({
-          success: false,
-          verified: true,
-          premiumActivated: false,
-          error: "Payment verified but failed to activate premium. Please contact support.",
-        }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
+      return res.status(500).json({
+        success: false,
+        verified: true,
+        premiumActivated: false,
+        error: "Payment verified but failed to activate premium. Please contact support.",
+      });
     }
 
     console.log("[Razorpay] Premium activated for user:", userId);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        verified: true,
-        premiumActivated: true,
-        message: "Payment verified and premium activated successfully",
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return res.status(200).json({
+      success: true,
+      verified: true,
+      premiumActivated: true,
+      message: "Payment verified and premium activated successfully",
+    });
   } catch (error) {
     console.error("[Razorpay] Payment verification error:", error);
 
-    return new Response(
-      JSON.stringify({
-        success: false,
-        verified: false,
-        premiumActivated: false,
-        error: error instanceof Error ? error.message : "Payment verification failed",
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    return res.status(500).json({
+      success: false,
+      verified: false,
+      premiumActivated: false,
+      error: error instanceof Error ? error.message : "Payment verification failed",
+    });
   }
 }
