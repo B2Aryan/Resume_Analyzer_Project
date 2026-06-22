@@ -1,4 +1,5 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { json } from "@tanstack/start";
+import type { APIEvent } from "@tanstack/start";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -33,18 +34,13 @@ function getBadgeColor(type: string): { bg: string; text: string } {
   }
 }
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
-  console.log("API START");
+export async function POST({ request }: APIEvent): Promise<Response> {
+  console.log("FEEDBACK API HIT");
+  console.log("ADMIN_EMAIL =", process.env.ADMIN_EMAIL);
+  console.log("RESEND_API_KEY present =", !!process.env.RESEND_API_KEY);
   
-  if (req.method !== "POST") {
-    return res.status(405).send("Method Not Allowed");
-  }
-
   try {
-    const body = req.body;
+    const body = await request.json();
     console.log("Request body:", body);
     
     const {
@@ -64,10 +60,11 @@ export default async function handler(
 
     const subject = `[ResumePilot] New ${feedback_type} Feedback`;
 
+    console.log("Attempting to send email");
     console.log("Sending email...");
     const { data, error } = await resend.emails.send({
       from: "ResumePilot Feedback <onboarding@resend.dev>",
-      to: "aryan639244@gmail.com",
+      to: process.env.ADMIN_EMAIL || "aryan639244@gmail.com",
       subject,
       html: `
         <!DOCTYPE html>
@@ -211,21 +208,30 @@ export default async function handler(
     });
 
     if (error) {
+      console.error("RESEND FAILURE", error);
       console.error("Resend error:", error);
-      return res.status(500).json({
-        success: false,
-        error: String(error)
-      });
+      return json(
+        {
+          success: false,
+          error: error instanceof Error ? error.message : String(error)
+        },
+        { status: 500 }
+      );
     }
 
+    console.log("RESEND SUCCESS", { data });
     console.log("Email sent successfully");
-    return res.status(200).json({ success: true, data });
+    return json({ success: true, data });
   } catch (error) {
+    console.error("RESEND FAILURE", error);
     console.error("API ERROR:", error);
     console.error("Server error sending feedback email:", error);
-    return res.status(500).json({
-      success: false,
-      error: String(error)
-    });
+    return json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : String(error)
+      },
+      { status: 500 }
+    );
   }
 }

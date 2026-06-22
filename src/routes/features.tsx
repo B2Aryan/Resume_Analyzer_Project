@@ -41,8 +41,8 @@ function FeaturesPage() {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link to="/pricing">
-                View Pricing
+              <Link to="/coming-soon">
+                View Coming Soon
               </Link>
             </Button>
           </div>

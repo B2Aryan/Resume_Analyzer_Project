@@ -31,7 +31,7 @@ export function SiteFooter() {
             <h4 className="text-sm font-semibold">Product</h4>
             <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li><Link to="/features" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">Features</Link></li>
-              <li><Link to="/pricing" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">Pricing</Link></li>
+              <li><Link to="/coming-soon" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">Coming Soon</Link></li>
               <li><Link to="/how-it-works" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">How it works</Link></li>
               <li><Link to="/upload" className="inline-block transition-all hover:translate-x-0.5 hover:text-foreground">Upload Resume</Link></li>
             </ul>

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   plan TEXT DEFAULT 'free',
   analyses_used INTEGER DEFAULT 0,
   analyses_reset_date TIMESTAMPTZ,
+  bonus_analyses INTEGER DEFAULT 0,
   cover_letters_used INTEGER DEFAULT 0,
   cover_letters_reset_date TIMESTAMPTZ,
   interviews_used INTEGER DEFAULT 0,
@@ -114,6 +115,15 @@ BEGIN
     AND column_name = 'analyses_reset_date'
   ) THEN
     ALTER TABLE public.profiles ADD COLUMN analyses_reset_date TIMESTAMPTZ;
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'profiles' 
+    AND column_name = 'bonus_analyses'
+  ) THEN
+    ALTER TABLE public.profiles ADD COLUMN bonus_analyses INTEGER DEFAULT 0;
   END IF;
   
   IF NOT EXISTS (
@@ -315,3 +325,69 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Premium Interest Waitlist Table
+CREATE TABLE IF NOT EXISTS public.premium_interest (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  source TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  UNIQUE(user_id)
+);
+
+-- Add source column if it doesn't exist (for existing tables)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public'
+    AND table_name = 'premium_interest' 
+    AND column_name = 'source'
+  ) THEN
+    ALTER TABLE public.premium_interest ADD COLUMN source TEXT;
+  END IF;
+END $$;
+
+-- Survey Rewards Table
+CREATE TABLE IF NOT EXISTS public.survey_rewards (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  answers JSONB NOT NULL,
+  reward_claimed BOOLEAN DEFAULT TRUE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+  UNIQUE(user_id)
+);
+
+-- Enable RLS on new tables
+ALTER TABLE public.premium_interest ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.survey_rewards ENABLE ROW LEVEL SECURITY;
+
+-- RLS policies for premium_interest
+CREATE POLICY "Users can view their own interest"
+  ON public.premium_interest
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can add their own interest"
+  ON public.premium_interest
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- RLS policies for survey_rewards
+CREATE POLICY "Users can view their own survey"
+  ON public.survey_rewards
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can submit their own survey"
+  ON public.survey_rewards
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS premium_interest_user_id_idx ON public.premium_interest(user_id);
+CREATE INDEX IF NOT EXISTS survey_rewards_user_id_idx ON public.survey_rewards(user_id);
+
+-- Comments for documentation
+COMMENT ON TABLE public.premium_interest IS 'Tracks users interested in Premium launch notification';
+COMMENT ON TABLE public.survey_rewards IS 'Tracks survey completion and rewards (one-time per user)';

@@ -31,7 +31,7 @@ function SiteNavbarImpl() {
   const links = [
     { to: "/features", label: "Features" },
     { to: "/how-it-works", label: "How it works" },
-    { to: "/pricing", label: "Pricing" },
+    { to: "/coming-soon", label: "Coming Soon" },
     { to: "/faq", label: "FAQ" },
   ] as const;
 

@@ -15,7 +15,6 @@ import { Route as ResumeScoreCheckerRouteImport } from './routes/resume-score-ch
 import { Route as ResultRouteImport } from './routes/result'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MockInterviewRouteImport } from './routes/mock-interview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -25,6 +24,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DataDeletionRouteImport } from './routes/data-deletion'
 import { Route as DataAnalystResumeTemplateRouteImport } from './routes/data-analyst-resume-template'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ComingSoonRouteImport } from './routes/coming-soon'
 import { Route as AtsResumeCheckerRouteImport } from './routes/ats-resume-checker'
 import { Route as AiInterviewQuestionsRouteImport } from './routes/ai-interview-questions'
 import { Route as AiCoverLetterGeneratorRouteImport } from './routes/ai-cover-letter-generator'
@@ -68,11 +68,6 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MockInterviewRoute = MockInterviewRouteImport.update({
@@ -119,6 +114,11 @@ const DataAnalystResumeTemplateRoute =
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComingSoonRoute = ComingSoonRouteImport.update({
+  id: '/coming-soon',
+  path: '/coming-soon',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AtsResumeCheckerRoute = AtsResumeCheckerRouteImport.update({
@@ -193,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/ai-cover-letter-generator': typeof AiCoverLetterGeneratorRoute
   '/ai-interview-questions': typeof AiInterviewQuestionsRoute
   '/ats-resume-checker': typeof AtsResumeCheckerRoute
+  '/coming-soon': typeof ComingSoonRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
@@ -202,7 +203,6 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
-  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
@@ -224,6 +224,7 @@ export interface FileRoutesByTo {
   '/ai-cover-letter-generator': typeof AiCoverLetterGeneratorRoute
   '/ai-interview-questions': typeof AiInterviewQuestionsRoute
   '/ats-resume-checker': typeof AtsResumeCheckerRoute
+  '/coming-soon': typeof ComingSoonRoute
   '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
@@ -232,7 +233,6 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
-  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
@@ -255,6 +255,7 @@ export interface FileRoutesById {
   '/ai-cover-letter-generator': typeof AiCoverLetterGeneratorRoute
   '/ai-interview-questions': typeof AiInterviewQuestionsRoute
   '/ats-resume-checker': typeof AtsResumeCheckerRoute
+  '/coming-soon': typeof ComingSoonRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
@@ -264,7 +265,6 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
-  '/pricing': typeof PricingRoute
   '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/result': typeof ResultRoute
@@ -288,6 +288,7 @@ export interface FileRouteTypes {
     | '/ai-cover-letter-generator'
     | '/ai-interview-questions'
     | '/ats-resume-checker'
+    | '/coming-soon'
     | '/dashboard'
     | '/data-analyst-resume-template'
     | '/data-deletion'
@@ -297,7 +298,6 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
-    | '/pricing'
     | '/privacy'
     | '/reset-password'
     | '/result'
@@ -319,6 +319,7 @@ export interface FileRouteTypes {
     | '/ai-cover-letter-generator'
     | '/ai-interview-questions'
     | '/ats-resume-checker'
+    | '/coming-soon'
     | '/data-analyst-resume-template'
     | '/data-deletion'
     | '/faq'
@@ -327,7 +328,6 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
-    | '/pricing'
     | '/privacy'
     | '/reset-password'
     | '/result'
@@ -349,6 +349,7 @@ export interface FileRouteTypes {
     | '/ai-cover-letter-generator'
     | '/ai-interview-questions'
     | '/ats-resume-checker'
+    | '/coming-soon'
     | '/dashboard'
     | '/data-analyst-resume-template'
     | '/data-deletion'
@@ -358,7 +359,6 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/mock-interview'
-    | '/pricing'
     | '/privacy'
     | '/reset-password'
     | '/result'
@@ -381,6 +381,7 @@ export interface RootRouteChildren {
   AiCoverLetterGeneratorRoute: typeof AiCoverLetterGeneratorRoute
   AiInterviewQuestionsRoute: typeof AiInterviewQuestionsRoute
   AtsResumeCheckerRoute: typeof AtsResumeCheckerRoute
+  ComingSoonRoute: typeof ComingSoonRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   DataAnalystResumeTemplateRoute: typeof DataAnalystResumeTemplateRoute
   DataDeletionRoute: typeof DataDeletionRoute
@@ -390,7 +391,6 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   MockInterviewRoute: typeof MockInterviewRoute
-  PricingRoute: typeof PricingRoute
   PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   ResultRoute: typeof ResultRoute
@@ -444,13 +444,6 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mock-interview': {
@@ -514,6 +507,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/coming-soon': {
+      id: '/coming-soon'
+      path: '/coming-soon'
+      fullPath: '/coming-soon'
+      preLoaderRoute: typeof ComingSoonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ats-resume-checker': {
@@ -636,6 +636,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiCoverLetterGeneratorRoute: AiCoverLetterGeneratorRoute,
   AiInterviewQuestionsRoute: AiInterviewQuestionsRoute,
   AtsResumeCheckerRoute: AtsResumeCheckerRoute,
+  ComingSoonRoute: ComingSoonRoute,
   DashboardRoute: DashboardRouteWithChildren,
   DataAnalystResumeTemplateRoute: DataAnalystResumeTemplateRoute,
   DataDeletionRoute: DataDeletionRoute,
@@ -645,7 +646,6 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   MockInterviewRoute: MockInterviewRoute,
-  PricingRoute: PricingRoute,
   PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   ResultRoute: ResultRoute,

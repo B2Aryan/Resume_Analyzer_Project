@@ -45,24 +45,46 @@ export async function fetchUserProfile(user: User): Promise<DBProfile | null> {
 }
 
 // Check if user can run an analysis
-export async function canRunAnalysis(user: User): Promise<{ canRun: boolean; remaining: number; profile: DBProfile }> {
+export async function canRunAnalysis(user: User): Promise<{ 
+  canRun: boolean; 
+  remaining: number; 
+  profile: DBProfile;
+}> {
   const profile = await fetchUserProfile(user);
-  if (!profile) return { canRun: false, remaining: 0, profile: {} as DBProfile };
+  if (!profile) return { 
+    canRun: false, 
+    remaining: 0, 
+    profile: {} as DBProfile
+  };
 
   // Log access state in development for verification
   logUserAccess(profile);
 
   // Admins and premium users bypass all usage limits
-  if (hasPremiumAccess(profile)) return { canRun: true, remaining: Infinity, profile };
+  if (hasPremiumAccess(profile)) {
+    return { 
+      canRun: true, 
+      remaining: Infinity, 
+      profile
+    };
+  }
 
-  // Check if we need to reset
+  // Check account limit
   let updatedProfile = profile;
   if (needsReset(profile.analyses_reset_date)) {
     updatedProfile = await updateUsageResetDate(user, "analyses");
   }
 
-  const remaining = FREE_TIER_LIMITS.analyses - updatedProfile.analyses_used;
-  return { canRun: remaining > 0, remaining: Math.max(0, remaining), profile: updatedProfile };
+  // Calculate remaining: Monthly Free + Bonus Analyses
+  const monthlyRemaining = FREE_TIER_LIMITS.analyses - updatedProfile.analyses_used;
+  const bonusRemaining = updatedProfile.bonus_analyses || 0;
+  const totalRemaining = monthlyRemaining + bonusRemaining;
+
+  return { 
+    canRun: totalRemaining > 0, 
+    remaining: Math.max(0, totalRemaining), 
+    profile: updatedProfile
+  };
 }
 
 // Check if user can generate a cover letter
@@ -124,14 +146,27 @@ async function updateUsageResetDate(user: User, type: "analyses" | "cover_letter
   return data as DBProfile;
 }
 
-// Increment analysis usage
+// Increment analysis usage - consumes bonus analyses first, then monthly analyses
 export async function incrementAnalysisUsage(user: User): Promise<DBProfile | null> {
   const supabase = getSupabaseClient();
   if (!supabase) return null;
 
+  const profile = await fetchUserProfile(user);
+  if (!profile) return null;
+
+  let updateData: Record<string, number> = {};
+
+  // Consume bonus analyses first
+  if (profile.bonus_analyses > 0) {
+    updateData = { bonus_analyses: profile.bonus_analyses - 1 };
+  } else {
+    // Consume monthly analyses
+    updateData = { analyses_used: profile.analyses_used + 1 };
+  }
+
   const { data, error } = await supabase
     .from("profiles")
-    .update({ analyses_used: (await fetchUserProfile(user))?.analyses_used + 1 })
+    .update(updateData)
     .eq("id", user.id)
     .select()
     .single();
@@ -140,6 +175,7 @@ export async function incrementAnalysisUsage(user: User): Promise<DBProfile | nu
     console.error("Failed to increment analysis usage:", error);
     return null;
   }
+
   return data as DBProfile;
 }
 

@@ -13,7 +13,7 @@ const items = [
   { to: "/dashboard/history", label: "History", icon: History },
   { to: "/dashboard/interviews", label: "Mock Interviews", icon: MessageSquare },
   { to: "/dashboard/saved", label: "Saved Reports", icon: Bookmark },
-  { to: "/pricing", label: "Pricing", icon: CreditCard },
+  { to: "/coming-soon", label: "Coming Soon", icon: CreditCard },
   { to: "/dashboard/profile", label: "Profile", icon: User },
 ] as const;
 
