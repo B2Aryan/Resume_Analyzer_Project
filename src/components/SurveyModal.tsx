@@ -16,7 +16,7 @@ interface SurveyAnswers {
   biggestChallenge: string[];
   valuableFeatures: string[];
   disappointmentLevel: string;
-  pricePoint: string;
+  recommendReason: string;
   buyToday: string;
 }
 
@@ -25,7 +25,7 @@ export function SurveyModal({ open, onOpenChange, user, onComplete }: SurveyModa
     biggestChallenge: [],
     valuableFeatures: [],
     disappointmentLevel: "",
-    pricePoint: "",
+    recommendReason: "",
     buyToday: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -341,32 +341,40 @@ export function SurveyModal({ open, onOpenChange, user, onComplete }: SurveyModa
           </div>
 
           {/* Question 4 */}
-          <div>
-            <label className="block text-sm font-medium mb-3">
-              4. How much would you realistically pay for Premium? <span className="text-red-500">*</span>
-            </label>
-            <div className="space-y-2">
-              {[
-                "₹99/month",
-                "₹199/month",
-                "₹299/month",
-                "₹499/month",
-                "I would not pay"
-              ].map((option) => (
-                <label key={option} className="flex items-start gap-2 cursor-pointer p-2 rounded hover:bg-muted/50">
-                  <input
-                    type="radio"
-                    name="pricePoint"
-                    value={option}
-                    checked={answers.pricePoint === option}
-                    onChange={(e) => setAnswers({ ...answers, pricePoint: e.target.value })}
-                    className="mt-0.5 cursor-pointer"
-                  />
-                  <span className="text-sm">{option}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+<div>
+  <label className="block text-sm font-medium mb-3">
+    4. Would you recommend ResumePilot to a friend or classmate? <span className="text-red-500">*</span>
+  </label>
+  <div className="space-y-2">
+    {[
+      "Definitely",
+      "Probably",
+      "Not Sure",
+      "Probably Not",
+      "Definitely Not"
+    ].map((option) => (
+      <label
+        key={option}
+        className="flex items-start gap-2 cursor-pointer p-2 rounded hover:bg-muted/50"
+      >
+        <input
+          type="radio"
+          name="recommendReason"
+          value={option}
+          checked={answers.recommendReason === option}
+          onChange={(e) =>
+            setAnswers({
+              ...answers,
+              recommendReason: e.target.value,
+            })
+          }
+          className="mt-0.5 cursor-pointer"
+        />
+        <span className="text-sm">{option}</span>
+      </label>
+    ))}
+  </div>
+</div>
 
           {/* Question 5 */}
           <div>
