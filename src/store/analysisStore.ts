@@ -236,35 +236,23 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   },
 
   restoreFromStorage: () => {
-    console.log("[restore] restoreFromStorage called");
-    console.log("[restore] hasResult before check:", get().hasResult);
-
-    // No-op if the store is already hydrated
-    if (get().hasResult) {
-      console.log("[restore] store already hydrated, skipping");
-      return true;
-    }
+    if (get().hasResult) return true;
 
     const snapshot = getCurrentStoredAnalysis();
-    console.log("[restore] getCurrentStoredAnalysis():", snapshot ? `found (role="${snapshot.role}", score=${snapshot.result?.score})` : "null — localStorage empty or invalid");
-
     if (!snapshot) return false;
 
     try {
-      console.log("[restore] calling setResult() to hydrate Zustand store");
       get().setResult(
         snapshot.result,
         snapshot.role,
         snapshot.fileName,
         snapshot.resumeText ?? "",
-        // Pass jobDescription only when a JD match exists in the result
         snapshot.result.jdMatch ? "" : undefined,
         { animateEntry: false },
       );
-      console.log("[restore] setResult() completed. hasResult after hydrate:", get().hasResult);
       return true;
     } catch (e) {
-      console.error("[restore] restoreFromStorage: failed to hydrate store", e);
+      console.error("restoreFromStorage failed:", e);
       return false;
     }
   },

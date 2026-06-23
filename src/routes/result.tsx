@@ -105,17 +105,9 @@ export function ResultPage() {
   // redirect effect sees hasResult=false before the restore completes.
   const restoredRef = useRef(false);
 
-  console.log("[result] render — hasResult:", hasResult, "| restoredRef:", restoredRef.current);
-  console.log("[result] localStorage raw:", localStorage.getItem("resumecheck-analysis-versions")?.slice(0, 120) ?? "null");
-
   if (!hasResult && !restoredRef.current) {
     restoredRef.current = true;
-    const restored = restoreFromStorage();
-    console.log("[result] restoreFromStorage() returned:", restored, "| hasResult now (from hook):", hasResult);
-    // NOTE: even though restoreFromStorage calls set() synchronously inside Zustand,
-    // the `hasResult` variable captured by useAnalysisStore() above is a SNAPSHOT
-    // from THIS render — it will not reflect the new value until the NEXT render.
-    // So hasResult here is STILL false even if setResult ran successfully.
+    restoreFromStorage();
   }
 
   // ── Pre-login pending analysis (login redirect flow) ──────────────────────
@@ -130,16 +122,14 @@ export function ResultPage() {
   }, [user, hasResult, loadPendingAnalysis, clearPendingAnalysis]);
 
   // ── Redirect guard ────────────────────────────────────────────────────────
-  // Only fires when: store has no result AND localStorage has nothing to restore.
-  // The render-time restore above runs synchronously, so by the time this effect
-  // evaluates on its first tick, hasResult will already be true if storage had data.
+  // Only redirects when the live store has no result AND restore has been attempted.
+  // Reads getState() directly to avoid acting on the stale closed-over snapshot.
   useEffect(() => {
-    console.log("[result] redirect-guard effect fired — hasResult:", hasResult);
-    if (!hasResult) {
-      console.log("[result] ⚠️  REDIRECTING to /upload because hasResult=false");
-      toast.error("No analysis result found. Please upload a resume first.");
-      navigate({ to: "/upload" });
-    }
+    const liveStore = useAnalysisStore.getState();
+    if (liveStore.hasResult) return;
+    if (!restoredRef.current) return;
+    toast.error("No analysis result found. Please upload a resume first.");
+    navigate({ to: "/upload" });
   }, [hasResult, navigate]);
 
   useEffect(() => {

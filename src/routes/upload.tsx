@@ -114,21 +114,26 @@ function UploadPage() {
           let savedAnalysisId: string | null = null;
           // Save analysis to Supabase if user is authenticated
           if (user) {
-            const dbResult = await saveAnalysisToDB({
-              user,
-              role: targetRole,
-              fileName: result.fileName,
-              resumeText: result.resumeText,
-              jobDescription: jdText,
-              analysisResult: result.data,
-            });
-            savedAnalysisId = dbResult?.id ?? null;
-            
-            // Increment usage
-            await incrementAnalysisUsage(user);
-            
-            // Invalidate queries to refresh dashboard data
-            queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
+            try {
+              const dbResult = await saveAnalysisToDB({
+                user,
+                role: targetRole,
+                fileName: result.fileName,
+                resumeText: result.resumeText,
+                jobDescription: jdText,
+                analysisResult: result.data,
+              });
+              savedAnalysisId = dbResult?.id ?? null;
+              
+              // Increment usage
+              await incrementAnalysisUsage(user);
+              
+              // Invalidate queries to refresh dashboard data
+              queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
+            } catch (dbError) {
+              // Supabase errors must NOT abort the local save + navigation flow
+              console.error("Supabase save failed, continuing to localStorage save:", dbError);
+            }
           }
 
           // Persist new analysis to localStorage version history (includes resumeText for refresh restore)
