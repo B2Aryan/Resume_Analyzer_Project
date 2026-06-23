@@ -140,6 +140,18 @@ function ComingSoonPage() {
         console.log("✅ Profile fetched:", profile);
       }
 
+      console.log("================================");
+      console.log("COUNT QUERY RESULT:", count);
+      console.log("COUNT ERROR:", countError);
+      console.log("POSITION QUERY RESULT:", position);
+      console.log("POSITION ERROR:", positionError);
+      console.log("VALUE SENT TO EMAIL:");
+      console.log({
+        totalCount: count || 0,
+        position: position || 0,
+      });
+      console.log("================================");
+
       // Send email notification (non-blocking)
       try {
         console.log("=================================================");
