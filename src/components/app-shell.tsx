@@ -83,7 +83,9 @@ export function AppSidebar() {
             <AvatarFallback>{getInitials(getDisplayName())}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">{getDisplayName()}</p>
+            <Link to="/" className="truncate text-sm font-medium text-sidebar-foreground hover:text-primary transition-colors block">
+              {getDisplayName()}
+            </Link>
             <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
           </div>
         </div>
@@ -124,14 +126,32 @@ export function AppShell({ children, title, subtitle, actions }: { children: Rea
     <div className="flex h-screen overflow-hidden bg-muted/30">
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <header className="flex h-16 items-center justify-between border-b border-border bg-background/70 px-4 backdrop-blur sm:px-8 shrink-0">
-          <div>
-            {title && <h1 className="font-display text-lg font-semibold">{title}</h1>}
-            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        {/* Header — mobile: auto height so long titles wrap; desktop: fixed h-16 */}
+        <header className="flex min-h-[4rem] items-center justify-between gap-3 border-b border-border bg-background/70 px-4 py-2 backdrop-blur sm:h-16 sm:px-8 sm:py-0 shrink-0">
+          <div className="min-w-0 flex-1">
+            {title && (
+              <>
+                {/* Mobile: wrap in Link so tapping the name navigates home */}
+                <Link
+                  to="/"
+                  className="font-display text-base font-semibold leading-snug sm:hidden"
+                >
+                  {title}
+                </Link>
+                {/* Desktop/tablet: plain heading, no link */}
+                <h1 className="hidden font-display text-base font-semibold leading-snug sm:block sm:text-lg">
+                  {title}
+                </h1>
+              </>
+            )}
+            {/* Subtitle hidden on mobile, visible on sm+ */}
+            {subtitle && (
+              <p className="hidden text-xs text-muted-foreground sm:block">{subtitle}</p>
+            )}
           </div>
-          <div className="flex items-center gap-2"><ThemeToggle />{actions}</div>
+          <div className="flex shrink-0 items-center gap-2"><ThemeToggle />{actions}</div>
         </header>
-        <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-8 sm:py-8">{children}</main>
       </div>
     </div>
   );

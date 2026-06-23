@@ -131,8 +131,8 @@ function UploadPage() {
             queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
           }
 
-          // Persist new analysis to localStorage version history
-          persistNewAnalysis(snapshotFromResult(result.data, targetRole, result.fileName));
+          // Persist new analysis to localStorage version history (includes resumeText for refresh restore)
+          persistNewAnalysis(snapshotFromResult(result.data, targetRole, result.fileName, result.resumeText));
           setResult(result.data, targetRole, result.fileName, result.resumeText, jdText || undefined, {
             animateEntry: true,
             usedBackupProvider: result.usedBackupProvider,

@@ -5,6 +5,7 @@ import {
   JDMatchResult,
 } from "@/lib/ats/types";
 import type { InterviewQuestionsResponse } from "@/lib/ats/interview-questions";
+import { getCurrentStoredAnalysis } from "@/lib/storage/analysis-versions";
 
 const PENDING_ANALYSIS_KEY = "resumePilot.pendingAnalysis";
 
@@ -54,6 +55,13 @@ interface AnalysisState {
   savePendingAnalysis: () => void;
   loadPendingAnalysis: () => boolean;
   clearPendingAnalysis: () => void;
+  /**
+   * Synchronously attempt to restore the latest analysis from localStorage.
+   * Uses getCurrentStoredAnalysis() (analysis-versions key).
+   * Returns true if restoration succeeded, false if nothing was stored.
+   * Safe to call on every render — no-ops if hasResult is already true.
+   */
+  restoreFromStorage: () => boolean;
 }
 
 export const useAnalysisStore = create<AnalysisState>((set, get) => ({
@@ -225,5 +233,39 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
 
   clearPendingAnalysis: () => {
     localStorage.removeItem(PENDING_ANALYSIS_KEY);
+  },
+
+  restoreFromStorage: () => {
+    console.log("[restore] restoreFromStorage called");
+    console.log("[restore] hasResult before check:", get().hasResult);
+
+    // No-op if the store is already hydrated
+    if (get().hasResult) {
+      console.log("[restore] store already hydrated, skipping");
+      return true;
+    }
+
+    const snapshot = getCurrentStoredAnalysis();
+    console.log("[restore] getCurrentStoredAnalysis():", snapshot ? `found (role="${snapshot.role}", score=${snapshot.result?.score})` : "null — localStorage empty or invalid");
+
+    if (!snapshot) return false;
+
+    try {
+      console.log("[restore] calling setResult() to hydrate Zustand store");
+      get().setResult(
+        snapshot.result,
+        snapshot.role,
+        snapshot.fileName,
+        snapshot.resumeText ?? "",
+        // Pass jobDescription only when a JD match exists in the result
+        snapshot.result.jdMatch ? "" : undefined,
+        { animateEntry: false },
+      );
+      console.log("[restore] setResult() completed. hasResult after hydrate:", get().hasResult);
+      return true;
+    } catch (e) {
+      console.error("[restore] restoreFromStorage: failed to hydrate store", e);
+      return false;
+    }
   },
 }));

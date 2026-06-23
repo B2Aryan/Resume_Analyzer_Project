@@ -6,6 +6,8 @@ export interface AnalysisSnapshot {
   savedAt: string;
   role: string;
   fileName: string;
+  /** Full resume text — stored so grammar/rewriter features work after refresh */
+  resumeText?: string;
   result: ATSAnalysisResult;
 }
 
@@ -19,11 +21,13 @@ export function snapshotFromResult(
   result: ATSAnalysisResult,
   role: string,
   fileName: string,
+  resumeText?: string,
 ): AnalysisSnapshot {
   return {
     savedAt: new Date().toISOString(),
     role,
     fileName,
+    resumeText,
     result,
   };
 }

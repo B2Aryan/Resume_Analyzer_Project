@@ -106,16 +106,17 @@ function DashboardHome() {
         </Button>
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      {/* Stats grid — 2-col on mobile, 2-col on sm, 5-col on lg */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-5">
         {/* Total Analyses */}
         <Card className="border-border/60">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary">
-              <FileText className="h-5 w-5" />
+          <CardContent className="flex items-center gap-3 p-3 sm:gap-4 sm:p-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary sm:h-11 sm:w-11">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Total analyses</p>
-              <p className="font-display text-2xl font-bold">
+              <p className="font-display text-xl font-bold sm:text-2xl">
                 {analysesLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
@@ -128,13 +129,13 @@ function DashboardHome() {
 
         {/* Best ATS Score */}
         <Card className="border-border/60">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-success">
-              <Trophy className="h-5 w-5" />
+          <CardContent className="flex items-center gap-3 p-3 sm:gap-4 sm:p-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-success sm:h-11 sm:w-11">
+              <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Best ATS score</p>
-              <p className="font-display text-2xl font-bold">
+              <p className="font-display text-xl font-bold sm:text-2xl">
                 {analysesLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : bestScore !== null ? (
@@ -149,13 +150,13 @@ function DashboardHome() {
 
         {/* Average ATS Score */}
         <Card className="border-border/60">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary">
-              <TrendingUp className="h-5 w-5" />
+          <CardContent className="flex items-center gap-3 p-3 sm:gap-4 sm:p-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary sm:h-11 sm:w-11">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Average ATS score</p>
-              <p className="font-display text-2xl font-bold">
+              <p className="font-display text-xl font-bold sm:text-2xl">
                 {analysesLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : averageScore !== null ? (
@@ -170,13 +171,13 @@ function DashboardHome() {
 
         {/* Saved Reports Count */}
         <Card className="border-border/60">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-warning">
-              <Bookmark className="h-5 w-5" />
+          <CardContent className="flex items-center gap-3 p-3 sm:gap-4 sm:p-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-warning sm:h-11 sm:w-11">
+              <Bookmark className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground">Saved reports</p>
-              <p className="font-display text-2xl font-bold">
+              <p className="font-display text-xl font-bold sm:text-2xl">
                 {analysesLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
@@ -187,17 +188,17 @@ function DashboardHome() {
           </CardContent>
         </Card>
 
-        {/* Usage Limit */}
-        <Card className="border-border/60">
-          <CardContent className="flex items-center gap-4 p-5">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent text-primary">
-              <Lock className="h-5 w-5" />
+        {/* Usage Limit — spans 2 cols on mobile so it sits centred in the last row */}
+        <Card className="col-span-2 border-border/60 lg:col-span-1">
+          <CardContent className="flex items-center gap-3 p-3 sm:gap-4 sm:p-5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary sm:h-11 sm:w-11">
+              <Lock className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="text-xs text-muted-foreground">
                 {hasPremiumAccess(userProfile) ? "Premium Plan" : "Analyses left"}
               </p>
-              <p className="font-display text-2xl font-bold">
+              <p className="font-display text-xl font-bold sm:text-2xl">
                 {profileLoading ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : hasPremiumAccess(userProfile) ? (
@@ -221,29 +222,29 @@ function DashboardHome() {
         </Card>
       </div>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
+      <div className="mt-5 grid gap-4 sm:mt-8 sm:gap-6 lg:grid-cols-3">
         <Card className="border-border/60 lg:col-span-2">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold">Recent scans</h2>
+              <h2 className="font-display text-base font-semibold sm:text-lg">Recent scans</h2>
               <Button asChild variant="ghost" size="sm">
                 <Link to="/dashboard/history">View all</Link>
               </Button>
             </div>
-            <div className="mt-4">
+            <div className="mt-3 sm:mt-4">
               {analysesLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
               ) : analyses.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-accent text-primary mb-4">
-                    <FileText className="h-8 w-8" />
+                <div className="text-center py-10 sm:py-16">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-primary mb-3 sm:h-16 sm:w-16 sm:mb-4">
+                    <FileText className="h-7 w-7 sm:h-8 sm:w-8" />
                   </div>
-                  <h3 className="text-lg font-semibold font-display mb-2">
+                  <h3 className="text-base font-semibold font-display mb-1 sm:text-lg sm:mb-2">
                     No analyses yet
                   </h3>
-                  <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+                  <p className="text-sm text-muted-foreground mb-5 max-w-sm mx-auto sm:mb-6">
                     Upload your first resume to get your ATS compatibility score and
                     personalized feedback.
                   </p>
@@ -259,7 +260,7 @@ function DashboardHome() {
                   {analyses.slice(0, 5).map((analysis) => (
                     <div
                       key={analysis.id}
-                      className="grid items-center gap-4 py-4 transition-colors hover:bg-muted/30 rounded-lg px-2 sm:grid-cols-[1fr,auto,auto,auto] cursor-pointer"
+                      className="flex items-center gap-3 py-3 transition-colors hover:bg-muted/30 rounded-lg px-2 cursor-pointer sm:grid sm:grid-cols-[1fr,auto,auto,auto] sm:gap-4 sm:py-4"
                       onClick={() => {
                         setResult(
                           analysis.analysis_result,
@@ -277,34 +278,35 @@ function DashboardHome() {
                         navigate({ to: "/result" });
                       }}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
-                          <FileText className="h-5 w-5" />
+                      {/* Icon + text — grows to fill available space */}
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-primary sm:h-10 sm:w-10">
+                          <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate text-sm font-semibold">
-                              {analysis.file_name}
-                            </p>
-                            {analysis.interview_questions && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                                🎤 Interview Ready
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="truncate text-sm font-semibold">
+                            {analysis.file_name}
+                          </p>
+                          <p className="truncate text-xs text-muted-foreground">
                             {analysis.role}
                           </p>
+                          {analysis.interview_questions && (
+                            <span className="mt-0.5 inline-block text-xs px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+                              🎤 Interview Ready
+                            </span>
+                          )}
                         </div>
                       </div>
+                      {/* Timestamp — hidden on mobile */}
                       <span className="hidden text-xs text-muted-foreground sm:inline-flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         {formatDistanceToNow(new Date(analysis.created_at), {
                           addSuffix: true,
                         })}
                       </span>
-                      <div className="text-right">
-                        <p className="font-display text-xl font-bold">
+                      {/* Score — always visible, pushed to right on mobile */}
+                      <div className="shrink-0 text-right">
+                        <p className="font-display text-lg font-bold sm:text-xl">
                           {analysis.analysis_result.score}
                         </p>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -320,7 +322,7 @@ function DashboardHome() {
         </Card>
 
         <Card className="border-border/60 bg-gradient-card">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <h2 className="font-display text-lg font-semibold">Score trend</h2>
             <p className="text-xs text-muted-foreground">Last 5 scans</p>
             {analysesLoading ? (

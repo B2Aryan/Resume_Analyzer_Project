@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { GitCompare } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
@@ -18,6 +18,7 @@ import { ResultKeywords } from "@/components/result/result-keywords";
 import { ResultStrengths } from "@/components/result/result-strengths";
 import { ResultTools } from "@/components/result/result-tools";
 import { ResultScoreBreakdown } from "@/components/result/result-score-breakdown";
+import { ResultGrammarWriting } from "@/components/result/result-grammar-writing";
 import {
   ResultReportBody,
   ResultReportHybridBand,
@@ -92,10 +93,33 @@ export function ResultPage() {
     analysisId,
     loadPendingAnalysis,
     clearPendingAnalysis,
+    restoreFromStorage,
   } = useAnalysisStore();
 
   const { user } = useAuth();
 
+  // ── Restore from localStorage on refresh ──────────────────────────────────
+  // This ref tracks whether we have already attempted restoration this mount.
+  // We call restoreFromStorage() synchronously on the first render so the store
+  // is hydrated before any effect fires — avoiding the race condition where the
+  // redirect effect sees hasResult=false before the restore completes.
+  const restoredRef = useRef(false);
+
+  console.log("[result] render — hasResult:", hasResult, "| restoredRef:", restoredRef.current);
+  console.log("[result] localStorage raw:", localStorage.getItem("resumecheck-analysis-versions")?.slice(0, 120) ?? "null");
+
+  if (!hasResult && !restoredRef.current) {
+    restoredRef.current = true;
+    const restored = restoreFromStorage();
+    console.log("[result] restoreFromStorage() returned:", restored, "| hasResult now (from hook):", hasResult);
+    // NOTE: even though restoreFromStorage calls set() synchronously inside Zustand,
+    // the `hasResult` variable captured by useAnalysisStore() above is a SNAPSHOT
+    // from THIS render — it will not reflect the new value until the NEXT render.
+    // So hasResult here is STILL false even if setResult ran successfully.
+  }
+
+  // ── Pre-login pending analysis (login redirect flow) ──────────────────────
+  // Only runs for logged-in users who were mid-analysis when they had to sign in.
   useEffect(() => {
     if (user && !hasResult) {
       const loaded = loadPendingAnalysis();
@@ -105,8 +129,14 @@ export function ResultPage() {
     }
   }, [user, hasResult, loadPendingAnalysis, clearPendingAnalysis]);
 
+  // ── Redirect guard ────────────────────────────────────────────────────────
+  // Only fires when: store has no result AND localStorage has nothing to restore.
+  // The render-time restore above runs synchronously, so by the time this effect
+  // evaluates on its first tick, hasResult will already be true if storage had data.
   useEffect(() => {
+    console.log("[result] redirect-guard effect fired — hasResult:", hasResult);
     if (!hasResult) {
+      console.log("[result] ⚠️  REDIRECTING to /upload because hasResult=false");
       toast.error("No analysis result found. Please upload a resume first.");
       navigate({ to: "/upload" });
     }
@@ -387,7 +417,9 @@ export function ResultPage() {
                   summary={summary} 
                   plan={actionPlan} 
                   currentScore={score}
+                  resumeText={resumeText}
                 />
+                <ResultGrammarWriting resumeText={resumeText} />
                 <ResultKeywords
                   missingKeywords={sidebarMissingKeywords}
                   presentKeywords={presentKeywords}
