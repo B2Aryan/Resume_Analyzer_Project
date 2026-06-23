@@ -39,6 +39,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Check if email system is configured
+    console.log("========== ENV DEBUG ==========");
+    console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
+    console.log("ADMIN_EMAIL exists:", !!process.env.ADMIN_EMAIL);
+    console.log("RESEND_API_KEY length:", process.env.RESEND_API_KEY?.length || 0);
+    console.log("ADMIN_EMAIL value:", process.env.ADMIN_EMAIL || "MISSING");
+    console.log("================================");
+    
     if (!process.env.RESEND_API_KEY || !process.env.ADMIN_EMAIL) {
       console.error("❌ Cannot send email: RESEND_API_KEY or ADMIN_EMAIL not configured");
       return res.status(200).json({ 
