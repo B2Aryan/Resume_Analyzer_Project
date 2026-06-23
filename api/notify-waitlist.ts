@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Resend } from "resend";
+import { createClient } from "@supabase/supabase-js";
 
 // Validate required environment variables
 if (!process.env.RESEND_API_KEY) {
@@ -56,13 +57,81 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const adminEmail = process.env.ADMIN_EMAIL;
 
+    // ==================== SERVER-SIDE STATISTICS ====================
+    // Calculate real waitlist count and position using service role key
+    // Frontend values are ignored because RLS prevents accurate counting
+    console.log("=================================================");
+    console.log("📊 CALCULATING SERVER-SIDE WAITLIST STATISTICS");
+    console.log("=================================================");
+
+    let serverTotalCount = 0;
+    let serverPosition = 0;
+
+    try {
+      // Create Supabase admin client (bypasses RLS)
+      const supabaseUrl = process.env.VITE_SUPABASE_URL;
+      const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+      if (!supabaseUrl || !supabaseServiceRoleKey) {
+        console.error("❌ Supabase credentials not configured");
+        console.error("VITE_SUPABASE_URL exists:", !!supabaseUrl);
+        console.error("SUPABASE_SERVICE_ROLE_KEY exists:", !!supabaseServiceRoleKey);
+        // Continue with default values (0, 0)
+      } else {
+        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false,
+          },
+        });
+
+        console.log("✅ Supabase admin client created");
+
+        // Get total count (all rows, bypasses RLS)
+        const { count: totalCountResult, error: countError } = await supabaseAdmin
+          .from("premium_interest")
+          .select("*", { count: "exact", head: true });
+
+        if (countError) {
+          console.error("❌ Failed to get server total count:", countError);
+        } else {
+          serverTotalCount = totalCountResult || 0;
+          console.log("✅ SERVER TOTAL COUNT:", serverTotalCount);
+        }
+
+        // Get user's position (count rows with created_at <= joinTimestamp)
+        const { count: positionResult, error: positionError } = await supabaseAdmin
+          .from("premium_interest")
+          .select("*", { count: "exact", head: true })
+          .lte("created_at", joinTimestamp);
+
+        if (positionError) {
+          console.error("❌ Failed to get server position:", positionError);
+        } else {
+          serverPosition = positionResult || 0;
+          console.log("✅ SERVER POSITION:", serverPosition);
+        }
+      }
+    } catch (statsError) {
+      console.error("❌ Error calculating server statistics:", statsError);
+      // Continue with default values (0, 0)
+    }
+
+    console.log("=================================================");
+    console.log("📊 FINAL STATISTICS:");
+    console.log("SERVER TOTAL COUNT:", serverTotalCount);
+    console.log("SERVER POSITION:", serverPosition);
+    console.log("Frontend values ignored:", totalCount, position);
+    console.log("=================================================");
+    // ==================== END SERVER-SIDE STATISTICS ====================
+
     // Send email to admin
     try {
       console.log("=================================================");
       console.log("📧 ATTEMPTING TO SEND EMAIL VIA RESEND");
       console.log("From: ResumePilot <onboarding@resend.dev>");
       console.log("To:", adminEmail);
-      console.log("Subject: 🎉 New Premium Waitlist Sign-up (#" + totalCount + ")");
+      console.log("Subject: 🎉 New Premium Waitlist Sign-up (#" + serverTotalCount + ")");
       console.log("=================================================");
       
       console.log("Sending email via Resend");
@@ -70,7 +139,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const emailResponse = await resend.emails.send({
         from: "ResumePilot <onboarding@resend.dev>",
         to: adminEmail,
-        subject: `🎉 New Premium Waitlist Sign-up (#${totalCount})`,
+        subject: `🎉 New Premium Waitlist Sign-up (#${serverTotalCount})`,
         html: `
           <!DOCTYPE html>
           <html>
@@ -96,8 +165,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 </div>
                 <div class="content">
                   <div style="text-align: center; margin-bottom: 30px;">
-                    <span class="count-badge">Total: ${totalCount} Members</span>
-                    ${position ? `<span class="position-badge">Position: #${position}</span>` : ''}
+                    <span class="count-badge">Total: ${serverTotalCount} Members</span>
+                    ${serverPosition ? `<span class="position-badge">Position: #${serverPosition}</span>` : ''}
                   </div>
                   
                   <div class="info-row">
