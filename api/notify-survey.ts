@@ -13,7 +13,14 @@ if (!process.env.ADMIN_EMAIL) {
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  console.log("=================================================");
+  console.log("🚀 EMAIL API CALLED: /api/notify-survey");
+  console.log("Timestamp:", new Date().toISOString());
+  console.log("Method:", req.method);
+  console.log("=================================================");
+
   if (req.method !== "POST") {
+    console.log("❌ Method not allowed:", req.method);
     return res.status(405).json({ error: "Method not allowed" });
   }
 
@@ -52,6 +59,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Send email to admin
     try {
+      console.log("=================================================");
+      console.log("📧 ATTEMPTING TO SEND EMAIL VIA RESEND");
+      console.log("From: ResumePilot <onboarding@resend.dev>");
+      console.log("To:", adminEmail);
+      console.log("Subject: 📊 New Premium Survey Response from " + userName);
+      console.log("=================================================");
+      
       console.log("Sending email via Resend");
       console.log(`📧 Sending survey notification to ${adminEmail}...`);
       const emailResponse = await resend.emails.send({
@@ -146,6 +160,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `,
       });
 
+      console.log("=================================================");
+      console.log("✅ RESEND SUCCESS");
+      console.log("Email ID:", emailResponse.data?.id);
+      console.log("=================================================");
+      
       console.log(`✅ Survey email sent successfully! ID: ${emailResponse.data?.id}`);
       console.log(`   To: ${adminEmail}`);
       console.log(`   User: ${userName} (${userEmail})`);
@@ -158,6 +177,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     } catch (emailError: any) {
       // Log error but don't fail the request
+      console.error("=================================================");
+      console.error("❌ RESEND ERROR");
+      console.error("Error:", emailError);
+      console.error("Error message:", emailError.message);
+      console.error("Error stack:", emailError.stack);
+      console.error("=================================================");
+      
       console.error("Resend failure:", emailError);
       console.error("❌ Failed to send survey notification email:", emailError);
       console.error("   Error details:", emailError.message || emailError);

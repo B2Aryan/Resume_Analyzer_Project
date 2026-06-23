@@ -63,47 +63,81 @@ export function SurveyModal({ open, onOpenChange, user, onComplete }: SurveyModa
       }
 
       // Check if user already completed survey
-      const { data: existing } = await supabase
+      console.log("🔍 Checking if user already completed survey...");
+      const { data: existing, error: checkError } = await supabase
         .from("survey_rewards")
         .select("id")
         .eq("user_id", user.id)
         .single();
 
+      if (checkError && checkError.code !== "PGRST116") {
+        // PGRST116 = no rows returned (expected for new users)
+        console.error("❌ Survey check error:", checkError);
+        toast.error(`Database error: ${checkError.message}`);
+        return;
+      }
+
       if (existing) {
+        console.log("ℹ️ User already completed survey");
         toast.error("You've already completed this survey");
         onOpenChange(false);
         return;
       }
 
+      console.log("✅ User has not completed survey, proceeding");
+
       // Submit survey with reward_claimed = true
-      const { error: surveyError } = await supabase
+      const insertPayload = {
+        user_id: user.id,
+        answers: answers,
+        reward_claimed: true,
+      };
+      console.log("📝 Starting survey insert...");
+      console.log("Insert payload:", insertPayload);
+
+      const { error: surveyError, data: surveyData } = await supabase
         .from("survey_rewards")
-        .insert({
-          user_id: user.id,
-          answers: answers,
-          reward_claimed: true,
-        });
+        .insert(insertPayload)
+        .select()
+        .single();
 
       if (surveyError) {
-        console.error("Survey submission error:", surveyError);
-        toast.error("Failed to submit survey. Please try again.");
+        console.error("❌ Survey insert failed:", surveyError);
+        console.error("Error code:", surveyError.code);
+        console.error("Error message:", surveyError.message);
+        console.error("Error details:", surveyError.details);
+        console.error("Error hint:", surveyError.hint);
+        toast.error(`Failed to submit survey: ${surveyError.message}`);
         return;
       }
 
+      console.log("✅ Survey insert success:", surveyData);
+
       // Award +2 bonus analyses
-      const { data: profile } = await supabase
+      console.log("🎁 Fetching current bonus_analyses...");
+      const { data: profile, error: profileFetchError } = await supabase
         .from("profiles")
         .select("bonus_analyses")
         .eq("id", user.id)
         .single();
 
-      if (!profile) {
+      if (profileFetchError) {
+        console.error("❌ Failed to fetch profile:", profileFetchError);
         toast.error("Failed to fetch profile");
         return;
       }
 
+      if (!profile) {
+        console.error("❌ Profile not found for user:", user.id);
+        toast.error("Failed to fetch profile");
+        return;
+      }
+
+      console.log("✅ Current bonus_analyses:", profile.bonus_analyses);
+
       // Add 2 bonus analyses
       const newBonusAnalyses = (profile.bonus_analyses || 0) + 2;
+      console.log("📝 Updating bonus_analyses from", profile.bonus_analyses, "to", newBonusAnalyses);
 
       const { error: rewardError } = await supabase
         .from("profiles")
@@ -111,22 +145,61 @@ export function SurveyModal({ open, onOpenChange, user, onComplete }: SurveyModa
         .eq("id", user.id);
 
       if (rewardError) {
-        console.error("Reward error:", rewardError);
+        console.error("❌ Failed to update bonus_analyses:", rewardError);
+        console.error("Error code:", rewardError.code);
+        console.error("Error message:", rewardError.message);
+        console.error("Error details:", rewardError.details);
+        console.error("Error hint:", rewardError.hint);
         toast.error("Survey saved but failed to add bonus analyses. Contact support.");
         return;
       }
+
+      console.log("✅ Bonus analyses update completed");
+
+      // Verify the update succeeded
+      console.log("🔍 Verifying bonus_analyses update...");
+      const { data: verifiedProfile, error: verifyError } = await supabase
+        .from("profiles")
+        .select("bonus_analyses")
+        .eq("id", user.id)
+        .single();
+
+      if (verifyError) {
+        console.error("❌ Verification query failed:", verifyError);
+        toast.error("Survey saved but failed to verify bonus analyses. Contact support.");
+        return;
+      }
+
+      console.log("✅ Verified bonus_analyses:", verifiedProfile.bonus_analyses);
+      
+      if (verifiedProfile.bonus_analyses !== newBonusAnalyses) {
+        console.error("❌ Bonus analyses mismatch!");
+        console.error("Expected:", newBonusAnalyses);
+        console.error("Actual:", verifiedProfile.bonus_analyses);
+        toast.error("Survey saved but bonus analyses update failed. Contact support.");
+        return;
+      }
+
+      console.log("🎉 Bonus analyses successfully updated and verified!");
 
       toast.success("🎉 Thank you for your feedback!\n2 bonus ATS analyses have been added to your account.");
       
       // Send email notification (non-blocking)
       try {
-        const { data: profileData } = await supabase
+        console.log("👤 Fetching user profile for email...");
+        const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("username")
           .eq("id", user.id)
           .single();
 
-        console.log("Calling /api/notify-survey");
+        if (profileError) {
+          console.error("❌ Failed to fetch profile for email:", profileError);
+        } else {
+          console.log("✅ Profile fetched for email:", profileData);
+        }
+
+        console.log("📧 Calling /api/notify-survey");
         const response = await fetch("/api/notify-survey", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -138,13 +211,22 @@ export function SurveyModal({ open, onOpenChange, user, onComplete }: SurveyModa
             answers: answers
           }),
         });
+        
+        console.log("📧 Email API response status:", response.status);
         const responseText = await response.text();
-        console.log("Notification response:", responseText);
+        console.log("📧 Email API response body:", responseText);
+        
+        if (!response.ok) {
+          console.error("❌ Email API returned error:", response.status, responseText);
+        } else {
+          console.log("✅ Email notification sent successfully");
+        }
       } catch (emailError) {
-        console.error("Email notification error:", emailError);
+        console.error("❌ Email notification error:", emailError);
         // Don't fail the survey submission if email fails
       }
 
+      console.log("🎉 Survey submission complete");
       onComplete();
       onOpenChange(false);
     } catch (error) {

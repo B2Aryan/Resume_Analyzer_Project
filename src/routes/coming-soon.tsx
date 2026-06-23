@@ -28,7 +28,13 @@ function ComingSoonPage() {
   const [surveyOpen, setSurveyOpen] = useState(false);
 
   const handleNotifyMe = async () => {
+    console.log("=================================================");
+    console.log("🚀 HANDLENOTIFYME CALLED");
+    console.log("User:", user?.id);
+    console.log("=================================================");
+
     if (!user) {
+      console.log("❌ EXIT: No user logged in");
       toast.error("Please login to join the waitlist");
       return;
     }
@@ -38,59 +44,111 @@ function ComingSoonPage() {
     try {
       const supabase = getSupabaseClient();
       if (!supabase) {
+        console.log("❌ EXIT: No Supabase client");
         toast.error("Failed to connect to database");
         return;
       }
 
       // Check if already on waitlist
-      const { data: existing } = await supabase
+      console.log("🔍 Checking if user is already on waitlist...");
+      const { data: existing, error: checkError } = await supabase
         .from("premium_interest")
         .select("id")
         .eq("user_id", user.id)
         .single();
 
+      if (checkError && checkError.code !== "PGRST116") {
+        // PGRST116 = no rows returned (expected for new users)
+        console.error("❌ Waitlist check error:", checkError);
+        console.log("❌ EXIT: Waitlist check error");
+        toast.error(`Database error: ${checkError.message}`);
+        return;
+      }
+
       if (existing) {
+        console.log("ℹ️ User already on waitlist");
+        console.log("❌ EXIT: User already on waitlist");
         toast.info("You're already on the Premium waitlist!");
         return;
       }
 
+      console.log("✅ User not on waitlist, proceeding with insert");
+
       // Add to waitlist with source tracking
+      const insertPayload = { 
+        user_id: user.id,
+        source: "coming_soon_page"
+      };
+      console.log("📝 Starting waitlist insert...");
+      console.log("Insert payload:", insertPayload);
+
       const { error, data: insertedData } = await supabase
         .from("premium_interest")
-        .insert({ 
-          user_id: user.id,
-          source: "coming_soon_page"
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
       if (error) {
-        console.error("Waitlist error:", error);
-        toast.error("Failed to join waitlist. Please try again.");
+        console.error("❌ Waitlist insert failed:", error);
+        console.error("Error code:", error.code);
+        console.error("Error message:", error.message);
+        console.error("Error details:", error.details);
+        console.error("Error hint:", error.hint);
+        console.log("❌ EXIT: Waitlist insert failed");
+        toast.error(`Failed to join waitlist: ${error.message}`);
         return;
       }
 
+      console.log("✅ Waitlist insert success:", insertedData);
+
       // Get total waitlist count and position
-      const { count } = await supabase
+      console.log("📊 Fetching waitlist count...");
+      const { count, error: countError } = await supabase
         .from("premium_interest")
         .select("*", { count: "exact", head: true });
 
+      if (countError) {
+        console.error("❌ Failed to get waitlist count:", countError);
+      } else {
+        console.log("✅ Total waitlist count:", count);
+      }
+
       // Get position by counting entries created before this one
-      const { count: position } = await supabase
+      console.log("📊 Calculating position...");
+      const { count: position, error: positionError } = await supabase
         .from("premium_interest")
         .select("*", { count: "exact", head: true })
         .lte("created_at", insertedData.created_at);
 
+      if (positionError) {
+        console.error("❌ Failed to get position:", positionError);
+      } else {
+        console.log("✅ User position:", position);
+      }
+
       // Get user profile for name
-      const { data: profile } = await supabase
+      console.log("👤 Fetching user profile...");
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("username")
         .eq("id", user.id)
         .single();
 
+      if (profileError) {
+        console.error("❌ Failed to get profile:", profileError);
+      } else {
+        console.log("✅ Profile fetched:", profile);
+      }
+
       // Send email notification (non-blocking)
       try {
-        console.log("Calling /api/notify-waitlist");
+        console.log("=================================================");
+        console.log("🔥 BEFORE NOTIFY WAITLIST FETCH");
+        console.log("About to call /api/notify-waitlist");
+        console.log("insertedData:", insertedData);
+        console.log("=================================================");
+        
+        console.log("📧 Calling /api/notify-waitlist");
         const response = await fetch("/api/notify-waitlist", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -104,18 +162,40 @@ function ComingSoonPage() {
             sourcePage: "coming_soon_page"
           }),
         });
+        
+        console.log("=================================================");
+        console.log("🔥 AFTER NOTIFY WAITLIST FETCH");
+        console.log("Response received");
+        console.log("=================================================");
+        
+        console.log("📧 Email API response status:", response.status);
         const responseText = await response.text();
-        console.log("Notification response:", responseText);
+        console.log("📧 Email API response body:", responseText);
+        
+        if (!response.ok) {
+          console.error("❌ Email API returned error:", response.status, responseText);
+        } else {
+          console.log("✅ Email notification sent successfully");
+        }
       } catch (emailError) {
-        console.error("Email notification error:", emailError);
+        console.error("❌ Email notification error:", emailError);
         // Don't fail the waitlist signup if email fails
       }
 
+      console.log("🎉 Waitlist signup complete");
       toast.success("You're on the Premium waitlist. We'll notify you when Premium launches!");
     } catch (error) {
+      console.error("=================================================");
+      console.error("❌ OUTER CATCH BLOCK");
+      console.error("Error:", error);
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
+      console.error("=================================================");
       console.error("Error:", error);
       toast.error("An error occurred. Please try again.");
     } finally {
+      console.log("=================================================");
+      console.log("✅ FINALLY BLOCK - Setting isProcessing to false");
+      console.log("=================================================");
       setIsProcessing(false);
     }
   };
