@@ -7,12 +7,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PRESET_AVATARS } from "@/lib/avatars";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useQueryClient } from "@tanstack/react-query";
 
 function SiteNavbarImpl() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   const { user, signOut, profile } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const getCurrentAvatarUrl = () => {
     if (profile?.avatar_id) {
@@ -169,7 +171,7 @@ function SiteNavbarImpl() {
                 </div>
                 <DropdownMenuSeparator className="my-1" />
                 {/* Sign Out */}
-                <DropdownMenuItem onClick={signOut} className="rounded-xl px-3 py-2 cursor-pointer gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive">
+                <DropdownMenuItem onClick={async () => { await signOut(); queryClient.clear(); navigate({ to: "/" }); }} className="rounded-xl px-3 py-2 cursor-pointer gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive">
                   <LogOut className="h-4 w-4" />
                   <span className="text-sm font-medium">Sign Out</span>
                 </DropdownMenuItem>
@@ -238,7 +240,7 @@ function SiteNavbarImpl() {
                   <div className="border-t border-border my-1" />
                   <Button asChild variant="outline" size="sm" className="rounded-full" onClick={() => setOpen(false)}><Link to="/dashboard">Dashboard</Link></Button>
                   <Button asChild variant="outline" size="sm" className="rounded-full" onClick={() => setOpen(false)}><Link to="/dashboard/profile">Profile</Link></Button>
-                  <Button variant="outline" size="sm" className="rounded-full" onClick={async () => { await signOut(); setOpen(false); }}>Sign Out</Button>
+                  <Button variant="outline" size="sm" className="rounded-full" onClick={async () => { await signOut(); queryClient.clear(); navigate({ to: "/" }); setOpen(false); }}>Sign Out</Button>
                 </>
               ) : (
                 <>

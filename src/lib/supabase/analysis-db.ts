@@ -133,6 +133,7 @@ export async function fetchAnalysesFromDB(
   const { data, error } = await supabase
     .from("analyses")
     .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -152,6 +153,7 @@ export async function fetchSavedReportsFromDB(
   const { data, error } = await supabase
     .from("analyses")
     .select("*")
+    .eq("user_id", user.id)
     .eq("is_saved", true)
     .order("created_at", { ascending: false });
 

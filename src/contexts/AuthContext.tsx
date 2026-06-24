@@ -9,6 +9,8 @@ import { Session, User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/lib/supabase';
 import { PRESET_AVATARS } from '@/lib/avatars';
 import { logUserAccess } from '@/lib/access';
+import { useAnalysisStore } from '@/store/analysisStore';
+import { useMockInterviewStore } from '@/store/mockInterviewStore';
 
 type Profile = {
   id: string;
@@ -278,6 +280,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       if (!session?.user) {
         setProfile(null);
+        useAnalysisStore.getState().clearResult();
+        useMockInterviewStore.getState().resetInterview();
       }
       setIsLoading(false);
     });

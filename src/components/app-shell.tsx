@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { PRESET_AVATARS } from "@/lib/avatars";
+import { useQueryClient } from "@tanstack/react-query";
 
 const items = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
@@ -21,9 +22,11 @@ export function AppSidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleSignOut = async () => {
     await signOut();
+    queryClient.clear();
     navigate({ to: "/" });
   };
 
