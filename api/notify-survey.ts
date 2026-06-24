@@ -148,8 +148,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                   </div>
                   
                   <div class="question-block">
-                    <div class="question">4. How much would you realistically pay for Premium?</div>
-                    <div class="answer">${formatAnswer(answers.pricePoint)}</div>
+                    <div class="question">4. What would make you recommend ResumePilot to a friend?</div>
+                    <div class="answer">${formatAnswer(answers.recommendReason)}</div>
                   </div>
                   
                   <div class="question-block">

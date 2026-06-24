@@ -46,7 +46,7 @@ export function SurveyModal({ open, onOpenChange, user, onComplete }: SurveyModa
       answers.biggestChallenge.length === 0 || 
       answers.valuableFeatures.length === 0 || 
       !answers.disappointmentLevel || 
-      !answers.pricePoint || 
+      !answers.recommendReason || 
       !answers.buyToday
     ) {
       toast.error("Please answer all questions");
@@ -241,7 +241,7 @@ export function SurveyModal({ open, onOpenChange, user, onComplete }: SurveyModa
     answers.biggestChallenge.length > 0 && 
     answers.valuableFeatures.length > 0 && 
     answers.disappointmentLevel && 
-    answers.pricePoint && 
+    answers.recommendReason && 
     answers.buyToday;
 
   return (
@@ -341,40 +341,35 @@ export function SurveyModal({ open, onOpenChange, user, onComplete }: SurveyModa
           </div>
 
           {/* Question 4 */}
-<div>
-  <label className="block text-sm font-medium mb-3">
-    4. Would you recommend ResumePilot to a friend or classmate? <span className="text-red-500">*</span>
-  </label>
-  <div className="space-y-2">
-    {[
-      "Definitely",
-      "Probably",
-      "Not Sure",
-      "Probably Not",
-      "Definitely Not"
-    ].map((option) => (
-      <label
-        key={option}
-        className="flex items-start gap-2 cursor-pointer p-2 rounded hover:bg-muted/50"
-      >
-        <input
-          type="radio"
-          name="recommendReason"
-          value={option}
-          checked={answers.recommendReason === option}
-          onChange={(e) =>
-            setAnswers({
-              ...answers,
-              recommendReason: e.target.value,
-            })
-          }
-          className="mt-0.5 cursor-pointer"
-        />
-        <span className="text-sm">{option}</span>
-      </label>
-    ))}
-  </div>
-</div>
+          <div>
+            <label className="block text-sm font-medium mb-3">
+              4. What would make you recommend ResumePilot to a friend? <span className="text-red-500">*</span>
+            </label>
+            <div className="space-y-2">
+              {[
+                "More accurate ATS analysis",
+                "Better resume improvement suggestions",
+                "Resume optimization for specific jobs",
+                "Application tracking features",
+                "Interview preparation tools",
+                "Faster analysis",
+                "Better user experience/design",
+                "Other"
+              ].map((option) => (
+                <label key={option} className="flex items-start gap-2 cursor-pointer p-2 rounded hover:bg-muted/50">
+                  <input
+                    type="radio"
+                    name="recommendReason"
+                    value={option}
+                    checked={answers.recommendReason === option}
+                    onChange={(e) => setAnswers({ ...answers, recommendReason: e.target.value })}
+                    className="mt-0.5 cursor-pointer"
+                  />
+                  <span className="text-sm">{option}</span>
+                </label>
+              ))}
+            </div>
+          </div>
 
           {/* Question 5 */}
           <div>
