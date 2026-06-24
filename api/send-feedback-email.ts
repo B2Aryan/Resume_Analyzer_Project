@@ -66,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log("Attempting to send email");
     console.log("Sending email...");
     const { data, error } = await resend.emails.send({
-      from: "ResumePilot Feedback <onboarding@resend.dev>",
+      from: "ResumePilot Feedback <noreply@resumepilot.site>",
       to: process.env.ADMIN_EMAIL || "aryan639244@gmail.com",
       subject,
       html: `

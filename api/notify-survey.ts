@@ -68,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       console.log("=================================================");
       console.log("📧 ATTEMPTING TO SEND EMAIL VIA RESEND");
-      console.log("From: ResumePilot <onboarding@resend.dev>");
+      console.log("From: ResumePilot <noreply@resumepilot.site>");
       console.log("To:", adminEmail);
       console.log("Subject: 📊 New Premium Survey Response from " + userName);
       console.log("=================================================");
@@ -76,7 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.log("Sending email via Resend");
       console.log(`📧 Sending survey notification to ${adminEmail}...`);
       const emailResponse = await resend.emails.send({
-        from: "ResumePilot <onboarding@resend.dev>",
+        from: "ResumePilot <noreply@resumepilot.site>",
         to: adminEmail,
         subject: `📊 New Premium Survey Response from ${userName}`,
         html: `
