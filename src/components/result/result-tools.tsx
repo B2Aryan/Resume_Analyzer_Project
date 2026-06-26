@@ -1,7 +1,10 @@
 import { memo, useCallback, useState, useEffect } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Download, ArrowRight, Copy, Wand2, Loader2, FileText, Bookmark, BookmarkCheck, MessageSquare, RefreshCw, Share2, Lock, Unlock } from "lucide-react";
+import { canGenerateCoverLetter, incrementCoverLetterUsage } from "@/lib/supabase/usage";
+import { canStartMockInterviewAccess } from "@/lib/access";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -58,6 +61,10 @@ export const ResultTools = memo(function ResultTools({
   const [bulletInput, setBulletInput] = useState("");
   const [bulletLoading, setBulletLoading] = useState(false);
   const [bulletRewrite, setBulletRewrite] = useState<BulletRewriteResult | null>(null);
+
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState("cover letter generations");
+  const navigate = useNavigate();
   const [saveLoading, setSaveLoading] = useState(false);
   const [coverLetterOpen, setCoverLetterOpen] = useState(false);
   const [coverLetterJd, setCoverLetterJd] = useState("");
@@ -227,7 +234,8 @@ export const ResultTools = memo(function ResultTools({
   
   if (part === "actions") {
     return (
-      <PremiumLockOverlay isLocked={isLocked} type="subtle">
+      <>
+        <PremiumLockOverlay isLocked={isLocked} type="subtle">
         <Card className="border-border/60">
           <CardContent className="p-6">
             <h3 className="font-display text-base font-semibold">Next actions</h3>
@@ -256,15 +264,29 @@ export const ResultTools = memo(function ResultTools({
               </Button>
               {interviewQuestionsFromStore && (
                 <>
-                  <Button asChild variant="hero" className="w-full">
-                    <Link to="/mock-interview">
-                      <MessageSquare className="h-4 w-4 mr-2" aria-hidden /> Start Mock Interview
-                    </Link>
+                  <Button 
+                    variant="hero" 
+                    className="w-full"
+                    onClick={() => {
+                      if (!canStartMockInterviewAccess(profile)) {
+                        setUpgradeFeature("mock interviews");
+                        setUpgradeModalOpen(true);
+                      } else {
+                        navigate({ to: "/mock-interview" });
+                      }
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" aria-hidden /> Start Mock Interview
                   </Button>
                   <Button 
                     variant="outline" 
                     className="w-full" 
                     onClick={async () => {
+                      if (!canStartMockInterviewAccess(profile)) {
+                        setUpgradeFeature("mock interviews");
+                        setUpgradeModalOpen(true);
+                        return;
+                      }
                       setInterviewQuestionsGenerating(true);
                       try {
                         const result = await generateInterviewQuestions({
@@ -273,13 +295,13 @@ export const ResultTools = memo(function ResultTools({
                           jobDescription: jobDescription || undefined,
                         });
                         if (result.success) {
-                          setInterviewQuestions(result.data);
-                          if (analysisId) {
-                            await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
-                          }
-                          toast.success("Interview questions regenerated!");
+                           setInterviewQuestions(result.data);
+                           if (analysisId) {
+                             await updateInterviewQuestionsToDB({ analysisId, interviewQuestions: result.data });
+                           }
+                           toast.success("Interview questions regenerated!");
                         } else {
-                          toast.error(result.error);
+                           toast.error(result.error);
                         }
                       } catch {
                         toast.error("Could not regenerate interview questions.");
@@ -354,6 +376,14 @@ export const ResultTools = memo(function ResultTools({
                 variant="hero"
                 disabled={coverLetterGenerating}
                 onClick={async () => {
+                  if (user) {
+                    const { canRun } = await canGenerateCoverLetter(user);
+                    if (!canRun) {
+                      setUpgradeFeature("cover letter generations");
+                      setUpgradeModalOpen(true);
+                      return;
+                    }
+                  }
                   console.log("Generate button clicked!");
                   const controller = new AbortController();
                   setAbortController(controller);
@@ -368,8 +398,13 @@ export const ResultTools = memo(function ResultTools({
                       jobDescription: coverLetterJd || undefined,
                       candidateName,
                     });
-
+ 
                     if (result.success) {
+                      if (user) {
+                        await incrementCoverLetterUsage(user);
+                        queryClient.invalidateQueries({ queryKey: ["coverLetterUsage", user.id] });
+                        queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+                      }
                       setGeneratedCoverLetter(result.data.coverLetter);
                       setShowProgressOverlay(false);
                       setGeneratedCoverLetterOpen(true);
@@ -468,6 +503,11 @@ export const ResultTools = memo(function ResultTools({
           resumeText={resumeText}
           jobDescriptionFromStore={jobDescription}
           analysisId={analysisId}
+          onUpgradeNeeded={() => {
+            setInterviewQuestionsOpen(false);
+            setUpgradeFeature("mock interviews");
+            setUpgradeModalOpen(true);
+          }}
         />
 
         <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
@@ -510,12 +550,15 @@ export const ResultTools = memo(function ResultTools({
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </PremiumLockOverlay>
+        </PremiumLockOverlay>
+        <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature={upgradeFeature} />
+      </>
     );
   }
 
   return (
-    <PremiumLockOverlay isLocked={isLocked} type="subtle">
+    <>
+      <PremiumLockOverlay isLocked={isLocked} type="subtle">
       <Card className="border-border/60 border-primary/20 transition-all duration-300 ease-out hover:border-primary/40 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.12)]">
       <CardContent className="p-6 sm:p-8">
         <div className="flex items-center gap-2 text-primary">
@@ -608,6 +651,8 @@ export const ResultTools = memo(function ResultTools({
       </CardContent>
     </Card>
     </PremiumLockOverlay>
+      <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature={upgradeFeature} />
+    </>
   );
 });
 
@@ -620,6 +665,7 @@ interface InterviewQuestionsDialogProps {
   resumeText: string;
   jobDescriptionFromStore: string;
   analysisId: string | null;
+  onUpgradeNeeded?: () => void;
 }
 
 function InterviewQuestionsDialog({
@@ -646,6 +692,11 @@ function InterviewQuestionsDialog({
   }, [open, existingQuestions, jobDescriptionFromStore]);
 
   const handleGenerate = async () => {
+    const { profile } = useAuth();
+    if (!canStartMockInterviewAccess(profile)) {
+      if (onUpgradeNeeded) onUpgradeNeeded();
+      return;
+    }
     setGenerating(true);
     try {
       const result = await generateInterviewQuestions({

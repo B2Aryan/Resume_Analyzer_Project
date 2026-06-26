@@ -2,6 +2,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { Home, Grid2X2, ScanSearch, BarChart2, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 
 type Tab = {
   to: string;
@@ -20,14 +21,78 @@ const tabs: Tab[] = [
 
 export function MobileBottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+  const accumulatedScroll = useRef(0);
+
+  useEffect(() => {
+    lastScrollY.current = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY <= 0) {
+        setIsVisible(true);
+        accumulatedScroll.current = 0;
+        lastScrollY.current = currentScrollY;
+        return;
+      }
+
+      const diff = currentScrollY - lastScrollY.current;
+      lastScrollY.current = currentScrollY;
+
+      const isScrollingDown = diff > 0;
+      const wasScrollingDown = accumulatedScroll.current > 0;
+
+      if (isScrollingDown !== wasScrollingDown) {
+        accumulatedScroll.current = 0;
+      }
+
+      accumulatedScroll.current += diff;
+
+      const THRESHOLD = 50;
+
+      if (isScrollingDown) {
+        if (accumulatedScroll.current >= THRESHOLD && isVisible) {
+          setIsVisible(false);
+        }
+      } else {
+        if (accumulatedScroll.current <= -THRESHOLD && !isVisible) {
+          setIsVisible(true);
+        }
+      }
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [isVisible]);
 
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden"
+      style={{
+        transform: isVisible ? "translateY(0)" : "translateY(100%)",
+        opacity: isVisible ? 1 : 0,
+        transition: "transform 250ms ease-out, opacity 250ms ease-out",
+        willChange: "transform, opacity",
+      }}
       aria-label="Mobile navigation"
     >
       {/* Frosted glass background */}
-      <div className="mx-3 mb-3 rounded-2xl border border-border/40 bg-background/90 shadow-[0_-4px_30px_rgba(0,0,0,0.15)] backdrop-blur-xl dark:bg-background/80">
+      <div className="mx-3 mb-3 rounded-2xl border border-border/30 dark:border-border/40 bg-card shadow-[0_-4px_12px_rgba(0,0,0,0.06),_0_0_8px_rgba(59,130,246,0.03)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.35),_0_0_15px_rgba(59,130,246,0.12)]">
         <div className="flex items-center justify-around px-2 py-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { MobileShell } from "@/components/mobile/MobileShell";
@@ -19,6 +19,7 @@ export const Route = createFileRoute("/data-deletion")({
 
 function DataDeletionPage() {
   const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as any;
   const { user } = useAuth();
   const [isDesktop, setIsDesktop] = useState(true);
 
@@ -78,7 +79,13 @@ function DataDeletionPage() {
             {/* Header */}
             <div className="mb-6 flex items-center gap-3">
               <button
-                onClick={() => navigate({ to: "/dashboard/profile" })}
+                onClick={() => {
+                  if (search.from === "help") {
+                    navigate({ to: "/dashboard/profile", search: { section: "help" } });
+                  } else {
+                    navigate({ to: "/dashboard/profile" });
+                  }
+                }}
                 className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted transition-colors active:bg-muted/70"
                 aria-label="Back"
               >

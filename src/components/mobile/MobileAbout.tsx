@@ -7,13 +7,13 @@ import {
   Globe,
   Github,
   Linkedin,
-  Twitter,
   ChevronRight,
   Shield,
   FileText,
   Trash2,
   Heart,
 } from "lucide-react";
+import { DiscordIcon } from "@/components/DiscordIcon";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function MobileAbout() {
@@ -47,10 +47,10 @@ export function MobileAbout() {
       color: "hover:text-blue-400 text-muted-foreground",
     },
     {
-      label: "Twitter/X",
-      icon: Twitter,
-      url: "https://x.com/B2Aryan601",
-      color: "hover:text-sky-400 text-muted-foreground",
+      label: "Discord",
+      icon: DiscordIcon,
+      url: "https://discord.com/users/b2aryan",
+      color: "hover:text-indigo-400 text-muted-foreground",
     },
   ];
 

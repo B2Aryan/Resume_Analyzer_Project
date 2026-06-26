@@ -36,6 +36,22 @@ export function isAdmin(profile: AccessProfile | null | undefined): boolean {
 }
 
 /**
+ * Returns true if the user can generate a cover letter.
+ */
+export function canGenerateCoverLetterAccess(profile: AccessProfile | null | undefined, coverLettersUsed: number): boolean {
+  if (!profile) return false;
+  if (hasPremiumAccess(profile)) return true;
+  return coverLettersUsed < 3;
+}
+
+/**
+ * Returns true if the user can start a mock interview.
+ */
+export function canStartMockInterviewAccess(profile: AccessProfile | null | undefined): boolean {
+  return hasPremiumAccess(profile);
+}
+
+/**
  * Dev-only logging helper.
  * Logs user access state to console so you can verify:
  *   { is_admin: true, plan: "premium", premiumAccess: true }

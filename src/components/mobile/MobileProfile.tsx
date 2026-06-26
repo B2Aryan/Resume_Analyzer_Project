@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchAnalysesFromDB } from "@/lib/supabase/analysis-db";
@@ -28,8 +28,9 @@ import {
 export function MobileProfile() {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as any;
   const queryClient = useQueryClient();
-  const [showHelpSupport, setShowHelpSupport] = useState(false);
+  const showHelpSupport = search.section === "help";
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   const { data: analyses = [], isLoading } = useQuery({
@@ -139,7 +140,7 @@ export function MobileProfile() {
         {/* Header with Back Button */}
         <div className="mb-6 flex items-center gap-3">
           <button
-            onClick={() => setShowHelpSupport(false)}
+            onClick={() => navigate({ to: "/dashboard/profile" })}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-muted transition-colors active:bg-muted/70"
             aria-label="Back to Profile"
           >
@@ -156,25 +157,25 @@ export function MobileProfile() {
                 label: "FAQ",
                 icon: HelpCircle,
                 iconColor: "bg-cyan-500/15 text-cyan-400",
-                onClick: () => navigate({ to: "/faq" as any }),
+                onClick: () => navigate({ to: "/faq" as any, search: { from: "help" } }),
               },
               {
                 label: "Privacy Policy",
                 icon: Shield,
                 iconColor: "bg-green-500/15 text-green-400",
-                onClick: () => navigate({ to: "/privacy" as any }),
+                onClick: () => navigate({ to: "/privacy" as any, search: { from: "help" } }),
               },
               {
                 label: "Terms",
                 icon: Info,
                 iconColor: "bg-slate-500/15 text-slate-400",
-                onClick: () => navigate({ to: "/terms" as any }),
+                onClick: () => navigate({ to: "/terms" as any, search: { from: "help" } }),
               },
               {
                 label: "Data Deletion",
                 icon: Trash2,
                 iconColor: "bg-red-500/15 text-red-400",
-                onClick: () => navigate({ to: "/data-deletion" as any }),
+                onClick: () => navigate({ to: "/data-deletion" as any, search: { from: "help" } }),
               },
               {
                 label: "Contact Support",
@@ -338,7 +339,7 @@ export function MobileProfile() {
                     key={item.label}
                     onClick={() => {
                       if (item.label === "Help & Support") {
-                        setShowHelpSupport(true);
+                        navigate({ to: "/dashboard/profile", search: { section: "help" } });
                       } else if (item.to) {
                         navigate({ to: item.to as any, search: (item as any).search });
                       }

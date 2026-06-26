@@ -33,11 +33,48 @@ import {
 } from "recharts";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { canGenerateCoverLetter } from "@/lib/supabase/usage";
+import { hasPremiumAccess } from "@/lib/access";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 export function MobileInsights() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const setResult = useAnalysisStore((s) => s.setResult);
+
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
+  // Cover letter usage status
+  const { data: usage } = useQuery({
+    queryKey: ["coverLetterUsage", user?.id],
+    queryFn: () => (user ? canGenerateCoverLetter(user) : null),
+    enabled: !!user,
+  });
+
+  const isPremium = hasPremiumAccess(user ? { plan: "free" } : null); // Fallback if no user
+  const isPremiumActual = hasPremiumAccess(usage?.profile);
+  const isCoverLetterLimitReached = usage ? !usage.canRun : false;
+
+  const getBadges = (title: string) => {
+    if (title === "AI Cover Letter") {
+      if (isPremiumActual) {
+        return [
+          { text: "Unlimited", className: "bg-purple-500/10 text-purple-500 border border-purple-500/20 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full" }
+        ];
+      }
+      if (isCoverLetterLimitReached) {
+        return [
+          { text: "Premium", className: "bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full animate-pulse" }
+        ];
+      }
+      return [
+        { text: "FREE", className: "bg-green-500/10 text-green-500 border border-green-500/20 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full" },
+        { text: "3/Mo", className: "bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-full" }
+      ];
+    }
+    return null;
+  };
 
   // Queries
   const { data: analyses = [], isLoading: analysesLoading } = useQuery({
@@ -420,29 +457,46 @@ export function MobileInsights() {
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Career Analytics Tools</h3>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { title: "Cover Letter Generator", icon: FileText, to: "/ai-cover-letter-generator", soon: false },
-                { title: "Resume Templates", icon: Layers, to: "/fresher-resume-template", soon: false },
+                { title: "AI Cover Letter", icon: FileText, to: "/cover-letter", soon: false },
+                { title: "Resume Templates", icon: Layers, to: "/fresher-resume-template", soon: true },
                 { title: "Resume Comparison", icon: Briefcase, to: "/coming-soon", query: "?feature=comparison", soon: true },
                 { title: "Resume Converter", icon: Zap, to: "/coming-soon", query: "?feature=converter", soon: true },
                 { title: "Job Tracker", icon: FileSpreadsheet, to: "/coming-soon", query: "?feature=tracker", soon: true },
                 { title: "LinkedIn Optimizer", icon: Linkedin, to: "/coming-soon", query: "?feature=linkedin", soon: true },
               ].map((tool) => {
                 const Icon = tool.icon;
+                const badges = getBadges(tool.title);
                 return (
                   <Link
                     key={tool.title}
                     to={tool.to as any}
                     search={tool.query ? { feature: tool.query.split("=")[1] } : undefined}
+                    onClick={(e) => {
+                      if (tool.title === "AI Cover Letter" && isCoverLetterLimitReached && !isPremiumActual) {
+                        e.preventDefault();
+                        setUpgradeModalOpen(true);
+                      }
+                    }}
                     className="rounded-2xl border border-border/40 bg-card p-4 flex flex-col justify-between shadow-sm active:scale-[0.98] transition-all min-h-[110px]"
                   >
                     <div className="flex items-start justify-between gap-1.5 w-full">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Icon className="h-4.5 w-4.5" />
                       </div>
-                      {tool.soon && (
+                      {tool.soon ? (
                         <span className="rounded-full bg-muted px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-muted-foreground">
                           Soon
                         </span>
+                      ) : (
+                        badges && badges.length > 0 && (
+                          <div className="flex flex-wrap gap-1 justify-end max-w-[60%]">
+                            {badges.map((badge, idx) => (
+                              <span key={idx} className={badge.className}>
+                                {badge.text}
+                              </span>
+                            ))}
+                          </div>
+                        )
                       )}
                     </div>
                     <p className="text-xs font-bold text-foreground leading-tight mt-3">
@@ -488,6 +542,7 @@ export function MobileInsights() {
 
         </div>
       )}
+      <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature="cover letter generations" />
     </div>
   );
 }

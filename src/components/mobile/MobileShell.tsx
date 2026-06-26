@@ -8,13 +8,14 @@ import { MobileBottomNav } from "./MobileBottomNav";
 
 interface MobileShellProps {
   children: ReactNode;
+  hideBottomNav?: boolean;
 }
 
-export function MobileShell({ children }: MobileShellProps) {
+export function MobileShell({ children, hideBottomNav }: MobileShellProps) {
   return (
-    <div className="relative flex min-h-screen flex-col bg-background pb-[5.5rem]">
+    <div className={`relative flex min-h-screen flex-col bg-background ${hideBottomNav ? "" : "pb-[5.5rem]"}`}>
       <main className="flex-1 overflow-x-hidden">{children}</main>
-      <MobileBottomNav />
+      {!hideBottomNav && <MobileBottomNav />}
     </div>
   );
 }

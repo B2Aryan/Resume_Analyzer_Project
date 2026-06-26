@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { getSupabaseClient } from "@/lib/supabase";
+import { submitFeedback } from "@/lib/feedback";
 import {
   Drawer,
   DrawerContent,
@@ -78,74 +79,28 @@ export function MobileFeedbackDrawer({ isOpen, onClose }: MobileFeedbackDrawerPr
       return;
     }
 
-    let screenshotUrl = "";
-    
-    // Upload image if selected
-    if (attachment) {
-      setIsUploading(true);
-      try {
-        const supabase = getSupabaseClient();
-        if (!supabase) {
-          toast.error("Attachments require backend support which is currently unavailable.");
-          setIsUploading(false);
-          return;
-        }
+    setIsUploading(true);
+    const success = await submitFeedback({
+      feedbackType: category,
+      message,
+      screenshot: attachment,
+      contactMe: false,
+      rating,
+      user,
+    });
+    setIsUploading(false);
 
-        const fileExt = attachment.name.split(".").pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const bucket = "feedback-screenshots";
-
-        const { error: uploadError } = await supabase.storage
-          .from(bucket)
-          .upload(fileName, attachment);
-
-        if (uploadError) {
-          throw new Error(uploadError.message);
-        }
-
-        const { data: urlData } = supabase.storage
-          .from(bucket)
-          .getPublicUrl(fileName);
-
-        screenshotUrl = urlData.publicUrl;
-
-        // Save feedback in Supabase database
-        await supabase.from("feedback").insert({
-          user_id: user?.id || null,
-          type: category,
-          message: `Rating: ${rating}/5 Stars\n\nMessage: ${message.trim()}`,
-          page_url: window.location.pathname,
-          screenshot_url: screenshotUrl,
-          created_at: new Date().toISOString(),
-        });
-      } catch (err: any) {
-        console.error("Upload/Save error:", err);
-        toast.error("Failed to upload screenshot. Please try again.");
-        setIsUploading(false);
-        return;
-      } finally {
-        setIsUploading(false);
-      }
+    if (success) {
+      onClose();
+      // Reset state after brief delay
+      setTimeout(() => {
+        setCategory("Bug Report");
+        setRating(0);
+        setMessage("");
+        setAttachment(null);
+        setPreviewUrl(null);
+      }, 300);
     }
-
-    const subject = encodeURIComponent("ResumePilot Feedback");
-    let bodyText = `Category: ${category}\nRating: ${rating}/5 Stars\n\nMessage:\n${message.trim()}`;
-    if (screenshotUrl) {
-      bodyText += `\n\nScreenshot URL:\n${screenshotUrl}`;
-    }
-    const body = encodeURIComponent(bodyText);
-    
-    window.location.href = `mailto:support@resumepilot.site?subject=${subject}&body=${body}`;
-    onClose();
-    
-    // Reset state after brief delay
-    setTimeout(() => {
-      setCategory("Bug Report");
-      setRating(0);
-      setMessage("");
-      setAttachment(null);
-      setPreviewUrl(null);
-    }, 300);
   };
 
   return (

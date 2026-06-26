@@ -6,6 +6,8 @@ import { fetchAnalysesFromDB } from "@/lib/supabase/analysis-db";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ActivityCenter } from "./ActivityCenter";
 import { MobileScoreRing } from "./MobileScoreRing";
+import Lottie from "lottie-react";
+import profileAvatarAnimation from "@/assets/lottie/profile-avatar.json";
 import {
   FileText,
   ChevronRight,
@@ -14,16 +16,42 @@ import {
   History,
   MessageSquare,
   Loader2,
-  TrendingUp,
   ScanSearch,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import {
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+
+const MILESTONES = [
+  { label: "Poor", range: "0-49", min: 0, max: 49 },
+  { label: "Average", range: "50-69", min: 50, max: 69 },
+  { label: "Good", range: "70-89", min: 70, max: 89 },
+  { label: "Excellent", range: "90-100", min: 90, max: 100 },
+];
+
+function getCategoryProps(score: number) {
+  if (score >= 90) return { label: "Excellent", colorClass: "text-[#3B82F6]" };
+  if (score >= 70) return { label: "Good", colorClass: "text-[#3B82F6]" };
+  if (score >= 50) return { label: "Average", colorClass: "text-[#F59E0B]" };
+  return { label: "Poor", colorClass: "text-[#EF4444]" };
+}
+
+function getRangeText(score: number): string {
+  if (score >= 90) return "You're in the 90–100 range";
+  if (score >= 70) return "You're in the 70–89 range";
+  if (score >= 50) return "You're in the 50–69 range";
+  return "You're in the 0–49 range";
+}
+
+function getVisualPercentage(score: number): number {
+  if (score < 50) {
+    return (score / 50) * 25;
+  } else if (score < 70) {
+    return 25 + ((score - 50) / 20) * 25;
+  } else if (score < 90) {
+    return 50 + ((score - 70) / 20) * 25;
+  } else {
+    return 75 + ((score - 90) / 10) * 25;
+  }
+}
 
 export function MobileHome() {
   const { user, profile } = useAuth();
@@ -45,10 +73,9 @@ export function MobileHome() {
   const latestScore =
     analyses.length > 0 ? analyses[0].analysis_result.score : null;
 
-  const chartData = analyses
-    .slice(0, 7)
-    .reverse()
-    .map((a, i) => ({ i, score: a.analysis_result.score }));
+  const bestScore = analyses.length > 0
+    ? Math.max(...analyses.map((a) => a.analysis_result.score))
+    : null;
 
   const quickActions = [
     {
@@ -80,12 +107,27 @@ export function MobileHome() {
   return (
     <div className="px-4 pt-12 lg:hidden">
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-bold">
-            Hi, {firstName} 👋
-          </h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">Welcome back</p>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3.5">
+          {/* 👋 Emoji Card */}
+          <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl border border-warning/25 bg-card shadow-sm shadow-warning/5 dark:border-warning/35 dark:shadow-[0_0_12px_rgba(245,158,11,0.12)]">
+            <Lottie
+              animationData={profileAvatarAnimation}
+              loop={true}
+              autoplay={true}
+              rendererSettings={{ preserveAspectRatio: "xMidYMid meet" }}
+              className="h-[46px] w-[46px]"
+            />
+          </div>
+          {/* Text block */}
+          <div className="flex flex-col justify-center">
+            <h1 className="font-display text-[20px] font-bold leading-tight text-foreground">
+              Hi, {firstName}
+            </h1>
+            <p className="text-[13px] font-medium text-muted-foreground mt-0.5">
+              Welcome back
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -95,61 +137,93 @@ export function MobileHome() {
 
       {/* ATS Score Card */}
       <div className="mb-5 rounded-2xl border border-border/40 bg-card p-5 shadow-sm">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          ATS Score
+        <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+          ATS SCORE
         </p>
+        
         {isLoading ? (
           <div className="flex h-24 items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : latestScore !== null ? (
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <MobileScoreRing score={latestScore} size={96} />
+          <div className="flex items-center gap-6 mt-1">
+            {/* Left: Score display */}
+            <div className="flex flex-col items-center justify-center pl-2 shrink-0">
+              {(() => {
+                const cat = getCategoryProps(latestScore);
+                return (
+                  <>
+                    <span className={`text-[46px] font-bold leading-none tracking-tight ${cat.colorClass}`}>
+                      {latestScore}
+                    </span>
+                    <span className="text-[13px] font-medium text-slate-400 mt-2.5">
+                      {cat.label}
+                    </span>
+                  </>
+                );
+              })()}
             </div>
-            <div className="flex-1">
-              {chartData.length > 1 ? (
-                <ResponsiveContainer width="100%" height={60}>
-                  <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 4, bottom: 4 }}>
-                    <defs>
-                      <linearGradient id="mobileScore" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <Tooltip
-                      contentStyle={{ display: "none" }}
-                      cursor={{ stroke: "rgba(148,163,184,0.2)" }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="score"
-                      stroke="#3B82F6"
-                      strokeWidth={2}
-                      fill="url(#mobileScore)"
-                      dot={false}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>More scans needed for trend</span>
+
+            {/* Right: Milestone Tracker */}
+            <div className="flex-1 min-w-0">
+              {/* Labels grid: matches column spacing of milestones */}
+              <div className="grid grid-cols-4 text-center text-xs mb-3">
+                <div className="flex flex-col items-center">
+                  <span className={latestScore < 50 ? "text-red-500 font-bold" : "text-muted-foreground/60"}>Poor</span>
+                  <span className="text-[9px] text-muted-foreground/50 mt-0.5">0-49</span>
                 </div>
-              )}
+                <div className="flex flex-col items-center">
+                  <span className={(latestScore >= 50 && latestScore < 70) ? "text-amber-500 font-bold" : "text-muted-foreground/60"}>Average</span>
+                  <span className="text-[9px] text-muted-foreground/50 mt-0.5">50-69</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className={(latestScore >= 70 && latestScore < 90) ? "text-blue-500 font-bold" : "text-muted-foreground/60"}>Good</span>
+                  <span className="text-[9px] text-muted-foreground/50 mt-0.5">70-89</span>
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className={latestScore >= 90 ? "text-blue-500 font-bold" : "text-muted-foreground/60"}>Excellent</span>
+                  <span className="text-[9px] text-muted-foreground/50 mt-0.5">90-100</span>
+                </div>
+              </div>
+
+              {/* Segmented Line track */}
+              <div className="relative w-full h-1 my-3.5">
+                <div className="absolute inset-x-1 top-1/2 -translate-y-1/2 h-1 rounded-full bg-slate-800/80 overflow-hidden">
+                  {/* Background color gradient mapping the zones */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-amber-500 via-emerald-500 to-slate-700 opacity-60" />
+                </div>
+
+                {/* 4 dots at center of each segment */}
+                <div className="absolute top-1/2 -translate-y-1/2 left-[12.5%] h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-red-500 border border-card" />
+                <div className="absolute top-1/2 -translate-y-1/2 left-[37.5%] h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-amber-500 border border-card" />
+                <div className="absolute top-1/2 -translate-y-1/2 left-[62.5%] h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-emerald-500 border border-card" />
+                <div className="absolute top-1/2 -translate-y-1/2 left-[87.5%] h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-slate-600 border border-card" />
+
+                {/* Dynamic Glowing Indicator Dot using Blue Accent */}
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 h-4 w-4 -translate-x-1/2 rounded-full bg-blue-500 border border-card shadow-[0_0_12px_rgba(59,130,246,0.9)] transition-all duration-700 ease-out"
+                  style={{ left: `${getVisualPercentage(latestScore)}%` }}
+                />
+              </div>
+
+              {/* Status Message Pill */}
+              <div className="flex justify-center mt-5">
+                <div className="inline-flex items-center justify-center rounded-full bg-card dark:bg-[#0F172A]/50 px-4 py-1.5 border border-border/60 dark:border-border/10 shadow-sm">
+                  <span className="text-[11px] font-medium text-foreground dark:text-slate-300">
+                    {getRangeText(latestScore)}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center py-4 text-center">
-            <p className="font-display text-lg font-semibold text-muted-foreground">
-              No analysis yet
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Upload your resume to get your ATS score
+          <div className="flex flex-col items-center py-6 text-center">
+            <p className="text-sm font-medium text-muted-foreground px-4">
+              Analyze your first resume to unlock career insights.
             </p>
             <Link
               to="/upload"
-              className="mt-3 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all active:scale-95"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all active:scale-95 shadow-sm"
             >
               <Upload className="h-4 w-4" />
               Analyze Resume

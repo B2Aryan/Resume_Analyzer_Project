@@ -2,7 +2,7 @@
 import { getSupabaseClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import type { DBProfile } from "./analysis-db";
-import { hasPremiumAccess, logUserAccess } from "@/lib/access";
+import { hasPremiumAccess, logUserAccess, canGenerateCoverLetterAccess, canStartMockInterviewAccess } from "@/lib/access";
 
 // Free tier limits
 export const FREE_TIER_LIMITS = {
@@ -92,16 +92,14 @@ export async function canGenerateCoverLetter(user: User): Promise<{ canRun: bool
   const profile = await fetchUserProfile(user);
   if (!profile) return { canRun: false, remaining: 0, profile: {} as DBProfile };
 
-  // Admins and premium users bypass all usage limits
-  if (hasPremiumAccess(profile)) return { canRun: true, remaining: Infinity, profile };
-
   let updatedProfile = profile;
   if (needsReset(profile.cover_letters_reset_date)) {
     updatedProfile = await updateUsageResetDate(user, "cover_letters");
   }
 
-  const remaining = FREE_TIER_LIMITS.coverLetters - updatedProfile.cover_letters_used;
-  return { canRun: remaining > 0, remaining: Math.max(0, remaining), profile: updatedProfile };
+  const canRun = canGenerateCoverLetterAccess(updatedProfile, updatedProfile.cover_letters_used);
+  const remaining = hasPremiumAccess(updatedProfile) ? Infinity : Math.max(0, FREE_TIER_LIMITS.coverLetters - updatedProfile.cover_letters_used);
+  return { canRun, remaining, profile: updatedProfile };
 }
 
 // Check if user can run a mock interview
@@ -109,16 +107,9 @@ export async function canRunMockInterview(user: User): Promise<{ canRun: boolean
   const profile = await fetchUserProfile(user);
   if (!profile) return { canRun: false, remaining: 0, profile: {} as DBProfile };
 
-  // Admins and premium users bypass all usage limits
-  if (hasPremiumAccess(profile)) return { canRun: true, remaining: Infinity, profile };
-
-  let updatedProfile = profile;
-  if (needsReset(profile.interviews_reset_date)) {
-    updatedProfile = await updateUsageResetDate(user, "interviews");
-  }
-
-  const remaining = FREE_TIER_LIMITS.interviews - updatedProfile.interviews_used;
-  return { canRun: remaining > 0, remaining: Math.max(0, remaining), profile: updatedProfile };
+  const canRun = canStartMockInterviewAccess(profile);
+  const remaining = canRun ? Infinity : 0;
+  return { canRun, remaining, profile };
 }
 
 // Update reset date for a specific usage type

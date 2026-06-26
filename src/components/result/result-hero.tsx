@@ -42,6 +42,9 @@ import { toggleSaveAnalysis, updateInterviewQuestionsToDB } from "@/lib/supabase
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { CoverLetterProgressOverlay } from "@/components/cover-letter-progress-overlay";
+import { canGenerateCoverLetter, incrementCoverLetterUsage } from "@/lib/supabase/usage";
+import { canStartMockInterviewAccess } from "@/lib/access";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 export interface ResultHeroProps {
   part: "header" | "score";
@@ -94,6 +97,8 @@ export const ResultHero = memo(function ResultHero({
   const [interviewQuestionsJd, setInterviewQuestionsJd] = useState("");
   const [interviewQuestionsGenerating, setInterviewQuestionsGenerating] = useState(false);
   const navigate = useNavigate();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState("cover letter generations");
 
   const handleCancelGeneration = useCallback(() => {
     console.log("handleCancelGeneration called!");
@@ -266,15 +271,29 @@ export const ResultHero = memo(function ResultHero({
                 </Button>
                 {interviewQuestionsFromStore && (
                   <>
-                    <Button asChild variant="hero" className="w-full">
-                      <Link to="/mock-interview">
-                        <MessageSquare className="h-4 w-4 mr-2" aria-hidden /> Start Mock Interview
-                      </Link>
+                    <Button 
+                      variant="hero" 
+                      className="w-full"
+                      onClick={() => {
+                        if (!canStartMockInterviewAccess(profile)) {
+                          setUpgradeFeature("mock interviews");
+                          setUpgradeModalOpen(true);
+                        } else {
+                          navigate({ to: "/mock-interview" });
+                        }
+                      }}
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" aria-hidden /> Start Mock Interview
                     </Button>
                     <Button 
                       variant="outline" 
                       className="w-full" 
                       onClick={async () => {
+                        if (!canStartMockInterviewAccess(profile)) {
+                          setUpgradeFeature("mock interviews");
+                          setUpgradeModalOpen(true);
+                          return;
+                        }
                         setInterviewQuestionsGenerating(true);
                         try {
                           const result = await generateInterviewQuestions({
@@ -359,6 +378,14 @@ export const ResultHero = memo(function ResultHero({
               variant="hero"
               disabled={coverLetterGenerating}
               onClick={async () => {
+                if (user) {
+                  const { canRun } = await canGenerateCoverLetter(user);
+                  if (!canRun) {
+                    setUpgradeFeature("cover letter generations");
+                    setUpgradeModalOpen(true);
+                    return;
+                  }
+                }
                 console.log("Generate button clicked!");
                 const controller = new AbortController();
                 setAbortController(controller);
@@ -473,7 +500,13 @@ export const ResultHero = memo(function ResultHero({
         resumeText={resumeText}
         jobDescriptionFromStore={jobDescription}
         analysisId={analysisId}
+        onUpgradeNeeded={() => {
+          setInterviewQuestionsOpen(false);
+          setUpgradeFeature("mock interviews");
+          setUpgradeModalOpen(true);
+        }}
       />
+      <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature={upgradeFeature} />
     </>
   );
 });
@@ -487,6 +520,7 @@ interface InterviewQuestionsDialogProps {
   resumeText: string;
   jobDescriptionFromStore: string;
   analysisId: string | null;
+  onUpgradeNeeded?: () => void;
 }
 
 function InterviewQuestionsDialog({
@@ -512,6 +546,11 @@ function InterviewQuestionsDialog({
   }, [open, existingQuestions, jobDescriptionFromStore]);
 
   const handleGenerate = async () => {
+    const { profile } = useAuth();
+    if (!canStartMockInterviewAccess(profile)) {
+      if (onUpgradeNeeded) onUpgradeNeeded();
+      return;
+    }
     setGenerating(true);
     try {
       const result = await generateInterviewQuestions({

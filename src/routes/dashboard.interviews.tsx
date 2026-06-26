@@ -14,6 +14,8 @@ import { useMockInterviewStore } from "@/store/mockInterviewStore";
 import { generateInterviewQuestions } from "@/lib/ats/interview-questions";
 import { MobileInterviews } from "@/components/mobile/MobileInterviews";
 import { toast } from "sonner";
+import { canStartMockInterviewAccess } from "@/lib/access";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 export const Route = createFileRoute("/dashboard/interviews")({
   head: () => ({ meta: [{ title: "Mock Interviews — ResumePilot" }] }),
@@ -25,11 +27,12 @@ function tone(score: number) {
 }
 
 function InterviewsPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
   // Restore analysis store from localStorage if needed (for starting new tailors)
   const { hasResult, restoreFromStorage } = useAnalysisStore();
@@ -85,6 +88,10 @@ function InterviewsPage() {
   };
 
   const handleStartNewInterview = async (roleName: string) => {
+    if (!canStartMockInterviewAccess(profile)) {
+      setUpgradeModalOpen(true);
+      return;
+    }
     const resumeText = useAnalysisStore.getState().resumeText;
     if (!resumeText?.trim()) {
       toast.error("Please upload a resume first to practice tailored interviews.");
@@ -214,6 +221,7 @@ function InterviewsPage() {
           )}
         </AppShell>
       </div>
+      <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature="mock interviews" />
     </>
   );
 }

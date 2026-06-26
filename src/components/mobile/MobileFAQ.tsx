@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ChevronLeft } from "lucide-react";
 import {
   Accordion,
@@ -57,9 +57,14 @@ const faqItems: FAQItem[] = [
 
 export function MobileFAQ() {
   const navigate = useNavigate();
+  const search = useSearch({ strict: false }) as any;
 
   const handleBack = () => {
-    navigate({ to: "/dashboard/profile" });
+    if (search.from === "help") {
+      navigate({ to: "/dashboard/profile", search: { section: "help" } });
+    } else {
+      navigate({ to: "/dashboard/profile" });
+    }
   };
 
   return (

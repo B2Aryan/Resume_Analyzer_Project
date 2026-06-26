@@ -26,6 +26,9 @@ import { formatDistanceToNow } from "date-fns";
 import { MobileShell } from "./MobileShell";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { canStartMockInterviewAccess } from "@/lib/access";
+import { UpgradeModal } from "@/components/UpgradeModal";
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
 
@@ -97,6 +100,10 @@ export function MobileInterviews({
   onContinueUnfinished,
   onDeleteUnfinished,
 }: MobileInterviewsProps) {
+  const { profile } = useAuth();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const isPremium = canStartMockInterviewAccess(profile);
+
   const [targetRole, setTargetRole] = useState("");
   const [search, setSearch] = useState("");
   const [expandedTips, setExpandedTips] = useState<Record<string, boolean>>({});
@@ -171,6 +178,10 @@ export function MobileInterviews({
   const handleStartClick = () => {
     if (!targetRole.trim()) {
       toast.error("Please enter or select a target role first.");
+      return;
+    }
+    if (!isPremium) {
+      setUpgradeModalOpen(true);
       return;
     }
     onStartNewInterview(targetRole.trim());
@@ -559,6 +570,7 @@ export function MobileInterviews({
           </section>
         </div>
       </div>
+      <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature="mock interviews" />
     </MobileShell>
   );
 }

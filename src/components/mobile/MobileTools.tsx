@@ -1,4 +1,10 @@
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
+import { canGenerateCoverLetter } from "@/lib/supabase/usage";
+import { hasPremiumAccess } from "@/lib/access";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import {
   ScanSearch,
   History,
@@ -11,7 +17,6 @@ import {
   BrainCircuit,
   Star,
   ArrowUpCircle,
-  MessageCircle,
   Lightbulb,
   FlaskConical,
   ChevronRight,
@@ -58,7 +63,7 @@ const sections: ToolSection[] = [
     title: "Career Tools",
     items: [
       {
-        label: "Cover Letter Generator",
+        label: "AI Cover Letter",
         icon: FileText,
         to: "/cover-letter",
         iconColor: "bg-cyan-500/15 text-cyan-400",
@@ -137,6 +142,48 @@ const sections: ToolSection[] = [
 ];
 
 export function MobileTools() {
+  const { user, profile } = useAuth();
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState("cover letter generations");
+
+  // Fetch cover letter usage status
+  const { data: usage } = useQuery({
+    queryKey: ["coverLetterUsage", user?.id],
+    queryFn: () => (user ? canGenerateCoverLetter(user) : null),
+    enabled: !!user,
+  });
+
+  const isPremium = hasPremiumAccess(profile || usage?.profile);
+  const isCoverLetterLimitReached = usage ? !usage.canRun : false;
+
+  const getBadges = (label: string) => {
+    if (label === "AI Cover Letter") {
+      if (isPremium) {
+        return [
+          { text: "Unlimited", className: "bg-purple-500/10 text-purple-500 border border-purple-500/20 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full" }
+        ];
+      }
+      if (isCoverLetterLimitReached) {
+        return [
+          { text: "Premium", className: "bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full animate-pulse" }
+        ];
+      }
+      return [
+        { text: "FREE", className: "bg-green-500/10 text-green-500 border border-green-500/20 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full" },
+        { text: "3 / Month", className: "bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full" }
+      ];
+    }
+
+    if (label === "Mock Interview") {
+      return [
+        { text: "Premium", className: "bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full" },
+        { text: "Unlimited", className: "bg-purple-500/10 text-purple-500 border border-purple-500/20 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full" }
+      ];
+    }
+
+    return null;
+  };
+
   return (
     <div className="px-4 pt-12 lg:hidden">
       {/* Header */}
@@ -157,6 +204,7 @@ export function MobileTools() {
               {section.items.map((item, index) => {
                 const Icon = item.icon;
                 const isLast = index === section.items.length - 1;
+                const badges = getBadges(item.label);
 
                 const content = (
                   <div
@@ -167,11 +215,21 @@ export function MobileTools() {
                     <div
                       className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.iconColor}`}
                     >
-                      <Icon className="h-4.5 w-4.5 h-5 w-5" />
+                      <Icon className="h-5 w-5" />
                     </div>
                     <span className="flex-1 text-sm font-medium">
                       {item.label}
                     </span>
+                    {/* Render dynamic badges if available */}
+                    {badges && badges.length > 0 && (
+                      <div className="flex gap-1.5 mr-2">
+                        {badges.map((badge, i) => (
+                          <span key={i} className={badge.className}>
+                            {badge.text}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     {item.comingSoon ? (
                       <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
                         Soon
@@ -190,8 +248,16 @@ export function MobileTools() {
                   );
                 }
 
+                const handleItemClick = (e: React.MouseEvent) => {
+                  if (item.label === "AI Cover Letter" && isCoverLetterLimitReached && !isPremium) {
+                    e.preventDefault();
+                    setUpgradeFeature("cover letter generations");
+                    setUpgradeModalOpen(true);
+                  }
+                };
+
                 return (
-                  <Link key={item.label} to={item.to as any}>
+                  <Link key={item.label} to={item.to as any} onClick={handleItemClick}>
                     {content}
                   </Link>
                 );
@@ -200,6 +266,7 @@ export function MobileTools() {
           </div>
         ))}
       </div>
+      <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature={upgradeFeature} />
     </div>
   );
 }

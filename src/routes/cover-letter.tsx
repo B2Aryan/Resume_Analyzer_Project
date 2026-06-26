@@ -134,6 +134,7 @@ function CoverLetterPage() {
           if (user) {
             await incrementCoverLetterUsage(user);
             queryClient.invalidateQueries({ queryKey: ["coverLetterUsage", user.id] });
+            queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
           }
           setCoverLetter(result.data.coverLetter);
           setStep("result");
@@ -175,7 +176,7 @@ function CoverLetterPage() {
     );
   }
 
-  const usedCount = usage ? Math.max(0, 3 - usage.remaining) : 0;
+  const usedCount = usage?.profile?.cover_letters_used ?? 0;
 
   return (
     <MobileShell>
@@ -384,7 +385,7 @@ function CoverLetterPage() {
           )}
         </div>
       </PremiumLockOverlay>
-      <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature="AI cover letters" />
+      <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature="cover letter generations" />
     </MobileShell>
   );
 }

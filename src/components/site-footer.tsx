@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { FileCheck2, Twitter, Linkedin, Github } from "lucide-react";
+import { FileCheck2, Linkedin, Github } from "lucide-react";
+import { DiscordIcon } from "@/components/DiscordIcon";
 import { Button } from "@/components/ui/button";
 import { FeedbackModal } from "@/components/feedback-modal";
 
@@ -65,8 +66,8 @@ export function SiteFooter() {
           <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs text-muted-foreground sm:flex-row sm:px-6">
             <p>© {new Date().getFullYear()} ResumePilot. Built for students.</p>
             <div className="flex items-center gap-1">
-              <a href="https://x.com/B2Aryan601" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-all hover:scale-110 hover:bg-foreground/5 hover:text-foreground">
-                <Twitter className="h-4 w-4" />
+              <a href="https://discord.com/users/b2aryan" target="_blank" rel="noopener noreferrer" aria-label="Discord" className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-all hover:scale-110 hover:bg-foreground/5 hover:text-foreground">
+                <DiscordIcon className="h-4 w-4" />
               </a>
               <a href="https://www.linkedin.com/in/b2aryan/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-all hover:scale-110 hover:bg-foreground/5 hover:text-foreground">
                 <Linkedin className="h-4 w-4" />
