@@ -182,23 +182,27 @@ export function UpgradeModal({ open, onOpenChange, feature }: UpgradeModalProps)
             <div className="grid gap-2">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                <span className="text-sm leading-tight">Unlimited resume analyses</span>
+                <span className="text-sm leading-tight">Unlimited ATS Analyses</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                <span className="text-sm leading-tight">Unlimited AI cover letters</span>
+                <span className="text-sm leading-tight">Unlimited Cover Letter Generation</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                <span className="text-sm leading-tight">Unlimited mock interviews</span>
+                <span className="text-sm leading-tight">Unlimited AI Mock Interviews</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                <span className="text-sm leading-tight">Advanced ATS insights</span>
+                <span className="text-sm leading-tight">Advanced Resume Analysis</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                <span className="text-sm leading-tight">Priority support</span>
+                <span className="text-sm leading-tight">Priority Support</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                <span className="text-sm leading-tight">Export & History</span>
               </div>
             </div>
           </div>

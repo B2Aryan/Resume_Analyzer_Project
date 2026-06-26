@@ -3,6 +3,8 @@ import { MarketingLayout } from "@/components/marketing-layout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { createSeoHead, ORGANIZATION_SCHEMA } from "@/lib/seo";
+import { MobileShell } from "@/components/mobile/MobileShell";
+import { MobileFAQ } from "@/components/mobile/MobileFAQ";
 
 export const Route = createFileRoute("/faq")({
   head: () => createSeoHead({
@@ -51,37 +53,47 @@ const groups = [
 
 function FAQPage() {
   return (
-    <MarketingLayout>
-      <section className="hero-ambient py-16">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <h1 className="font-display text-4xl font-bold sm:text-5xl">Frequently asked questions</h1>
-          <p className="mt-3 text-muted-foreground">Everything you need to know about ResumePilot.</p>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <div className="space-y-10">
-          {groups.map((g) => (
-            <div key={g.title}>
-              <h2 className="font-display text-xl font-bold">{g.title}</h2>
-              <Accordion type="single" collapsible className="mt-3">
-                {g.items.map((it, i) => (
-                  <AccordionItem key={i} value={`${g.title}-${i}`}>
-                    <AccordionTrigger className="text-left">{it.q}</AccordionTrigger>
-                    <AccordionContent className="text-muted-foreground">{it.a}</AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+    <>
+      <div className="hidden lg:block">
+        <MarketingLayout>
+          <section className="hero-ambient py-16">
+            <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+              <h1 className="font-display text-4xl font-bold sm:text-5xl">Frequently asked questions</h1>
+              <p className="mt-3 text-muted-foreground">Everything you need to know about ResumePilot.</p>
             </div>
-          ))}
-        </div>
+          </section>
 
-        <div className="mt-12 rounded-2xl border border-border bg-card p-8 text-center">
-          <p className="font-semibold">Still have questions?</p>
-          <p className="mt-1 text-sm text-muted-foreground">Drop us a note from your profile after signing up.</p>
-          <Button asChild variant="hero" className="mt-5"><Link to="/upload">Try a free scan</Link></Button>
-        </div>
-      </section>
-    </MarketingLayout>
+          <section className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
+            <div className="space-y-10">
+              {groups.map((g) => (
+                <div key={g.title}>
+                  <h2 className="font-display text-xl font-bold">{g.title}</h2>
+                  <Accordion type="single" collapsible className="mt-3">
+                    {g.items.map((it, i) => (
+                      <AccordionItem key={i} value={`${g.title}-${i}`}>
+                        <AccordionTrigger className="text-left">{it.q}</AccordionTrigger>
+                        <AccordionContent className="text-muted-foreground">{it.a}</AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-12 rounded-2xl border border-border bg-card p-8 text-center">
+              <p className="font-semibold">Still have questions?</p>
+              <p className="mt-1 text-sm text-muted-foreground">Drop us a note from your profile after signing up.</p>
+              <Button asChild variant="hero" className="mt-5"><Link to="/upload">Try a free scan</Link></Button>
+            </div>
+          </section>
+        </MarketingLayout>
+      </div>
+
+      <div className="block lg:hidden">
+        <MobileShell>
+          <MobileFAQ />
+        </MobileShell>
+      </div>
+    </>
   );
 }

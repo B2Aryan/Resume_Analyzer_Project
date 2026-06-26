@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SoftwareEngineerResumeTemplateRouteImport } from './routes/software-engineer-resume-template'
 import { Route as ResumeScoreCheckerRouteImport } from './routes/resume-score-checker'
 import { Route as ResultRouteImport } from './routes/result'
@@ -17,6 +18,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MockInterviewRouteImport } from './routes/mock-interview'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as JobMatchRouteImport } from './routes/job-match'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as FresherResumeTemplateRouteImport } from './routes/fresher-resume-template'
 import { Route as FeaturesRouteImport } from './routes/features'
@@ -24,6 +26,7 @@ import { Route as FaqRouteImport } from './routes/faq'
 import { Route as DataDeletionRouteImport } from './routes/data-deletion'
 import { Route as DataAnalystResumeTemplateRouteImport } from './routes/data-analyst-resume-template'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CoverLetterRouteImport } from './routes/cover-letter'
 import { Route as ComingSoonRouteImport } from './routes/coming-soon'
 import { Route as AtsResumeCheckerRouteImport } from './routes/ats-resume-checker'
 import { Route as AiInterviewQuestionsRouteImport } from './routes/ai-interview-questions'
@@ -32,9 +35,15 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as ReportIdRouteImport } from './routes/report.$id'
+import { Route as MobileToolsRouteImport } from './routes/mobile.tools'
+import { Route as MobileRequestFeatureRouteImport } from './routes/mobile.request-feature'
+import { Route as MobileInsightsRouteImport } from './routes/mobile.insights'
+import { Route as MobileBetaProgramRouteImport } from './routes/mobile.beta-program'
 import { Route as InterviewReportIdRouteImport } from './routes/interview-report.$id'
+import { Route as DashboardSecurityRouteImport } from './routes/dashboard.security'
 import { Route as DashboardSavedRouteImport } from './routes/dashboard.saved'
 import { Route as DashboardProfileRouteImport } from './routes/dashboard.profile'
+import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
 import { Route as DashboardInterviewsRouteImport } from './routes/dashboard.interviews'
 import { Route as DashboardHistoryRouteImport } from './routes/dashboard.history'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
@@ -42,6 +51,11 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
   path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SoftwareEngineerResumeTemplateRoute =
@@ -80,6 +94,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JobMatchRoute = JobMatchRouteImport.update({
+  id: '/job-match',
+  path: '/job-match',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
@@ -114,6 +133,11 @@ const DataAnalystResumeTemplateRoute =
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoverLetterRoute = CoverLetterRouteImport.update({
+  id: '/cover-letter',
+  path: '/cover-letter',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComingSoonRoute = ComingSoonRouteImport.update({
@@ -156,10 +180,35 @@ const ReportIdRoute = ReportIdRouteImport.update({
   path: '/report/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MobileToolsRoute = MobileToolsRouteImport.update({
+  id: '/mobile/tools',
+  path: '/mobile/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MobileRequestFeatureRoute = MobileRequestFeatureRouteImport.update({
+  id: '/mobile/request-feature',
+  path: '/mobile/request-feature',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MobileInsightsRoute = MobileInsightsRouteImport.update({
+  id: '/mobile/insights',
+  path: '/mobile/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MobileBetaProgramRoute = MobileBetaProgramRouteImport.update({
+  id: '/mobile/beta-program',
+  path: '/mobile/beta-program',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InterviewReportIdRoute = InterviewReportIdRouteImport.update({
   id: '/interview-report/$id',
   path: '/interview-report/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardSecurityRoute = DashboardSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSavedRoute = DashboardSavedRouteImport.update({
   id: '/saved',
@@ -169,6 +218,11 @@ const DashboardSavedRoute = DashboardSavedRouteImport.update({
 const DashboardProfileRoute = DashboardProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardNotificationsRoute = DashboardNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardInterviewsRoute = DashboardInterviewsRouteImport.update({
@@ -194,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/ai-interview-questions': typeof AiInterviewQuestionsRoute
   '/ats-resume-checker': typeof AtsResumeCheckerRoute
   '/coming-soon': typeof ComingSoonRoute
+  '/cover-letter': typeof CoverLetterRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
@@ -201,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/features': typeof FeaturesRoute
   '/fresher-resume-template': typeof FresherResumeTemplateRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/job-match': typeof JobMatchRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
   '/privacy': typeof PrivacyRoute
@@ -208,13 +264,20 @@ export interface FileRoutesByFullPath {
   '/result': typeof ResultRoute
   '/resume-score-checker': typeof ResumeScoreCheckerRoute
   '/software-engineer-resume-template': typeof SoftwareEngineerResumeTemplateRoute
+  '/terms': typeof TermsRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/interviews': typeof DashboardInterviewsRoute
+  '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
+  '/dashboard/security': typeof DashboardSecurityRoute
   '/interview-report/$id': typeof InterviewReportIdRoute
+  '/mobile/beta-program': typeof MobileBetaProgramRoute
+  '/mobile/insights': typeof MobileInsightsRoute
+  '/mobile/request-feature': typeof MobileRequestFeatureRoute
+  '/mobile/tools': typeof MobileToolsRoute
   '/report/$id': typeof ReportIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
@@ -225,12 +288,14 @@ export interface FileRoutesByTo {
   '/ai-interview-questions': typeof AiInterviewQuestionsRoute
   '/ats-resume-checker': typeof AtsResumeCheckerRoute
   '/coming-soon': typeof ComingSoonRoute
+  '/cover-letter': typeof CoverLetterRoute
   '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/fresher-resume-template': typeof FresherResumeTemplateRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/job-match': typeof JobMatchRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
   '/privacy': typeof PrivacyRoute
@@ -238,13 +303,20 @@ export interface FileRoutesByTo {
   '/result': typeof ResultRoute
   '/resume-score-checker': typeof ResumeScoreCheckerRoute
   '/software-engineer-resume-template': typeof SoftwareEngineerResumeTemplateRoute
+  '/terms': typeof TermsRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/interviews': typeof DashboardInterviewsRoute
+  '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
+  '/dashboard/security': typeof DashboardSecurityRoute
   '/interview-report/$id': typeof InterviewReportIdRoute
+  '/mobile/beta-program': typeof MobileBetaProgramRoute
+  '/mobile/insights': typeof MobileInsightsRoute
+  '/mobile/request-feature': typeof MobileRequestFeatureRoute
+  '/mobile/tools': typeof MobileToolsRoute
   '/report/$id': typeof ReportIdRoute
   '/dashboard': typeof DashboardIndexRoute
 }
@@ -256,6 +328,7 @@ export interface FileRoutesById {
   '/ai-interview-questions': typeof AiInterviewQuestionsRoute
   '/ats-resume-checker': typeof AtsResumeCheckerRoute
   '/coming-soon': typeof ComingSoonRoute
+  '/cover-letter': typeof CoverLetterRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/data-analyst-resume-template': typeof DataAnalystResumeTemplateRoute
   '/data-deletion': typeof DataDeletionRoute
@@ -263,6 +336,7 @@ export interface FileRoutesById {
   '/features': typeof FeaturesRoute
   '/fresher-resume-template': typeof FresherResumeTemplateRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/job-match': typeof JobMatchRoute
   '/login': typeof LoginRoute
   '/mock-interview': typeof MockInterviewRoute
   '/privacy': typeof PrivacyRoute
@@ -270,13 +344,20 @@ export interface FileRoutesById {
   '/result': typeof ResultRoute
   '/resume-score-checker': typeof ResumeScoreCheckerRoute
   '/software-engineer-resume-template': typeof SoftwareEngineerResumeTemplateRoute
+  '/terms': typeof TermsRoute
   '/upload': typeof UploadRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/dashboard/history': typeof DashboardHistoryRoute
   '/dashboard/interviews': typeof DashboardInterviewsRoute
+  '/dashboard/notifications': typeof DashboardNotificationsRoute
   '/dashboard/profile': typeof DashboardProfileRoute
   '/dashboard/saved': typeof DashboardSavedRoute
+  '/dashboard/security': typeof DashboardSecurityRoute
   '/interview-report/$id': typeof InterviewReportIdRoute
+  '/mobile/beta-program': typeof MobileBetaProgramRoute
+  '/mobile/insights': typeof MobileInsightsRoute
+  '/mobile/request-feature': typeof MobileRequestFeatureRoute
+  '/mobile/tools': typeof MobileToolsRoute
   '/report/$id': typeof ReportIdRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
@@ -289,6 +370,7 @@ export interface FileRouteTypes {
     | '/ai-interview-questions'
     | '/ats-resume-checker'
     | '/coming-soon'
+    | '/cover-letter'
     | '/dashboard'
     | '/data-analyst-resume-template'
     | '/data-deletion'
@@ -296,6 +378,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/fresher-resume-template'
     | '/how-it-works'
+    | '/job-match'
     | '/login'
     | '/mock-interview'
     | '/privacy'
@@ -303,13 +386,20 @@ export interface FileRouteTypes {
     | '/result'
     | '/resume-score-checker'
     | '/software-engineer-resume-template'
+    | '/terms'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
     | '/dashboard/interviews'
+    | '/dashboard/notifications'
     | '/dashboard/profile'
     | '/dashboard/saved'
+    | '/dashboard/security'
     | '/interview-report/$id'
+    | '/mobile/beta-program'
+    | '/mobile/insights'
+    | '/mobile/request-feature'
+    | '/mobile/tools'
     | '/report/$id'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -320,12 +410,14 @@ export interface FileRouteTypes {
     | '/ai-interview-questions'
     | '/ats-resume-checker'
     | '/coming-soon'
+    | '/cover-letter'
     | '/data-analyst-resume-template'
     | '/data-deletion'
     | '/faq'
     | '/features'
     | '/fresher-resume-template'
     | '/how-it-works'
+    | '/job-match'
     | '/login'
     | '/mock-interview'
     | '/privacy'
@@ -333,13 +425,20 @@ export interface FileRouteTypes {
     | '/result'
     | '/resume-score-checker'
     | '/software-engineer-resume-template'
+    | '/terms'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
     | '/dashboard/interviews'
+    | '/dashboard/notifications'
     | '/dashboard/profile'
     | '/dashboard/saved'
+    | '/dashboard/security'
     | '/interview-report/$id'
+    | '/mobile/beta-program'
+    | '/mobile/insights'
+    | '/mobile/request-feature'
+    | '/mobile/tools'
     | '/report/$id'
     | '/dashboard'
   id:
@@ -350,6 +449,7 @@ export interface FileRouteTypes {
     | '/ai-interview-questions'
     | '/ats-resume-checker'
     | '/coming-soon'
+    | '/cover-letter'
     | '/dashboard'
     | '/data-analyst-resume-template'
     | '/data-deletion'
@@ -357,6 +457,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/fresher-resume-template'
     | '/how-it-works'
+    | '/job-match'
     | '/login'
     | '/mock-interview'
     | '/privacy'
@@ -364,13 +465,20 @@ export interface FileRouteTypes {
     | '/result'
     | '/resume-score-checker'
     | '/software-engineer-resume-template'
+    | '/terms'
     | '/upload'
     | '/auth/callback'
     | '/dashboard/history'
     | '/dashboard/interviews'
+    | '/dashboard/notifications'
     | '/dashboard/profile'
     | '/dashboard/saved'
+    | '/dashboard/security'
     | '/interview-report/$id'
+    | '/mobile/beta-program'
+    | '/mobile/insights'
+    | '/mobile/request-feature'
+    | '/mobile/tools'
     | '/report/$id'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
@@ -382,6 +490,7 @@ export interface RootRouteChildren {
   AiInterviewQuestionsRoute: typeof AiInterviewQuestionsRoute
   AtsResumeCheckerRoute: typeof AtsResumeCheckerRoute
   ComingSoonRoute: typeof ComingSoonRoute
+  CoverLetterRoute: typeof CoverLetterRoute
   DashboardRoute: typeof DashboardRouteWithChildren
   DataAnalystResumeTemplateRoute: typeof DataAnalystResumeTemplateRoute
   DataDeletionRoute: typeof DataDeletionRoute
@@ -389,6 +498,7 @@ export interface RootRouteChildren {
   FeaturesRoute: typeof FeaturesRoute
   FresherResumeTemplateRoute: typeof FresherResumeTemplateRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  JobMatchRoute: typeof JobMatchRoute
   LoginRoute: typeof LoginRoute
   MockInterviewRoute: typeof MockInterviewRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -396,9 +506,14 @@ export interface RootRouteChildren {
   ResultRoute: typeof ResultRoute
   ResumeScoreCheckerRoute: typeof ResumeScoreCheckerRoute
   SoftwareEngineerResumeTemplateRoute: typeof SoftwareEngineerResumeTemplateRoute
+  TermsRoute: typeof TermsRoute
   UploadRoute: typeof UploadRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   InterviewReportIdRoute: typeof InterviewReportIdRoute
+  MobileBetaProgramRoute: typeof MobileBetaProgramRoute
+  MobileInsightsRoute: typeof MobileInsightsRoute
+  MobileRequestFeatureRoute: typeof MobileRequestFeatureRoute
+  MobileToolsRoute: typeof MobileToolsRoute
   ReportIdRoute: typeof ReportIdRoute
 }
 
@@ -409,6 +524,13 @@ declare module '@tanstack/react-router' {
       path: '/upload'
       fullPath: '/upload'
       preLoaderRoute: typeof UploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/software-engineer-resume-template': {
@@ -460,6 +582,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/job-match': {
+      id: '/job-match'
+      path: '/job-match'
+      fullPath: '/job-match'
+      preLoaderRoute: typeof JobMatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/how-it-works': {
       id: '/how-it-works'
       path: '/how-it-works'
@@ -507,6 +636,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cover-letter': {
+      id: '/cover-letter'
+      path: '/cover-letter'
+      fullPath: '/cover-letter'
+      preLoaderRoute: typeof CoverLetterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/coming-soon': {
@@ -565,12 +701,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mobile/tools': {
+      id: '/mobile/tools'
+      path: '/mobile/tools'
+      fullPath: '/mobile/tools'
+      preLoaderRoute: typeof MobileToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobile/request-feature': {
+      id: '/mobile/request-feature'
+      path: '/mobile/request-feature'
+      fullPath: '/mobile/request-feature'
+      preLoaderRoute: typeof MobileRequestFeatureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobile/insights': {
+      id: '/mobile/insights'
+      path: '/mobile/insights'
+      fullPath: '/mobile/insights'
+      preLoaderRoute: typeof MobileInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mobile/beta-program': {
+      id: '/mobile/beta-program'
+      path: '/mobile/beta-program'
+      fullPath: '/mobile/beta-program'
+      preLoaderRoute: typeof MobileBetaProgramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/interview-report/$id': {
       id: '/interview-report/$id'
       path: '/interview-report/$id'
       fullPath: '/interview-report/$id'
       preLoaderRoute: typeof InterviewReportIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/security': {
+      id: '/dashboard/security'
+      path: '/security'
+      fullPath: '/dashboard/security'
+      preLoaderRoute: typeof DashboardSecurityRouteImport
+      parentRoute: typeof DashboardRoute
     }
     '/dashboard/saved': {
       id: '/dashboard/saved'
@@ -584,6 +755,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/dashboard/profile'
       preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/notifications': {
+      id: '/dashboard/notifications'
+      path: '/notifications'
+      fullPath: '/dashboard/notifications'
+      preLoaderRoute: typeof DashboardNotificationsRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/interviews': {
@@ -613,16 +791,20 @@ declare module '@tanstack/react-router' {
 interface DashboardRouteChildren {
   DashboardHistoryRoute: typeof DashboardHistoryRoute
   DashboardInterviewsRoute: typeof DashboardInterviewsRoute
+  DashboardNotificationsRoute: typeof DashboardNotificationsRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardSavedRoute: typeof DashboardSavedRoute
+  DashboardSecurityRoute: typeof DashboardSecurityRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardHistoryRoute: DashboardHistoryRoute,
   DashboardInterviewsRoute: DashboardInterviewsRoute,
+  DashboardNotificationsRoute: DashboardNotificationsRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardSavedRoute: DashboardSavedRoute,
+  DashboardSecurityRoute: DashboardSecurityRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
@@ -637,6 +819,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiInterviewQuestionsRoute: AiInterviewQuestionsRoute,
   AtsResumeCheckerRoute: AtsResumeCheckerRoute,
   ComingSoonRoute: ComingSoonRoute,
+  CoverLetterRoute: CoverLetterRoute,
   DashboardRoute: DashboardRouteWithChildren,
   DataAnalystResumeTemplateRoute: DataAnalystResumeTemplateRoute,
   DataDeletionRoute: DataDeletionRoute,
@@ -644,6 +827,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturesRoute: FeaturesRoute,
   FresherResumeTemplateRoute: FresherResumeTemplateRoute,
   HowItWorksRoute: HowItWorksRoute,
+  JobMatchRoute: JobMatchRoute,
   LoginRoute: LoginRoute,
   MockInterviewRoute: MockInterviewRoute,
   PrivacyRoute: PrivacyRoute,
@@ -651,9 +835,14 @@ const rootRouteChildren: RootRouteChildren = {
   ResultRoute: ResultRoute,
   ResumeScoreCheckerRoute: ResumeScoreCheckerRoute,
   SoftwareEngineerResumeTemplateRoute: SoftwareEngineerResumeTemplateRoute,
+  TermsRoute: TermsRoute,
   UploadRoute: UploadRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   InterviewReportIdRoute: InterviewReportIdRoute,
+  MobileBetaProgramRoute: MobileBetaProgramRoute,
+  MobileInsightsRoute: MobileInsightsRoute,
+  MobileRequestFeatureRoute: MobileRequestFeatureRoute,
+  MobileToolsRoute: MobileToolsRoute,
   ReportIdRoute: ReportIdRoute,
 }
 export const routeTree = rootRouteImport

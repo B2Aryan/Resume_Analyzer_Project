@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ScoreRing } from "@/components/score-ring";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MobileLogin } from "@/components/mobile/MobileLogin";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
@@ -160,7 +161,9 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen h-screen w-full bg-background relative overflow-hidden">
+    <>
+      <div className="hidden lg:block w-full h-full">
+        <div className="min-h-screen h-screen w-full bg-background relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 z-0">
         <div
@@ -538,6 +541,11 @@ function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
+      <div className="block lg:hidden min-h-screen w-full">
+        <MobileLogin />
+      </div>
+    </>
   );
 }

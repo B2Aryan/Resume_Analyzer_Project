@@ -10,6 +10,8 @@ import { fetchUserProfile, FREE_TIER_LIMITS } from "@/lib/supabase/usage";
 import { formatDistanceToNow } from "date-fns";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { hasPremiumAccess } from "@/lib/access";
+import { MobileHome } from "@/components/mobile/MobileHome";
+import { MobileShell } from "@/components/mobile/MobileShell";
 import {
   AreaChart,
   Area,
@@ -95,7 +97,9 @@ function DashboardHome() {
   };
 
   return (
-    <AppShell
+    <>
+      <div className="hidden lg:block">
+        <AppShell
       title={`Welcome back, ${userName}`}
       subtitle="Here's how your resumes are performing."
       actions={
@@ -441,5 +445,12 @@ function DashboardHome() {
         </Card>
       </div>
     </AppShell>
+      </div>
+      <div className="block lg:hidden">
+        <MobileShell>
+          <MobileHome />
+        </MobileShell>
+      </div>
+    </>
   );
 }

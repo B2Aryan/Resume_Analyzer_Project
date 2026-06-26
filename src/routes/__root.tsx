@@ -9,7 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider, DARK_THEME_COLOR } from "@/components/theme-provider";
 import { SiteNavbar } from "@/components/site-navbar";
 import { AuthProvider } from "@/contexts/AuthContext";
 
@@ -61,8 +61,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#DFF0FE", media: "(prefers-color-scheme: light)" },
-      { name: "theme-color", content: "#0D609C", media: "(prefers-color-scheme: dark)" },
+      { name: "theme-color", content: DARK_THEME_COLOR },
       // Google Search Console Verification - Replace with your actual verification code
       { name: "google-site-verification", content: "YOUR_GOOGLE_VERIFICATION_CODE" },
       // Bing Webmaster Verification - Replace with your actual verification code
@@ -110,12 +109,15 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          {showSiteNavbar && <SiteNavbar />}
+          {showSiteNavbar && (
+            <div className="hidden lg:block w-full">
+              <SiteNavbar />
+            </div>
+          )}
           <Outlet />
           <Toaster />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
-
 }

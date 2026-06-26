@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { GitCompare } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { downloadATSReportPdf } from "@/lib/pdf/ats-report-pdf";
+import { toggleSaveAnalysis } from "@/lib/supabase/analysis-db";
 import { buildActionPlan } from "@/lib/ats/action-plan";
 import { ResumeImprovementHub } from "@/components/resume-improvement-hub";
 import { ProviderFallbackBanner } from "@/components/provider-fallback-banner";
@@ -31,6 +33,7 @@ import {
   canCompareResumes,
   type ResumeSimilarityScores,
 } from "@/lib/ats/resume-similarity";
+import { MobileResults } from "@/components/mobile/MobileResults";
 
 function NotComparableCard({ similarity }: { similarity: ResumeSimilarityScores }) {
   return (
@@ -91,12 +94,16 @@ export function ResultPage() {
     usedBackupProvider,
     acknowledgeReportReveal,
     analysisId,
+    isSaved,
+    setSaved,
     loadPendingAnalysis,
     clearPendingAnalysis,
     restoreFromStorage,
   } = useAnalysisStore();
 
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [isSaveLoading, setIsSaveLoading] = useState(false);
 
   // ── Restore from localStorage on refresh ──────────────────────────────────
   // This ref tracks whether we have already attempted restoration this mount.
@@ -178,6 +185,23 @@ export function ResultPage() {
     hasJobDescription,
     jdMatch,
   ]);
+
+  // ── Save / unsave toggle (mobile bookmark) ────────────────────────────────
+  const handleSaveToggle = useCallback(async () => {
+    if (!user || !analysisId) return;
+    setIsSaveLoading(true);
+    try {
+      await toggleSaveAnalysis(analysisId, !isSaved);
+      setSaved(!isSaved);
+      queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
+      queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
+      toast.success(isSaved ? "Report removed from saved" : "Report saved");
+    } catch {
+      toast.error("Failed to update saved status");
+    } finally {
+      setIsSaveLoading(false);
+    }
+  }, [user, analysisId, isSaved, setSaved, queryClient]);
 
   const currentResult = useMemo((): ATSAnalysisResult => {
     return {
@@ -365,73 +389,107 @@ export function ResultPage() {
   }
 
   return (
-    <MarketingLayout>
-      <ResultHero part="header" {...heroProps} />
+    <>
+      <div className="hidden lg:block">
+        <MarketingLayout>
+          <ResultHero part="header" {...heroProps} />
 
-      <section className="mx-auto max-w-7xl overflow-x-hidden px-4 py-8 sm:px-6 sm:py-10">
-        {isRevealingReport ? (
-          <ResultPageSkeletons />
-        ) : (
-          <ResultReportBody className="animate-report-reveal">
-            {usedBackupProvider && <ProviderFallbackBanner />}
+          <section className="mx-auto max-w-7xl overflow-x-hidden px-4 py-8 sm:px-6 sm:py-10">
+            {isRevealingReport ? (
+              <ResultPageSkeletons />
+            ) : (
+              <ResultReportBody className="animate-report-reveal">
+                {usedBackupProvider && <ProviderFallbackBanner />}
 
-            <ResultHero part="score" {...heroProps} />
+                <ResultHero part="score" {...heroProps} />
 
-            <ResultJDMatch hasJobDescription={hasJobDescription} jdMatch={jdMatch} />
+                <ResultJDMatch hasJobDescription={hasJobDescription} jdMatch={jdMatch} />
 
-            <ResultActionPlan plan={actionPlan} />
+                <ResultActionPlan plan={actionPlan} />
 
-            {versionComparison && (
-              <div className="lg:hidden">
-                {versionComparison.type === "comparable" ? (
-                  <ResultComparison comparison={versionComparison.comparison} />
-                ) : (
-                  <NotComparableCard similarity={versionComparison.similarity} />
+                {versionComparison && (
+                  <div className="lg:hidden">
+                    {versionComparison.type === "comparable" ? (
+                      <ResultComparison comparison={versionComparison.comparison} />
+                    ) : (
+                      <NotComparableCard similarity={versionComparison.similarity} />
+                    )}
+                  </div>
                 )}
-              </div>
-            )}
 
-            <ResultReportHybridBand>
-              <div className="flex min-w-0 flex-col gap-6 lg:col-start-1">
-                <div className="flex flex-col gap-6 lg:hidden">
-                  <ResultScoreBreakdown breakdown={breakdown} />
-                  <ResultStrengths part="strengths" strengths={strengths} summary={summary} />
-                </div>
-                <ResumeImprovementHub {...hubProps} />
-              </div>
+                <ResultReportHybridBand>
+                  <div className="flex min-w-0 flex-col gap-6 lg:col-start-1">
+                    <div className="flex flex-col gap-6 lg:hidden">
+                      <ResultScoreBreakdown breakdown={breakdown} />
+                      <ResultStrengths part="strengths" strengths={strengths} summary={summary} />
+                    </div>
+                    <ResumeImprovementHub {...hubProps} />
+                  </div>
 
-              <aside className="flex min-w-0 flex-col gap-6 lg:col-start-2">
-                <ResultStrengths 
-                  part="summary" 
-                  strengths={strengths} 
-                  summary={summary} 
-                  plan={actionPlan} 
-                  currentScore={score}
-                  resumeText={resumeText}
-                />
-                <ResultGrammarWriting resumeText={resumeText} />
-                <ResultKeywords
-                  missingKeywords={sidebarMissingKeywords}
-                  presentKeywords={presentKeywords}
-                />
-                <ResultScoreBreakdown breakdown={breakdown} />
-              </aside>
-            </ResultReportHybridBand>
+                  <aside className="flex min-w-0 flex-col gap-6 lg:col-start-2">
+                    <ResultStrengths 
+                      part="summary" 
+                      strengths={strengths} 
+                      summary={summary} 
+                      plan={actionPlan} 
+                      currentScore={score}
+                      resumeText={resumeText}
+                    />
+                    <ResultGrammarWriting resumeText={resumeText} />
+                    <ResultKeywords
+                      missingKeywords={sidebarMissingKeywords}
+                      presentKeywords={presentKeywords}
+                    />
+                    <ResultScoreBreakdown breakdown={breakdown} />
+                  </aside>
+                </ResultReportHybridBand>
 
-            <ResultTools part="rewriter" {...toolsProps} />
+                <ResultTools part="rewriter" {...toolsProps} />
 
-            {versionComparison && (
-              <div className="hidden lg:block">
-                {versionComparison.type === "comparable" ? (
-                  <ResultComparison comparison={versionComparison.comparison} />
-                ) : (
-                  <NotComparableCard similarity={versionComparison.similarity} />
+                {versionComparison && (
+                  <div className="hidden lg:block">
+                    {versionComparison.type === "comparable" ? (
+                      <ResultComparison comparison={versionComparison.comparison} />
+                    ) : (
+                      <NotComparableCard similarity={versionComparison.similarity} />
+                    )}
+                  </div>
                 )}
-              </div>
+              </ResultReportBody>
             )}
-          </ResultReportBody>
-        )}
-      </section>
-    </MarketingLayout>
+          </section>
+        </MarketingLayout>
+      </div>
+      <div className="block lg:hidden">
+        <MobileResults
+          role={role}
+          fileName={fileName}
+          score={score}
+          atsCompatibility={atsCompatibility}
+          keywordMatch={keywordMatch}
+          skillsScore={skillsScore}
+          projectScore={projectScore}
+          missingKeywords={missingKeywords}
+          presentKeywords={presentKeywords}
+          strengths={strengths}
+          suggestions={suggestions}
+          summary={summary}
+          hasJobDescription={hasJobDescription}
+          jdMatch={jdMatch}
+          improvementSuggestions={improvementSuggestions}
+          resumeText={resumeText}
+          jobDescription={jobDescription}
+          handleDownloadPdf={handleDownloadPdf}
+          actionPlan={actionPlan}
+          breakdown={breakdown}
+          sidebarMissingKeywords={sidebarMissingKeywords}
+          isSaved={isSaved}
+          analysisId={analysisId}
+          onSaveToggle={handleSaveToggle}
+          isSaveLoading={isSaveLoading}
+          isLoggedIn={!!user}
+        />
+      </div>
+    </>
   );
 }

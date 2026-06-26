@@ -3,6 +3,7 @@ import { MarketingLayout } from "@/components/marketing-layout";
 import { useEffect } from "react";
 import { getSupabaseClient } from "@/lib/supabase";
 import { useAnalysisStore } from "@/store/analysisStore";
+import { FileCheck2, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/auth/callback")({
   head: () => ({
@@ -77,13 +78,36 @@ function AuthCallbackPage() {
   }, [navigate, loadPendingAnalysis, clearPendingAnalysis]);
 
   return (
-    <MarketingLayout>
-      <section className="hero-ambient py-16 flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Completing authentication...</p>
+    <>
+      {/* Mobile/Tablet View (<1024px) */}
+      <div className="block lg:hidden">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 text-center text-foreground">
+          {/* Logo */}
+          <div className="flex items-center gap-2 mb-6 font-display font-bold text-lg">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground">
+              <FileCheck2 className="h-5 w-5" />
+            </span>
+            ResumePilot
+          </div>
+          {/* Spinner & Message */}
+          <div className="space-y-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
+            <p className="text-sm font-medium text-muted-foreground">Completing authentication...</p>
+          </div>
         </div>
-      </section>
-    </MarketingLayout>
+      </div>
+
+      {/* Desktop View (>=1024px) */}
+      <div className="hidden lg:block">
+        <MarketingLayout>
+          <section className="hero-ambient py-16 flex items-center justify-center min-h-[60vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Completing authentication...</p>
+            </div>
+          </section>
+        </MarketingLayout>
+      </div>
+    </>
   );
 }

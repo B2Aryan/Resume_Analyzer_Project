@@ -5,8 +5,8 @@ type Ctx = { theme: Theme; setTheme: (t: Theme) => void; resolved: "light" | "da
 
 const ThemeContext = createContext<Ctx | undefined>(undefined);
 const STORAGE_KEY = "resumecheck-theme";
-const LIGHT_THEME_COLOR = "#DFF0FE";
-const DARK_THEME_COLOR = "#0D609C";
+export const LIGHT_THEME_COLOR = "#ffffff";
+export const DARK_THEME_COLOR = "#050816";
 
 function applyTheme(theme: Theme): "light" | "dark" {
   if (typeof window === "undefined") return "light";
@@ -21,7 +21,7 @@ function applyTheme(theme: Theme): "light" | "dark" {
   root.style.colorScheme = resolved;
   
   // Update theme-color meta tag
-  let meta = document.querySelector('meta[name="theme-color"]:not([media])');
+  let meta = document.querySelector('meta[name="theme-color"]');
   if (!meta) {
     meta = document.createElement('meta');
     meta.setAttribute('name', 'theme-color');

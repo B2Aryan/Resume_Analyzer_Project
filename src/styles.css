@@ -237,21 +237,10 @@
 :root .marketing-main {
   padding-top: 0px;
 }
-.dark .marketing-main {
-  padding-top: 3.5rem; /* 56px */
-}
-
-:root .hero-ambient > div:first-child {
-  padding-top: 4.5rem; /* 72px */
-}
-
-@media (min-width: 640px) {
-  :root .hero-ambient > div:first-child {
-    padding-top: 6rem; /* 96px */
+@media (min-width: 1024px) {
+  .dark .marketing-main {
+    padding-top: 3.5rem; /* 56px */
   }
-}
-
-@media (min-width: 768px) {
   :root .hero-ambient > div:first-child {
     padding-top: 7.5rem; /* 120px */
   }
@@ -263,19 +252,11 @@
     isolation: isolate;
     background-color: var(--background);
   }
-  .dark .hero-ambient {
-    margin-top: -60px;
-    padding-top: 0px;
-  }
-  .dark .hero-ambient > div:first-child {
-    padding-top: 3rem; /* 48px */
-  }
-  @media (min-width: 640px) {
-    .dark .hero-ambient > div:first-child {
-      padding-top: 4rem; /* 64px */
+  @media (min-width: 1024px) {
+    .dark .hero-ambient {
+      margin-top: -60px;
+      padding-top: 0px;
     }
-  }
-  @media (min-width: 768px) {
     .dark .hero-ambient > div:first-child {
       padding-top: 5rem; /* 80px */
     }

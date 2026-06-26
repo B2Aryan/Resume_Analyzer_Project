@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { PRESET_AVATARS } from "@/lib/avatars";
 import { useQueryClient } from "@tanstack/react-query";
+import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
 
 const items = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
@@ -53,7 +54,7 @@ export function AppSidebar() {
   };
 
   return (
-    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex sticky top-0 overflow-y-auto">
+    <aside className="hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex sticky top-0 overflow-y-auto">
       <Link to="/" className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6 font-display font-bold">
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground">
           <FileCheck2 className="h-5 w-5" />
@@ -154,8 +155,10 @@ export function AppShell({ children, title, subtitle, actions }: { children: Rea
           </div>
           <div className="flex shrink-0 items-center gap-2"><ThemeToggle />{actions}</div>
         </header>
-        <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-8 sm:py-8">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-8 sm:py-8 pb-[5.5rem] lg:pb-8">{children}</main>
       </div>
+      {/* Mobile bottom nav — hidden on desktop via lg:hidden inside the component */}
+      <MobileBottomNav />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import { CTAPanel } from "@/components/marketing/CTAPanel";
 import { SpotlightCard } from "@/components/marketing/SpotlightCard";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { createSeoHead, ORGANIZATION_SCHEMA, SOFTWARE_APPLICATION_SCHEMA } from "@/lib/seo";
+import { MobileLanding } from "@/components/mobile/MobileLanding";
 
 const homeSchema = {
   "@context": "https://schema.org",
@@ -151,7 +152,9 @@ function LandingPage() {
   };
   
   return (
-    <MarketingLayout>
+    <>
+      <div className="hidden lg:block">
+        <MarketingLayout>
       {/* Hero */}
       <section className="relative overflow-hidden hero-ambient">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 pt-28 pb-12 sm:px-6 sm:pt-36 sm:pb-16 md:pt-40 md:pb-24 lg:grid-cols-2 lg:items-center lg:gap-12">
@@ -327,6 +330,11 @@ function LandingPage() {
           </Accordion>
         </div>
       </section>
-    </MarketingLayout>
+        </MarketingLayout>
+      </div>
+      <div className="block lg:hidden">
+        <MobileLanding />
+      </div>
+    </>
   );
 }

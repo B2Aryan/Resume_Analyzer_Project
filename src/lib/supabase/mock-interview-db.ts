@@ -109,3 +109,21 @@ export async function fetchMockInterviewResultById(
   return data as DBMockInterview;
 }
 
+// Delete a mock interview result from Supabase
+export async function deleteMockInterviewFromDB(interviewId: string): Promise<boolean> {
+  const supabase = getSupabaseClient();
+  if (!supabase) return false;
+
+  const { error } = await supabase
+    .from("mock_interviews")
+    .delete()
+    .eq("id", interviewId);
+
+  if (error) {
+    console.error("Failed to delete mock interview:", error);
+    return false;
+  }
+  return true;
+}
+
+

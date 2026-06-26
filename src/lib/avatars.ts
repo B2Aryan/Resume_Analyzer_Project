@@ -79,4 +79,20 @@ export const PRESET_AVATARS = [
     id: 20,
     url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Finley&backgroundColor=e5e7eb",
   },
+  {
+    id: 21,
+    url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Jack&backgroundColor=93c5fd",
+  },
+  {
+    id: 22,
+    url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Oliver&backgroundColor=c7d2fe",
+  },
+  {
+    id: 23,
+    url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Lucas&backgroundColor=bbf7d0",
+  },
+  {
+    id: 24,
+    url: "https://api.dicebear.com/9.x/adventurer/svg?seed=Ethan&backgroundColor=fed7aa",
+  },
 ];

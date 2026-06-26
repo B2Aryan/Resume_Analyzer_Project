@@ -14,11 +14,18 @@ import {
 } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchSavedReportsFromDB, toggleSaveAnalysis, deleteAnalysisFromDB, togglePublicAnalysis } from "@/lib/supabase/analysis-db";
+import {
+  fetchSavedReportsFromDB,
+  toggleSaveAnalysis,
+  deleteAnalysisFromDB,
+  togglePublicAnalysis,
+} from "@/lib/supabase/analysis-db";
 import { formatDistanceToNow } from "date-fns";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { useState } from "react";
 import { toast } from "sonner";
+import { downloadATSReportPdf } from "@/lib/pdf/ats-report-pdf";
+import { MobileSaved } from "@/components/mobile/MobileSaved";
 
 export const Route = createFileRoute("/dashboard/saved")({
   head: () => ({ meta: [{ title: "Saved Reports — ResumePilot" }] }),
@@ -26,7 +33,11 @@ export const Route = createFileRoute("/dashboard/saved")({
 });
 
 function tone(score: number) {
-  return score >= 80 ? "text-success bg-success/10" : score >= 60 ? "text-warning bg-warning/10" : "text-destructive bg-destructive/10";
+  return score >= 80
+    ? "text-success bg-success/10"
+    : score >= 60
+    ? "text-warning bg-warning/10"
+    : "text-destructive bg-destructive/10";
 }
 
 function SavedReportsPage() {
@@ -40,7 +51,7 @@ function SavedReportsPage() {
 
   const { data: savedReports = [], isLoading } = useQuery({
     queryKey: ["saved-reports", user?.id],
-    queryFn: () => user ? fetchSavedReportsFromDB(user) : [],
+    queryFn: () => (user ? fetchSavedReportsFromDB(user) : []),
     enabled: !!user,
   });
 
@@ -57,21 +68,16 @@ function SavedReportsPage() {
 
   const handleDelete = async () => {
     if (!analysisToDelete || !user) return;
-    
     setIsDeleting(true);
-    
     // Optimistic update
     queryClient.setQueryData(["saved-reports", user?.id], (oldReports: any[]) => {
-      return oldReports.filter(a => a.id !== analysisToDelete);
+      return oldReports.filter((a) => a.id !== analysisToDelete);
     });
-    
     try {
       await deleteAnalysisFromDB(analysisToDelete);
-      // Also invalidate analyses query
       queryClient.invalidateQueries({ queryKey: ["analyses", user?.id] });
       toast.success("Report deleted successfully.");
     } catch {
-      // Revert optimistic update if fails
       queryClient.invalidateQueries({ queryKey: ["saved-reports", user?.id] });
       toast.error("Failed to delete report.");
     } finally {
@@ -87,18 +93,16 @@ function SavedReportsPage() {
   };
 
   const [shareLoadingId, setShareLoadingId] = useState<string | null>(null);
-  
+
   const handleShareReport = async (analysis: any) => {
     console.log("handleShareReport (saved dashboard): Called for analysis:", analysis);
     if (!user) {
       toast.error("You need to be logged in to share this report");
       return;
     }
-
     setShareLoadingId(analysis.id);
     try {
       let currentAnalysis = analysis;
-      // If the report is not public yet, make it public first
       if (!analysis.is_public) {
         console.log("handleShareReport (saved dashboard): Report is not public, making it public...");
         const updated = await togglePublicAnalysis(analysis.id, true);
@@ -111,12 +115,9 @@ function SavedReportsPage() {
         queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
         queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
       }
-
-      // Copy the share URL
       const shareUrl = window.location.origin + `/report/${currentAnalysis.id}`;
       console.log("handleShareReport (saved dashboard): Copying share URL:", shareUrl);
       await navigator.clipboard.writeText(shareUrl);
-      
       toast.success("Share link copied to clipboard!");
     } catch (error) {
       console.error("handleShareReport (saved dashboard): Caught error:", error);
@@ -133,148 +134,192 @@ function SavedReportsPage() {
       analysis.file_name,
       analysis.resume_text || "",
       analysis.job_description ?? undefined,
-      { 
-        animateEntry: false, 
-        analysisId: analysis.id, 
-        isSaved: true, 
+      {
+        animateEntry: false,
+        analysisId: analysis.id,
+        isSaved: true,
         isPublic: analysis.is_public,
-        interviewQuestions: analysis.interview_questions || undefined 
+        interviewQuestions: analysis.interview_questions || undefined,
       }
     );
     navigate({ to: "/result" });
   };
 
+  const handleDownloadPdf = (analysis: any) => {
+    try {
+      downloadATSReportPdf({
+        ...analysis.analysis_result,
+        role: analysis.role,
+        fileName: analysis.file_name,
+        hasJobDescription: !!analysis.job_description,
+      });
+      toast.success("PDF report downloaded.");
+    } catch {
+      toast.error("Could not generate PDF report. Please try again.");
+    }
+  };
+
   return (
-    <AppShell title="Saved reports" subtitle="Pinned analyses you want to revisit.">
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      ) : savedReports.length === 0 ? (
-        <Card className="border-border/60">
-          <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-primary">
-              <Bookmark className="h-6 w-6" />
+    <>
+      {/* ── Mobile & Tablet (<1024px) ── */}
+      <div className="block lg:hidden">
+        <MobileSaved
+          savedReports={savedReports}
+          isLoading={isLoading}
+          onViewReport={handleViewReport}
+          onUnsave={handleUnsave}
+          onDeleteRequest={openDeleteConfirm}
+          onShareReport={handleShareReport}
+          onDownloadPdf={handleDownloadPdf}
+          shareLoadingId={shareLoadingId}
+          deleteConfirmOpen={deleteConfirmOpen}
+          setDeleteConfirmOpen={setDeleteConfirmOpen}
+          isDeleting={isDeleting}
+          onConfirmDelete={handleDelete}
+        />
+      </div>
+
+      {/* ── Desktop (>=1024px) — unchanged ── */}
+      <div className="hidden lg:block">
+        <AppShell title="Saved reports" subtitle="Pinned analyses you want to revisit.">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin" />
             </div>
-            <p className="mt-4 font-display text-lg font-semibold">No saved reports yet</p>
-            <p className="mt-1 max-w-sm text-sm text-muted-foreground">Bookmark important analyses to access them quickly here.</p>
-            <Button asChild className="mt-6" variant="hero">
-              <Link to="/upload">Run a new scan</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-3">
-          {savedReports.map((analysis) => (
-              <Card key={analysis.id} className="border-border/60 transition-all hover:shadow-soft">
-                <div className="flex">
-                  <div className="flex-1">
-                    <CardHeader className="p-4 pb-0">
-                      <div className="flex items-center gap-3 min-w-0 cursor-pointer group" onClick={() => handleViewReport(analysis)}>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-primary shrink-0 transition-colors group-hover:bg-primary/10">
-                          <FileText className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate font-semibold transition-colors group-hover:text-primary">
-                              {analysis.file_name}
-                            </p>
-                            {analysis.interview_questions && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
-                                🎤 Interview Ready
-                              </span>
-                            )}
+          ) : savedReports.length === 0 ? (
+            <Card className="border-border/60">
+              <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-primary">
+                  <Bookmark className="h-6 w-6" />
+                </div>
+                <p className="mt-4 font-display text-lg font-semibold">No saved reports yet</p>
+                <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                  Bookmark important analyses to access them quickly here.
+                </p>
+                <Button asChild className="mt-6" variant="hero">
+                  <Link to="/upload">Run a new scan</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-3">
+              {savedReports.map((analysis) => (
+                <Card key={analysis.id} className="border-border/60 transition-all hover:shadow-soft">
+                  <div className="flex">
+                    <div className="flex-1">
+                      <CardHeader className="p-4 pb-0">
+                        <div
+                          className="flex items-center gap-3 min-w-0 cursor-pointer group"
+                          onClick={() => handleViewReport(analysis)}
+                        >
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent text-primary shrink-0 transition-colors group-hover:bg-primary/10">
+                            <FileText className="h-5 w-5" />
                           </div>
-                          <p className="text-xs text-muted-foreground">{analysis.role}</p>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate font-semibold transition-colors group-hover:text-primary">
+                                {analysis.file_name}
+                              </p>
+                              {analysis.interview_questions && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium shrink-0">
+                                  🎤 Interview Ready
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{analysis.role}</p>
+                          </div>
                         </div>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-3">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span>
+                            {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
+                          </span>
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(analysis.analysis_result.score)}`}
+                          >
+                            ATS {analysis.analysis_result.score}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </div>
+                    <div className="flex items-center border-l border-border/50 px-3">
+                      <div className="flex flex-col items-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-foreground"
+                          onClick={() => handleShareReport(analysis)}
+                          disabled={shareLoadingId === analysis.id}
+                        >
+                          {shareLoadingId === analysis.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Link2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                          onClick={() => handleViewReport(analysis)}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="text-muted-foreground"
+                          onClick={() => handleUnsave(analysis.id)}
+                        >
+                          <BookmarkCheck className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => openDeleteConfirm(analysis.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-4 pt-3">
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>
-                          {formatDistanceToNow(new Date(analysis.created_at), { addSuffix: true })}
-                        </span>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(analysis.analysis_result.score)}`}>
-                          ATS {analysis.analysis_result.score}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </div>
-                  <div className="flex items-center border-l border-border/50 px-3">
-                    <div className="flex flex-col items-center gap-2">
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="text-muted-foreground hover:text-foreground"
-                      onClick={() => handleShareReport(analysis)}
-                      disabled={shareLoadingId === analysis.id}
-                    >
-                      {shareLoadingId === analysis.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Link2 className="h-4 w-4" />}
-                    </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="text-xs text-muted-foreground hover:text-foreground"
-                        onClick={() => handleViewReport(analysis)}
-                      >
-                        View
-                      </Button>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="text-muted-foreground"
-                        onClick={() => handleUnsave(analysis.id)}
-                      >
-                        <BookmarkCheck className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => openDeleteConfirm(analysis.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-        </div>
-      )}
-      
-      {/* Delete Confirmation Modal */}
-      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete this report?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setDeleteConfirmOpen(false)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Deleting...
-                </>
-              ) : "Delete Report"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </AppShell>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete this report?</DialogTitle>
+                <DialogDescription>This action cannot be undone.</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteConfirmOpen(false)}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+                <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Report"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </AppShell>
+      </div>
+    </>
   );
 }

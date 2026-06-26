@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,10 @@ import { DEGREES, type Degree } from "@/lib/degrees";
 import { BRANCHES } from "@/lib/branches";
 import { toast } from "sonner";
 import { hasPremiumAccess, isAdmin } from "@/lib/access";
+import { MobileShell } from "@/components/mobile/MobileShell";
+import { MobileProfile } from "@/components/mobile/MobileProfile";
+import { MobileEditProfile } from "@/components/mobile/MobileEditProfile";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dashboard/profile")({
   head: () => ({ meta: [{ title: "Profile — ResumePilot" }] }),
@@ -25,6 +29,7 @@ export const Route = createFileRoute("/dashboard/profile")({
 });
 
 function ProfilePage() {
+  const search = useSearch({ strict: false }) as any;
   const { user, profile, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   
@@ -315,22 +320,35 @@ function ProfilePage() {
 
   if (isLoading) {
     return (
-      <AppShell title="Profile" subtitle="Manage your account details.">
-        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border-border/60">
-              <CardContent className="p-6 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
-              </CardContent>
-            </Card>
-          </div>
+      <>
+        <div className="hidden lg:block">
+          <AppShell title="Profile" subtitle="Manage your account details.">
+            <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="border-border/60">
+                  <CardContent className="p-6 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </AppShell>
         </div>
-      </AppShell>
+        <div className="block lg:hidden">
+          <MobileShell>
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          </MobileShell>
+        </div>
+      </>
     );
   }
 
   return (
-    <AppShell title="Profile" subtitle="Manage your account details.">
+    <>
+      <div className="hidden lg:block">
+        <AppShell title="Profile" subtitle="Manage your account details.">
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
         {/* Left Column */}
         <div className="space-y-6">
@@ -1041,5 +1059,18 @@ function ProfilePage() {
         </DialogContent>
       </Dialog>
     </AppShell>
+      </div>
+      <div className="block lg:hidden">
+        {search.edit === "true" ? (
+          <MobileShell>
+            <MobileEditProfile />
+          </MobileShell>
+        ) : (
+          <MobileShell>
+            <MobileProfile />
+          </MobileShell>
+        )}
+      </div>
+    </>
   );
 }
