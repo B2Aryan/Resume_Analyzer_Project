@@ -26,6 +26,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { downloadATSReportPdf } from "@/lib/pdf/ats-report-pdf";
 import { MobileSaved } from "@/components/mobile/MobileSaved";
+import { ShareReportDialog } from "@/components/result/share-report-dialog";
 
 export const Route = createFileRoute("/dashboard/saved")({
   head: () => ({ meta: [{ title: "Saved Reports — ResumePilot" }] }),
@@ -92,36 +93,30 @@ function SavedReportsPage() {
     setDeleteConfirmOpen(true);
   };
 
+  const [activeShareAnalysis, setActiveShareAnalysis] = useState<any | null>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareLoadingId, setShareLoadingId] = useState<string | null>(null);
 
-  const handleShareReport = async (analysis: any) => {
-    console.log("handleShareReport (saved dashboard): Called for analysis:", analysis);
-    if (!user) {
-      toast.error("You need to be logged in to share this report");
-      return;
-    }
-    setShareLoadingId(analysis.id);
+  const handleShareReport = (analysis: any) => {
+    setActiveShareAnalysis(analysis);
+    setShareDialogOpen(true);
+  };
+
+  const handleTogglePublic = async () => {
+    if (!user || !activeShareAnalysis) return;
+    setShareLoadingId(activeShareAnalysis.id);
     try {
-      let currentAnalysis = analysis;
-      if (!analysis.is_public) {
-        console.log("handleShareReport (saved dashboard): Report is not public, making it public...");
-        const updated = await togglePublicAnalysis(analysis.id, true);
-        console.log("handleShareReport (saved dashboard): togglePublicAnalysis returned:", updated);
-        if (!updated) {
-          toast.error("Failed to make report public");
-          return;
-        }
-        currentAnalysis = updated;
+      const newPublicState = !activeShareAnalysis.is_public;
+      const updated = await togglePublicAnalysis(activeShareAnalysis.id, newPublicState);
+      if (updated) {
+        setActiveShareAnalysis((prev: any) => prev ? { ...prev, is_public: updated.is_public } : null);
         queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
         queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
+        toast.success(newPublicState ? "Report is now public!" : "Report is now private");
       }
-      const shareUrl = window.location.origin + `/report/${currentAnalysis.id}`;
-      console.log("handleShareReport (saved dashboard): Copying share URL:", shareUrl);
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success("Share link copied to clipboard!");
     } catch (error) {
-      console.error("handleShareReport (saved dashboard): Caught error:", error);
-      toast.error("Failed to share report");
+      console.error("handleTogglePublic error:", error);
+      toast.error("Failed to update share status");
     } finally {
       setShareLoadingId(null);
     }
@@ -318,6 +313,16 @@ function SavedReportsPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          
+          <ShareReportDialog
+            open={shareDialogOpen}
+            onOpenChange={setShareDialogOpen}
+            analysisId={activeShareAnalysis?.id || null}
+            isPublic={activeShareAnalysis?.is_public || false}
+            onTogglePublic={handleTogglePublic}
+            isToggleLoading={shareLoadingId === activeShareAnalysis?.id}
+            score={activeShareAnalysis?.analysis_result?.score || 0}
+          />
         </AppShell>
       </div>
     </>

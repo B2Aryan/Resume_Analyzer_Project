@@ -1,4 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAnalysisStore } from "@/store/analysisStore";
+import { togglePublicAnalysis } from "@/lib/supabase/analysis-db";
+import { ShareReportDialog } from "@/components/result/share-report-dialog";
 import { Link } from "@tanstack/react-router";
 import { 
   ArrowLeft, 
@@ -96,27 +100,28 @@ export function MobileResults({
     }
   };
 
-  // Web Share API handler
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "My ResumePilot ATS Report",
-          text: `My resume got an ATS score of ${score}/100 on ResumePilot!`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        console.error(err);
+  const { user } = useAuth();
+  const isPublic = useAnalysisStore(s => s.isPublic);
+  const setPublic = useAnalysisStore(s => s.setPublic);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+
+  const handleTogglePublic = useCallback(async () => {
+    if (!user || !analysisId) return;
+    setShareLoading(true);
+    try {
+      const updated = await togglePublicAnalysis(analysisId, !isPublic);
+      if (updated) {
+        setPublic(updated.is_public);
+        toast.success(isPublic ? "Report is now private" : "Report is now public!");
       }
-    } else {
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success("Report link copied to clipboard!");
-      } catch {
-        toast.error("Could not copy link.");
-      }
+    } catch (error) {
+      console.error("handleTogglePublic error:", error);
+      toast.error("Failed to update share status");
+    } finally {
+      setShareLoading(false);
     }
-  };
+  }, [user, analysisId, isPublic, setPublic]);
 
   // Helper to map timeline item to a category tag
   const getCategory = (item: ActionPlanItem): string => {
@@ -303,8 +308,15 @@ export function MobileResults({
                 Download Report
               </button>
               <button
-                onClick={handleShare}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-background py-2.5 text-xs font-bold text-foreground transition-all active:scale-[0.97]"
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    toast.error("You need to be logged in to share this report");
+                    return;
+                  }
+                  setShareDialogOpen(true);
+                }}
+                disabled={!analysisId}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-border bg-background py-2.5 text-xs font-bold text-foreground transition-all active:scale-[0.97] disabled:opacity-50"
               >
                 <Share2 className="h-3.5 w-3.5" />
                 Share Report
@@ -686,6 +698,15 @@ export function MobileResults({
           </button>
         </section>
       </div>
+      <ShareReportDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        analysisId={analysisId}
+        isPublic={isPublic}
+        onTogglePublic={handleTogglePublic}
+        isToggleLoading={shareLoading}
+        score={score}
+      />
     </MobileShell>
   );
 }

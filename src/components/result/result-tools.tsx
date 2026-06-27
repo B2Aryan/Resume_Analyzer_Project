@@ -1,7 +1,7 @@
 import { memo, useCallback, useState, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Download, ArrowRight, Copy, Wand2, Loader2, FileText, Bookmark, BookmarkCheck, MessageSquare, RefreshCw, Share2, Lock, Unlock } from "lucide-react";
+import { Download, ArrowRight, Copy, Wand2, Loader2, FileText, Bookmark, BookmarkCheck, MessageSquare, RefreshCw } from "lucide-react";
 import { canGenerateCoverLetter, incrementCoverLetterUsage } from "@/lib/supabase/usage";
 import { canStartMockInterviewAccess } from "@/lib/access";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -27,7 +27,7 @@ import { generateCoverLetter } from "@/lib/ats/cover-letter";
 import { downloadCoverLetterPdf } from "@/lib/pdf/cover-letter-pdf";
 import { generateInterviewQuestions, type InterviewQuestionsResponse } from "@/lib/ats/interview-questions";
 import { downloadInterviewQuestionsPdf } from "@/lib/pdf/interview-questions-pdf";
-import { toggleSaveAnalysis, updateInterviewQuestionsToDB, togglePublicAnalysis } from "@/lib/supabase/analysis-db";
+import { toggleSaveAnalysis, updateInterviewQuestionsToDB } from "@/lib/supabase/analysis-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { CoverLetterProgressOverlay } from "@/components/cover-letter-progress-overlay";
@@ -52,12 +52,7 @@ export const ResultTools = memo(function ResultTools({
   const queryClient = useQueryClient();
   const analysisId = useAnalysisStore(s => s.analysisId);
   const isSaved = useAnalysisStore(s => s.isSaved);
-  const isPublic = useAnalysisStore(s => s.isPublic);
   const setSaved = useAnalysisStore(s => s.setSaved);
-  const setPublic = useAnalysisStore(s => s.setPublic);
-
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [shareLoading, setShareLoading] = useState(false);
   const [bulletInput, setBulletInput] = useState("");
   const [bulletLoading, setBulletLoading] = useState(false);
   const [bulletRewrite, setBulletRewrite] = useState<BulletRewriteResult | null>(null);
@@ -116,82 +111,6 @@ export const ResultTools = memo(function ResultTools({
       setSaveLoading(false);
     }
   }, [user, analysisId, isSaved, setSaved, queryClient]);
-
-  const handleTogglePublic = useCallback(async () => {
-    console.log("handleTogglePublic: Called");
-    console.log("handleTogglePublic: user:", user);
-    console.log("handleTogglePublic: analysisId:", analysisId);
-    console.log("handleTogglePublic: isPublic current state:", isPublic);
-
-    if (!user || !analysisId) {
-      console.log("handleTogglePublic: Missing user or analysisId");
-      toast.error("You need to be logged in to share this report");
-      return;
-    }
-    setShareLoading(true);
-    try {
-      const newPublicState = !isPublic;
-      console.log("handleTogglePublic: Calling togglePublicAnalysis with newPublicState:", newPublicState);
-      const updatedAnalysis = await togglePublicAnalysis(analysisId, newPublicState);
-      console.log("handleTogglePublic: togglePublicAnalysis returned updatedAnalysis:", updatedAnalysis);
-      if (updatedAnalysis) {
-        setPublic(updatedAnalysis.is_public);
-        queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
-        queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
-        toast.success(isPublic ? "Report is now private" : "Report is now public!");
-      } else {
-        console.log("handleTogglePublic: togglePublicAnalysis returned null");
-      }
-    } catch (error) {
-      console.error("handleTogglePublic: Caught error:", error);
-      toast.error("Failed to update share status");
-    } finally {
-      setShareLoading(false);
-    }
-  }, [user, analysisId, isPublic, setPublic, queryClient]);
-
-  const handleShare = useCallback(async () => {
-    console.log("handleShare: Called");
-    console.log("handleShare: user:", user);
-    console.log("handleShare: analysisId:", analysisId);
-    console.log("handleShare: isPublic current state:", isPublic);
-
-    if (!user || !analysisId) {
-      console.log("handleShare: Missing user or analysisId");
-      toast.error("You need to be logged in to share this report");
-      return;
-    }
-
-    setShareLoading(true);
-    try {
-      // If the report is not public yet, make it public first
-      let currentAnalysis = null;
-      if (!isPublic) {
-        console.log("handleShare: Report is not public, making it public...");
-        currentAnalysis = await togglePublicAnalysis(analysisId, true);
-        console.log("handleShare: togglePublicAnalysis returned:", currentAnalysis);
-        if (!currentAnalysis) {
-          toast.error("Failed to make report public");
-          return;
-        }
-        setPublic(currentAnalysis.is_public);
-        queryClient.invalidateQueries({ queryKey: ["analyses", user.id] });
-        queryClient.invalidateQueries({ queryKey: ["saved-reports", user.id] });
-      }
-
-      // Now copy the share URL
-      const shareUrl = `${window.location.origin}/report/${analysisId}`;
-      console.log("handleShare: Copying share URL:", shareUrl);
-      await navigator.clipboard.writeText(shareUrl);
-      
-      toast.success("Share link copied to clipboard!");
-    } catch (error) {
-      console.error("handleShare: Caught error:", error);
-      toast.error("Failed to share report");
-    } finally {
-      setShareLoading(false);
-    }
-  }, [user, analysisId, isPublic, setPublic, queryClient]);
 
   const copyToClipboard = useCallback(async (text: string, label: string) => {
     try {
@@ -337,13 +256,6 @@ export const ResultTools = memo(function ResultTools({
                   <Bookmark className="h-4 w-4" />
                 )}
                 {isSaved ? "Saved to Dashboard" : "Save to Dashboard"}
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setShareDialogOpen(true)}
-              >
-                <Share2 className="h-4 w-4" /> Share Report
               </Button>
             </div>
           </CardContent>
@@ -510,46 +422,6 @@ export const ResultTools = memo(function ResultTools({
           }}
         />
 
-        <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Share Report</DialogTitle>
-              <DialogDescription>
-                Toggle your report to public to share it with others.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {isPublic ? <Unlock className="h-5 w-5 text-green-500" /> : <Lock className="h-5 w-5 text-red-500" />}
-                  <span className="font-medium">{isPublic ? "Public" : "Private"}</span>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={handleTogglePublic}
-                  disabled={shareLoading || !user || !analysisId}
-                >
-                  {shareLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : isPublic ? "Make Private" : "Make Public"}
-                </Button>
-              </div>
-              {analysisId && (
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 rounded-lg border border-border bg-muted/30 px-3 py-2 text-sm truncate">
-                    {`${window.location.origin}/report/${analysisId}`}
-                  </div>
-                  <Button variant="outline" onClick={handleShare} disabled={shareLoading}>
-                    {shareLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
-                  </Button>
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Close</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
         </PremiumLockOverlay>
         <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} feature={upgradeFeature} />
       </>

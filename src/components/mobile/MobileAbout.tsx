@@ -14,7 +14,8 @@ import {
   Heart,
 } from "lucide-react";
 import { DiscordIcon } from "@/components/DiscordIcon";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import founderImage from "@/assets/aryan-gupta.jpg";
 
 export function MobileAbout() {
   const navigate = useNavigate();
@@ -138,6 +139,11 @@ export function MobileAbout() {
           </h3>
           <div className="flex items-center gap-4">
             <Avatar className="h-12 w-12 rounded-xl">
+              <AvatarImage 
+                src={founderImage} 
+                alt="Aryan Gupta" 
+                className="object-cover" 
+              />
               <AvatarFallback className="rounded-xl text-sm font-bold bg-primary/10 text-primary">
                 AG
               </AvatarFallback>

@@ -92,8 +92,8 @@ function PrivacyPage() {
                     <p>
                       Users may request deletion of their account and associated data by contacting:
                       <br />
-                      <a href="mailto:aryan639244@gmail.com" className="font-semibold text-primary">
-                        aryan639244@gmail.com
+                      <a href="mailto:support@resumepilot.site" className="font-semibold text-primary">
+                        support@resumepilot.site
                       </a>
                     </p>
                     <p className="text-sm">

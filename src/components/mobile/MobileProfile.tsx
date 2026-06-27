@@ -182,7 +182,7 @@ export function MobileProfile() {
                 icon: HelpCircle,
                 iconColor: "bg-blue-500/15 text-blue-400",
                 onClick: () => {
-                  window.location.href = "mailto:aryan639244@gmail.com?subject=ResumePilot Support Request";
+                  window.location.href = "mailto:support@resumepilot.site?subject=ResumePilot Support Request";
                 },
               },
             ].map((item, i, arr) => {

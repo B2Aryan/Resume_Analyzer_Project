@@ -1,17 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-// SSR-safe Supabase client singleton
+// Supabase anon client singleton.
+// Safe for both browser and SSR (server-side route loaders).
+// Uses the anon key only — never the service role key.
+// VITE_* env vars are statically inlined by Vite into both client and server
+// bundles, so import.meta.env is available in server-side loaders.
 let supabaseClient: ReturnType<typeof createClient> | null = null;
 
 export const getSupabaseClient = () => {
-  // If we already have a client, return it
+  // Return cached instance if already created
   if (supabaseClient) {
     return supabaseClient;
-  }
-
-  // Only initialize on client-side
-  if (typeof window === 'undefined') {
-    return null;
   }
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;

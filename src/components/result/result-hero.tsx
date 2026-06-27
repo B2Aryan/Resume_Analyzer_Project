@@ -16,6 +16,8 @@ import {
   Loader2,
   Copy,
   Lock,
+  Share2,
+  Unlock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,13 +40,14 @@ import { generateCoverLetter } from "@/lib/ats/cover-letter";
 import { downloadCoverLetterPdf } from "@/lib/pdf/cover-letter-pdf";
 import { generateInterviewQuestions, type InterviewQuestionsResponse } from "@/lib/ats/interview-questions";
 import { downloadInterviewQuestionsPdf } from "@/lib/pdf/interview-questions-pdf";
-import { toggleSaveAnalysis, updateInterviewQuestionsToDB } from "@/lib/supabase/analysis-db";
+import { toggleSaveAnalysis, updateInterviewQuestionsToDB, togglePublicAnalysis } from "@/lib/supabase/analysis-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAnalysisStore } from "@/store/analysisStore";
 import { CoverLetterProgressOverlay } from "@/components/cover-letter-progress-overlay";
 import { canGenerateCoverLetter, incrementCoverLetterUsage } from "@/lib/supabase/usage";
 import { canStartMockInterviewAccess } from "@/lib/access";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { ShareReportDialog } from "@/components/result/share-report-dialog";
 
 export interface ResultHeroProps {
   part: "header" | "score";
@@ -82,10 +85,14 @@ export const ResultHero = memo(function ResultHero({
   const analysisId = useAnalysisStore(s => s.analysisId);
   const isSaved = useAnalysisStore(s => s.isSaved);
   const setSaved = useAnalysisStore(s => s.setSaved);
+  const isPublic = useAnalysisStore(s => s.isPublic);
+  const setPublic = useAnalysisStore(s => s.setPublic);
   const interviewQuestionsFromStore = useAnalysisStore(s => s.interviewQuestions);
   const setInterviewQuestions = useAnalysisStore(s => s.setInterviewQuestions);
   const savePendingAnalysis = useAnalysisStore(s => s.savePendingAnalysis);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [coverLetterOpen, setCoverLetterOpen] = useState(false);
   const [coverLetterJd, setCoverLetterJd] = useState("");
   const [coverLetterGenerating, setCoverLetterGenerating] = useState(false);
@@ -99,6 +106,26 @@ export const ResultHero = memo(function ResultHero({
   const navigate = useNavigate();
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState("cover letter generations");
+
+
+
+  const handleTogglePublic = useCallback(async () => {
+    if (!user || !analysisId) return;
+    setShareLoading(true);
+    try {
+      const updated = await togglePublicAnalysis(analysisId, !isPublic);
+      if (updated) {
+        setPublic(updated.is_public);
+        toast.success(isPublic ? "Report is now private" : "Report is now public!");
+      }
+    } catch (error) {
+      console.error("handleTogglePublic error:", error);
+      toast.error("Failed to update share status");
+    } finally {
+      setShareLoading(false);
+    }
+  }, [user, analysisId, isPublic, setPublic]);
+
 
   const handleCancelGeneration = useCallback(() => {
     console.log("handleCancelGeneration called!");
@@ -345,11 +372,30 @@ export const ResultHero = memo(function ResultHero({
                   )}
                   {isSaved ? "Saved to Dashboard" : "Save to Dashboard"}
                 </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShareDialogOpen(true)}
+                  disabled={!user || !analysisId}
+                >
+                  <Share2 className="h-4 w-4" /> Share Report
+                </Button>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Share Report dialog */}
+      <ShareReportDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        analysisId={analysisId}
+        isPublic={isPublic}
+        onTogglePublic={handleTogglePublic}
+        isToggleLoading={shareLoading}
+        score={score}
+      />
 
       <Dialog open={coverLetterOpen} onOpenChange={setCoverLetterOpen}>
         <DialogContent>
@@ -532,6 +578,7 @@ function InterviewQuestionsDialog({
   resumeText,
   jobDescriptionFromStore,
   analysisId,
+  onUpgradeNeeded,
 }: InterviewQuestionsDialogProps) {
   const [jobDescription, setJobDescription] = useState(jobDescriptionFromStore);
   const [generating, setGenerating] = useState(false);

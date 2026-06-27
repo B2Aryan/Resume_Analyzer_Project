@@ -54,8 +54,8 @@ function DataDeletionPage() {
                       Users can request deletion of their ResumePilot account and associated data by emailing:
                     </p>
                     <p>
-                      <a href="mailto:aryan639244@gmail.com" className="font-semibold text-primary">
-                        aryan639244@gmail.com
+                      <a href="mailto:support@resumepilot.site" className="font-semibold text-primary">
+                        support@resumepilot.site
                       </a>
                     </p>
                     <p>

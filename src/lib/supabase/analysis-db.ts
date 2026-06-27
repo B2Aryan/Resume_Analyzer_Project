@@ -209,7 +209,10 @@ export async function togglePublicAnalysis(
   return data as DBAnalysis;
 }
 
-// Fetch a single analysis by ID
+// Fetch a single analysis by ID.
+// Works for both authenticated owners (via "Users can view their own analyses" RLS policy)
+// and unauthenticated viewers (via "Anyone can view public analyses" RLS policy).
+// Returns null when the analysis doesn't exist or is not accessible (RLS filtered).
 export async function fetchAnalysisById(
   analysisId: string
 ): Promise<DBAnalysis | null> {
@@ -223,11 +226,17 @@ export async function fetchAnalysisById(
     .single();
 
   if (error) {
+    // PGRST116 = "no rows returned" — expected when the analysis doesn't exist
+    // or when RLS filters it (private report accessed without auth).
+    if (error.code === "PGRST116") {
+      return null;
+    }
     console.error("Failed to fetch analysis:", error);
     return null;
   }
   return data as DBAnalysis;
 }
+
 
 // Delete an analysis from Supabase
 export async function deleteAnalysisFromDB(
