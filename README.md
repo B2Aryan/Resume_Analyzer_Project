@@ -81,16 +81,6 @@ Optimized for:
 
 ---
 
-## 📸 Screenshots
-
-### Dark Mode
-![Dark Mode Screenshot](./screenshots/dark-mode.png)
-
-### Light Mode
-![Light Mode Screenshot](./screenshots/light-mode.png)
-
----
-
 ## ⚙ Installation
 
 Clone repository:
