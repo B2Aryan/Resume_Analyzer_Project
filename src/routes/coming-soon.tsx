@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Sparkles, Bell, FileText, CheckCircle2, Rocket } from "lucide-react";
+import { Sparkles, Bell, FileText, CheckCircle2, Rocket, LayoutTemplate, Brain } from "lucide-react";
 import { MarketingLayout } from "@/components/marketing-layout";
 import { Button } from "@/components/ui/button";
 import { createSeoHead, ORGANIZATION_SCHEMA } from "@/lib/seo";
@@ -287,14 +287,14 @@ function ComingSoonPage() {
                   description: "Deep ATS compatibility analysis with detailed recommendations"
                 },
                 {
-                  icon: Bell,
-                  title: "Priority Support",
-                  description: "Get help when you need it with priority email support"
+                  icon: LayoutTemplate,
+                  title: "Resume Templates",
+                  description: "Create modern, ATS-friendly resume templates for different job roles"
                 },
                 {
-                  icon: CheckCircle2,
-                  title: "Export & History",
-                  description: "Save and export all your analysis reports and history"
+                  icon: Brain,
+                  title: "AI Career Coach",
+                  description: "Receive personalized career guidance, skill recommendations, and learning roadmaps powered by AI"
                 }
               ].map((feature) => {
                 const Icon = feature.icon;

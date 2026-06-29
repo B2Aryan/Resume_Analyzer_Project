@@ -1,4 +1,4 @@
-import { Sparkles, Bell, FileText, CheckCircle2, Rocket, Star } from "lucide-react";
+import { Sparkles, Bell, FileText, CheckCircle2, Rocket, Star, LayoutTemplate, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { User } from "@supabase/supabase-js";
 import { cn } from "@/lib/utils";
@@ -43,15 +43,15 @@ export function MobilePremium({
       color: "bg-pink-500/10 text-pink-400 border-pink-500/20",
     },
     {
-      icon: Bell,
-      title: "Priority Support",
-      description: "Get help when you need it with priority email support",
+      icon: LayoutTemplate,
+      title: "Resume Templates",
+      description: "Create modern, ATS-friendly resume templates for different job roles",
       color: "bg-amber-500/10 text-amber-400 border-amber-500/20",
     },
     {
-      icon: CheckCircle2,
-      title: "Export & History",
-      description: "Save and export all your analysis reports and history",
+      icon: Brain,
+      title: "AI Career Coach",
+      description: "Receive personalized career guidance, skill recommendations, and learning roadmaps powered by AI",
       color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
     },
   ];
